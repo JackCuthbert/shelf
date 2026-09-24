@@ -14,5 +14,6 @@ describe("UserMenu", () => {
     const html = renderToStaticMarkup(<UserMenu user={{ name: "Alex" }} />)
     expect(html).toContain("Alex")
     expect(html).toContain('aria-haspopup="menu"')
+    expect(html).not.toContain('class="btn text-xs"')
   })
 })

@@ -2,8 +2,8 @@
 
 import { Menu } from "@base-ui/react/menu"
 import { useEffect, useState } from "react"
-import { LuUserRound } from "react-icons/lu"
-import { SignOutButton } from "@/components/sign-out-button"
+import { LuLogOut, LuUserRound } from "react-icons/lu"
+import { authClient } from "@/lib/auth-client"
 
 export function UserMenu({ user }: { user: { name: string } | null }) {
   const [displayName, setDisplayName] = useState(user?.name ?? "")
@@ -43,8 +43,17 @@ export function UserMenu({ user }: { user: { name: string } | null }) {
             >
               Admin
             </Menu.Item>
-            <Menu.Item closeOnClick={false} className="p-1">
-              <SignOutButton />
+            <Menu.Item
+              closeOnClick={false}
+              onClick={() =>
+                authClient.signOut({
+                  fetchOptions: { onSuccess: () => location.assign("/") },
+                })
+              }
+              className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
+            >
+              <LuLogOut aria-hidden className="size-4" />
+              Sign out
             </Menu.Item>
           </Menu.Popup>
         </Menu.Positioner>
