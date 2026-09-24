@@ -7,7 +7,7 @@ type Catalogue = Record<string, CatalogueEntry>;
 const METADATA_URL = "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/metadata.json";
 const CDN = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons";
 
-export function IconPicker({ value, onChange }: { value: string; onChange: (slug: string) => void }) {
+export function IconPicker({ value, onChange, cachedValue }: { value: string; onChange: (slug: string) => void; cachedValue?: string }) {
   const [open, setOpen] = useState(false);
   const [catalogue, setCatalogue] = useState<Catalogue | null>(null);
   const [query, setQuery] = useState("");
@@ -28,10 +28,14 @@ export function IconPicker({ value, onChange }: { value: string; onChange: (slug
     const needle = query.trim().toLowerCase();
     return Object.entries(catalogue).filter(([slug, entry]) => !needle || `${slug} ${(entry.aliases ?? []).join(" ")}`.toLowerCase().includes(needle)).slice(0, 60);
   }, [catalogue, query]);
+  const selectedEntry = value && value !== cachedValue ? catalogue?.[value] : undefined;
+  const selectedPreview = selectedEntry
+    ? `${CDN}/${selectedEntry.base}/${value}.${selectedEntry.base}`
+    : value ? `/icons/${value}` : null;
 
   return <div className="mt-3">
     <div className="flex items-center gap-3 rounded-xl border border-stone-300 bg-stone-50 p-3">
-      {value ? <img className="h-10 w-10 rounded-md object-contain" src={`/icons/${value}`} alt="" /> : <span className="grid h-10 w-10 place-items-center rounded-md bg-stone-200 text-xs">No icon</span>}
+      {selectedPreview ? <img className="h-10 w-10 rounded-md object-contain" src={selectedPreview} alt="" /> : <span className="grid h-10 w-10 place-items-center rounded-md bg-stone-200 text-xs">No icon</span>}
       <div className="min-w-0 flex-1"><p className="text-xs font-semibold uppercase tracking-wide text-stone-500">Selected icon</p><p className="truncate">{value || "Choose an icon"}</p></div>
       <button type="button" onClick={() => { setOpen(!open); setError(""); }} className="rounded-lg border border-stone-300 px-3 py-2 text-sm font-medium hover:bg-white">{open ? "Close" : "Choose icon"}</button>
     </div>

@@ -47,7 +47,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
         <label className="text-sm font-medium">Name<input required maxLength={120} value={draft.name} onChange={(event) => setDraft({ ...draft, name: event.target.value })} className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 text-base" /></label>
         <label className="text-sm font-medium">URL<input required type="url" placeholder="https://example.home" value={draft.url} onChange={(event) => setDraft({ ...draft, url: event.target.value })} className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2 text-base" /></label>
       </div>
-      <IconPicker value={draft.iconSlug} onChange={(iconSlug) => setDraft({ ...draft, iconSlug })} />
+      <IconPicker value={draft.iconSlug} cachedValue={editingId ? apps.find((app) => app.id === editingId)?.iconSlug : undefined} onChange={(iconSlug) => setDraft({ ...draft, iconSlug })} />
       {error && <p role="alert" className="mt-3 rounded-lg bg-red-50 p-3 text-sm text-red-800">{error} Your entries are still here; choose another icon or retry saving.</p>}
       <div className="mt-5 flex flex-wrap gap-2">
         <button disabled={pending} className="rounded-xl bg-emerald-800 px-4 py-2.5 font-medium text-white disabled:opacity-50">{pending ? "Saving…" : "Save app"}</button>
