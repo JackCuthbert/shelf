@@ -2,11 +2,7 @@ import { TRPCError } from "@trpc/server"
 import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
-import {
-  createBoardNanoid,
-  moveItem,
-  orderedPositions,
-} from "@/server/board-service"
+import { createBoardNanoid, moveItem } from "@/server/board-service"
 
 const nameSchema = z.string().trim().min(1).max(80)
 
@@ -15,21 +11,6 @@ async function ownedBoard(id: string, ownerId: string) {
   if (!board)
     throw new TRPCError({ code: "NOT_FOUND", message: "Board not found." })
   return board
-}
-
-async function reorder(boardId: string, order: string[]) {
-  await prisma.$transaction(async (tx) => {
-    await tx.boardApp.updateMany({
-      where: { boardId },
-      data: { position: { increment: 1000000 } },
-    })
-    for (const [position, appId] of order.entries()) {
-      await tx.boardApp.update({
-        where: { boardId_appId: { boardId, appId } },
-        data: { position },
-      })
-    }
-  })
 }
 
 export const boardRouter = router({
