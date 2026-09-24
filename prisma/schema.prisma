@@ -17,7 +17,9 @@ model User {
   updatedAt     DateTime  @updatedAt
   sessions      Session[]
   accounts      Account[]
-
+  boards        Board[]
+  defaultBoardId String?
+  defaultBoard  Board?    @relation("UserDefaultBoard", fields: [id, defaultBoardId], references: [ownerId, id], onDelete: NoAction)
   @@map("user")
 }
 
@@ -82,7 +84,37 @@ model App {
   iconSlug  String
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+  boards    BoardApp[]
 
   @@index([iconSlug])
   @@map("app")
+}
+
+model Board {
+  id        String      @id @default(cuid())
+  nanoid    String      @unique
+  name      String
+  ownerId   String
+  owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  defaults  User[]      @relation("UserDefaultBoard")
+  apps      BoardApp[]
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  @@unique([ownerId, id])
+  @@index([ownerId, createdAt])
+  @@map("board")
+}
+
+model BoardApp {
+  boardId  String
+  appId    String
+  position Int
+  board    Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  app      App   @relation(fields: [appId], references: [id], onDelete: Cascade)
+
+  @@id([boardId, appId])
+  @@unique([boardId, position])
+  @@index([appId])
+  @@map("board_app")
 }

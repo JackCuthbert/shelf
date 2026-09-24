@@ -9,7 +9,12 @@ export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
   const session = await auth.api.getSession({ headers: await headers() });
-  if (session) redirect("/admin");
+  if (session) {
+    const user = await prisma.user.findUnique({ where: { id: session.user.id }, select: { defaultBoardId: true } });
+    const board = user?.defaultBoardId ? await prisma.board.findFirst({ where: { id: user.defaultBoardId, ownerId: session.user.id }, select: { nanoid: true } }) : null;
+    if (board) redirect(`/board/${board.nanoid}`);
+    redirect("/admin");
+  }
   const [userCount, instance] = await Promise.all([
     prisma.user.count(),
     prisma.instance.findUnique({ where: { id: "singleton" } }),
