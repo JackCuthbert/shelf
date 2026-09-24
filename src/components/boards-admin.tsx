@@ -1,6 +1,6 @@
 "use client"
 
-import { useState } from "react"
+import { useState, type ReactNode } from "react"
 import { AlertDialog } from "@base-ui/react/alert-dialog"
 import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
@@ -24,6 +24,7 @@ import {
   type CategoryRecord,
 } from "@/components/board-category-dialog"
 import { BoardAppDialog } from "@/components/board-app-dialog"
+import { CategorySelect } from "@/components/category-select"
 import { ConfirmContent, ModalContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 
@@ -78,6 +79,47 @@ function boardGroups(board: Board) {
       apps: board.apps.filter((entry) => entry.categoryId === category.id),
     })),
   ]
+}
+
+function IconAction({
+  label,
+  tooltip,
+  onClick,
+  disabled,
+  danger,
+  children,
+}: {
+  label: string
+  tooltip: string
+  onClick: () => void
+  disabled?: boolean
+  danger?: boolean
+  children: ReactNode
+}) {
+  return (
+    <Tooltip.Root>
+      <Tooltip.Trigger
+        render={
+          <button
+            type="button"
+            className={`btn text-xs ${danger ? "btn-danger" : ""}`}
+            disabled={disabled}
+            onClick={onClick}
+            aria-label={label}
+          />
+        }
+      >
+        {children}
+      </Tooltip.Trigger>
+      <Tooltip.Portal>
+        <Tooltip.Positioner sideOffset={6}>
+          <Tooltip.Popup className="panel px-2 py-1 text-xs">
+            {tooltip}
+          </Tooltip.Popup>
+        </Tooltip.Positioner>
+      </Tooltip.Portal>
+    </Tooltip.Root>
+  )
 }
 
 export function BoardsAdmin({
@@ -188,137 +230,200 @@ export function BoardsAdmin({
     index: number,
     groupCount: number,
   ) {
-    const selectId = `category-${board.id}-${entry.appId}`
     return (
       <li
         key={entry.appId}
-        className="flex flex-wrap items-center gap-2 border border-line bg-background p-2"
+        className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt sm:flex-row sm:flex-wrap sm:items-center"
       >
-        <img
-          src={`/icons/${entry.app.iconSlug}`}
-          alt=""
-          className="h-9 w-9 shrink-0 border border-line bg-surface object-contain p-1"
-        />
-        <span className="min-w-0 flex-1">
-          <span className="block truncate font-medium">{entry.app.name}</span>
-          <span className="block truncate text-xs text-muted">
-            {hostname(entry.app.url)}
+        <div className="flex min-w-0 items-center gap-2 sm:flex-1">
+          <img
+            src={`/icons/${entry.app.iconSlug}`}
+            alt=""
+            className="h-9 w-9 shrink-0 object-contain p-1"
+          />
+          <span className="min-w-0 flex-1">
+            <span className="block truncate font-medium">{entry.app.name}</span>
+            <span className="block truncate text-xs text-muted">
+              {hostname(entry.app.url)}
+            </span>
           </span>
-        </span>
-        <label htmlFor={selectId} className="sr-only">
-          Category for {entry.app.name}
-        </label>
+        </div>
         {board.categories.length > 0 && (
-          <select
-            id={selectId}
-            className="field w-auto"
-            value={entry.categoryId ?? ""}
-            onChange={(event) =>
+          <CategorySelect
+            value={entry.categoryId}
+            categories={board.categories}
+            label={`Category for ${entry.app.name}`}
+            className="w-full sm:w-auto"
+            onChange={(categoryId) =>
               setAssignmentCategory.mutate({
                 boardId: board.id,
                 appId: entry.appId,
-                categoryId: event.target.value || null,
+                categoryId,
+              })
+            }
+          />
+        )}
+        <div className="flex items-center justify-between gap-2 sm:justify-start">
+          <div className="flex items-center gap-1">
+            <Tooltip.Root>
+              <Tooltip.Trigger
+                render={
+                  <button
+                    type="button"
+                    className="btn text-xs"
+                    onClick={() => setEditingApp(entry.app)}
+                    aria-label={`Edit ${entry.app.name}`}
+                  />
+                }
+              >
+                <LuPencil aria-hidden className="size-4" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner sideOffset={6}>
+                  <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                    Edit
+                  </Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+            <Tooltip.Root>
+              <Tooltip.Trigger
+                render={
+                  <button
+                    type="button"
+                    className="btn text-xs"
+                    disabled={index === 0}
+                    onClick={() =>
+                      move.mutate({
+                        boardId: board.id,
+                        appId: entry.appId,
+                        direction: "up",
+                      })
+                    }
+                    aria-label={`Move ${entry.app.name} up`}
+                  />
+                }
+              >
+                <LuArrowUp aria-hidden className="size-4" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner sideOffset={6}>
+                  <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                    Move up
+                  </Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+            <Tooltip.Root>
+              <Tooltip.Trigger
+                render={
+                  <button
+                    type="button"
+                    className="btn text-xs"
+                    disabled={index === groupCount - 1}
+                    onClick={() =>
+                      move.mutate({
+                        boardId: board.id,
+                        appId: entry.appId,
+                        direction: "down",
+                      })
+                    }
+                    aria-label={`Move ${entry.app.name} down`}
+                  />
+                }
+              >
+                <LuArrowDown aria-hidden className="size-4" />
+              </Tooltip.Trigger>
+              <Tooltip.Portal>
+                <Tooltip.Positioner sideOffset={6}>
+                  <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                    Move down
+                  </Tooltip.Popup>
+                </Tooltip.Positioner>
+              </Tooltip.Portal>
+            </Tooltip.Root>
+          </div>
+          <Button
+            className="btn btn-danger text-xs"
+            onClick={() =>
+              unassign.mutate({
+                boardId: board.id,
+                appId: entry.appId,
               })
             }
           >
-            <option value="">Uncategorized</option>
-            {board.categories.map((category) => (
-              <option key={category.id} value={category.id}>
-                {category.title}
-              </option>
-            ))}
-          </select>
-        )}
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            render={
-              <button
-                type="button"
-                className="btn text-xs"
-                onClick={() => setEditingApp(entry.app)}
-                aria-label={`Edit ${entry.app.name}`}
-              />
-            }
-          >
-            <LuPencil aria-hidden className="size-4" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Positioner sideOffset={6}>
-              <Tooltip.Popup className="panel px-2 py-1 text-xs">
-                Edit
-              </Tooltip.Popup>
-            </Tooltip.Positioner>
-          </Tooltip.Portal>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            render={
-              <button
-                type="button"
-                className="btn text-xs"
-                disabled={index === 0}
-                onClick={() =>
-                  move.mutate({
-                    boardId: board.id,
-                    appId: entry.appId,
-                    direction: "up",
-                  })
-                }
-                aria-label={`Move ${entry.app.name} up`}
-              />
-            }
-          >
-            <LuArrowUp aria-hidden className="size-4" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Positioner sideOffset={6}>
-              <Tooltip.Popup className="panel px-2 py-1 text-xs">
-                Move up
-              </Tooltip.Popup>
-            </Tooltip.Positioner>
-          </Tooltip.Portal>
-        </Tooltip.Root>
-        <Tooltip.Root>
-          <Tooltip.Trigger
-            render={
-              <button
-                type="button"
-                className="btn text-xs"
-                disabled={index === groupCount - 1}
-                onClick={() =>
-                  move.mutate({
-                    boardId: board.id,
-                    appId: entry.appId,
-                    direction: "down",
-                  })
-                }
-                aria-label={`Move ${entry.app.name} down`}
-              />
-            }
-          >
-            <LuArrowDown aria-hidden className="size-4" />
-          </Tooltip.Trigger>
-          <Tooltip.Portal>
-            <Tooltip.Positioner sideOffset={6}>
-              <Tooltip.Popup className="panel px-2 py-1 text-xs">
-                Move down
-              </Tooltip.Popup>
-            </Tooltip.Positioner>
-          </Tooltip.Portal>
-        </Tooltip.Root>
-        <Button
-          className="btn btn-danger text-xs"
+            <LuX aria-hidden className="size-4" />
+            Remove
+          </Button>
+        </div>
+      </li>
+    )
+  }
+
+  function renderCategoryControls(
+    board: Board,
+    category: Category,
+    index: number,
+  ) {
+    return (
+      <div className="flex shrink-0 gap-1">
+        <IconAction
+          label={`Edit category ${category.title}`}
+          tooltip="Edit"
+          onClick={() => setCategoryDraft({ mode: "edit", category })}
+        >
+          <LuPencil aria-hidden className="size-4" />
+        </IconAction>
+        <IconAction
+          label={`Move category ${category.title} up`}
+          tooltip="Move up"
+          disabled={index === 0}
           onClick={() =>
-            unassign.mutate({
+            moveCategory.mutate({
               boardId: board.id,
-              appId: entry.appId,
+              id: category.id,
+              direction: "up",
             })
           }
         >
-          <LuX aria-hidden className="size-4" />
-          Remove
-        </Button>
-      </li>
+          <LuArrowUp aria-hidden className="size-4" />
+        </IconAction>
+        <IconAction
+          label={`Move category ${category.title} down`}
+          tooltip="Move down"
+          disabled={index === board.categories.length - 1}
+          onClick={() =>
+            moveCategory.mutate({
+              boardId: board.id,
+              id: category.id,
+              direction: "down",
+            })
+          }
+        >
+          <LuArrowDown aria-hidden className="size-4" />
+        </IconAction>
+        <AlertDialog.Root>
+          <AlertDialog.Trigger
+            className="btn btn-danger text-xs"
+            aria-label={`Delete category ${category.title}`}
+          >
+            <LuTrash2 aria-hidden className="size-4" />
+          </AlertDialog.Trigger>
+          <ConfirmContent
+            title="Delete category"
+            description={`Delete “${category.title}”? Its apps move to the end of the uncategorized group.`}
+          >
+            <AlertDialog.Close className="btn">Cancel</AlertDialog.Close>
+            <AlertDialog.Close
+              className="btn btn-danger"
+              onClick={() => deleteCategory.mutate({ id: category.id })}
+            >
+              <LuTrash2 aria-hidden className="size-4" />
+              Delete
+            </AlertDialog.Close>
+          </ConfirmContent>
+        </AlertDialog.Root>
+      </div>
     )
   }
 
@@ -340,7 +445,7 @@ export function BoardsAdmin({
           <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
             <Dialog.Trigger className="btn btn-primary">
               <LuPlus aria-hidden className="size-4" />
-              Add board
+              Create board
             </Dialog.Trigger>
             <ModalContent
               title="Add board"
@@ -391,7 +496,7 @@ export function BoardsAdmin({
             trigger={
               <Dialog.Trigger className="btn">
                 <LuPlus aria-hidden className="size-4" />
-                Add app
+                Create app
               </Dialog.Trigger>
             }
           />
@@ -555,7 +660,7 @@ export function BoardsAdmin({
 
                 <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
                   <h4 className="text-xs font-semibold text-muted uppercase">
-                    Categories
+                    Apps
                   </h4>
                   <Button
                     className="btn text-xs"
@@ -567,130 +672,70 @@ export function BoardsAdmin({
                     Add category
                   </Button>
                 </div>
-                {board.categories.length === 0 ? (
-                  <p className="mt-2 text-sm text-muted">
-                    No categories yet. Apps are shown uncategorized.
-                  </p>
-                ) : (
-                  <ol className="mt-2 space-y-2">
-                    {board.categories.map((category, index) => (
-                      <li
-                        key={category.id}
-                        className="flex flex-wrap items-center gap-2 border border-line bg-background p-2"
-                      >
-                        <span className="min-w-0 flex-1">
-                          <span className="block truncate font-medium">
-                            {category.title}
-                          </span>
-                          {category.description && (
-                            <span className="block truncate text-xs text-muted">
-                              {category.description}
-                            </span>
-                          )}
-                        </span>
-                        <Button
-                          className="btn text-xs"
-                          onClick={() =>
-                            setCategoryDraft({ mode: "edit", category })
-                          }
-                          aria-label={`Edit category ${category.title}`}
-                        >
-                          <LuPencil aria-hidden className="size-4" />
-                          Edit
-                        </Button>
-                        <Button
-                          className="btn text-xs"
-                          disabled={index === 0}
-                          onClick={() =>
-                            moveCategory.mutate({
-                              boardId: board.id,
-                              id: category.id,
-                              direction: "up",
-                            })
-                          }
-                          aria-label={`Move category ${category.title} up`}
-                        >
-                          <LuArrowUp aria-hidden className="size-4" />
-                          Move up
-                        </Button>
-                        <Button
-                          className="btn text-xs"
-                          disabled={index === board.categories.length - 1}
-                          onClick={() =>
-                            moveCategory.mutate({
-                              boardId: board.id,
-                              id: category.id,
-                              direction: "down",
-                            })
-                          }
-                          aria-label={`Move category ${category.title} down`}
-                        >
-                          <LuArrowDown aria-hidden className="size-4" />
-                          Move down
-                        </Button>
-                        <AlertDialog.Root>
-                          <AlertDialog.Trigger className="btn btn-danger text-xs">
-                            <LuTrash2 aria-hidden className="size-4" />
-                            Delete
-                          </AlertDialog.Trigger>
-                          <ConfirmContent
-                            title="Delete category"
-                            description={`Delete “${category.title}”? Its apps move to the end of the uncategorized group.`}
-                          >
-                            <AlertDialog.Close className="btn">
-                              Cancel
-                            </AlertDialog.Close>
-                            <AlertDialog.Close
-                              className="btn btn-danger"
-                              onClick={() =>
-                                deleteCategory.mutate({ id: category.id })
-                              }
-                            >
-                              <LuTrash2 aria-hidden className="size-4" />
-                              Delete
-                            </AlertDialog.Close>
-                          </ConfirmContent>
-                        </AlertDialog.Root>
-                      </li>
-                    ))}
-                  </ol>
-                )}
 
                 {board.apps.length === 0 && board.categories.length === 0 ? (
-                  <p className="mt-4 text-sm text-muted">
+                  <p className="mt-3 text-sm text-muted">
                     No apps assigned yet.
                   </p>
                 ) : board.categories.length === 0 ? (
-                  <ol className="mt-4 space-y-2">
+                  <ol className="mt-3 space-y-1">
                     {board.apps.map((entry, index) =>
                       renderAssignment(board, entry, index, board.apps.length),
                     )}
                   </ol>
                 ) : (
-                  <div className="mt-4 space-y-4">
-                    {groups.map((group) => (
-                      <section key={group.category?.id ?? "uncategorized"}>
-                        <h5 className="mb-2 text-sm font-semibold">
-                          {group.category?.title ?? "Uncategorized"}
-                        </h5>
-                        {group.apps.length === 0 ? (
-                          <p className="text-sm text-muted">
-                            No apps assigned.
-                          </p>
-                        ) : (
-                          <ol className="space-y-2">
-                            {group.apps.map((entry, index) =>
-                              renderAssignment(
+                  <div className="mt-3 space-y-6">
+                    {groups.map((group) => {
+                      const category = group.category
+                      const categoryIndex = category
+                        ? board.categories.findIndex(
+                            (item) => item.id === category.id,
+                          )
+                        : -1
+                      return (
+                        <section
+                          key={category?.id ?? "uncategorized"}
+                          aria-label={category?.title ?? "Uncategorized"}
+                        >
+                          <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
+                            <div className="min-w-0">
+                              <h5 className="truncate text-sm font-semibold">
+                                {category?.title ?? "Uncategorized"}
+                              </h5>
+                              {category?.description && (
+                                <p className="text-xs text-muted">
+                                  {category.description}
+                                </p>
+                              )}
+                            </div>
+                            {category &&
+                              renderCategoryControls(
                                 board,
-                                entry,
-                                index,
-                                group.apps.length,
-                              ),
+                                category,
+                                categoryIndex,
+                              )}
+                          </header>
+                          <div className="pt-1">
+                            {group.apps.length === 0 ? (
+                              <p className="px-3 py-2 text-sm text-muted">
+                                No apps assigned.
+                              </p>
+                            ) : (
+                              <ol className="space-y-1">
+                                {group.apps.map((entry, index) =>
+                                  renderAssignment(
+                                    board,
+                                    entry,
+                                    index,
+                                    group.apps.length,
+                                  ),
+                                )}
+                              </ol>
                             )}
-                          </ol>
-                        )}
-                      </section>
-                    ))}
+                          </div>
+                        </section>
+                      )
+                    })}
                   </div>
                 )}
               </li>

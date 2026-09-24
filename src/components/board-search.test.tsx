@@ -137,4 +137,25 @@ describe("BoardSearch", () => {
     )
     expect(html).not.toMatch(/escape|ctrl|cmd|arrow/i)
   })
+
+  it("shows a category heading without a divider rule", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps.map((app) => ({ ...app, categoryId: "movies" }))}
+        categories={[
+          { id: "movies", title: "Movies", description: "Films we watch" },
+        ]}
+        user={null}
+      />,
+    )
+    const section = html.match(
+      /<section[^>]*aria-label="Movies"[\s\S]*?<\/section>/,
+    )?.[0]
+    expect(section).toBeDefined()
+    expect(section).toContain("Movies")
+    expect(section).toContain("Films we watch")
+    expect(section).not.toContain("border-b")
+  })
 })

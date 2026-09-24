@@ -4,6 +4,7 @@ import { useId, useState } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
 import { LuPlus } from "react-icons/lu"
+import { CategorySelect } from "@/components/category-select"
 import { ModalContent } from "@/components/modal"
 
 type App = { id: string; name: string; url: string; iconSlug: string }
@@ -31,7 +32,6 @@ export function BoardAppDialog({
   const [filter, setFilter] = useState("")
   const [categoryId, setCategoryId] = useState("")
   const filterId = useId()
-  const categoryFieldId = useId()
   const needle = filter.trim().toLowerCase()
   const visible = needle
     ? apps.filter((app) =>
@@ -64,25 +64,14 @@ export function BoardAppDialog({
           <>
             {categories.length > 0 && (
               <div className="mb-3 space-y-1">
-                <label
-                  htmlFor={categoryFieldId}
-                  className="block text-xs text-muted"
-                >
-                  Category
-                </label>
-                <select
-                  id={categoryFieldId}
-                  className="field"
-                  value={categoryId}
-                  onChange={(event) => setCategoryId(event.target.value)}
-                >
-                  <option value="">Uncategorized</option>
-                  {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
-                      {category.title}
-                    </option>
-                  ))}
-                </select>
+                <span className="block text-xs text-muted">Category</span>
+                <CategorySelect
+                  value={categoryId || null}
+                  categories={categories}
+                  label="Category"
+                  className="w-full"
+                  onChange={(next) => setCategoryId(next ?? "")}
+                />
               </div>
             )}
             <label htmlFor={filterId} className="sr-only">
@@ -111,7 +100,7 @@ export function BoardAppDialog({
                       <img
                         src={`/icons/${app.iconSlug}`}
                         alt=""
-                        className="h-9 w-9 shrink-0 border border-line bg-surface object-contain p-1"
+                        className="h-9 w-9 shrink-0 object-contain p-1"
                       />
                       <span className="min-w-0 flex-1">
                         <span className="block truncate font-medium">

@@ -24,7 +24,8 @@ import { SharedApps } from "./shared-apps"
 
 it("opens app creation from a modal trigger instead of an inline form", () => {
   const html = renderToStaticMarkup(<SharedApps initialApps={[]} />)
-  expect(html).toContain("Add app")
+  expect(html).toContain("Create app")
+  expect(html).not.toContain("Add app")
   expect(html).not.toContain('placeholder="https://example.home"')
 })
 

@@ -60,7 +60,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
           trigger={
             <Dialog.Trigger className="btn btn-primary">
               <LuPlus aria-hidden className="size-4" />
-              Add app
+              Create app
             </Dialog.Trigger>
           }
         />

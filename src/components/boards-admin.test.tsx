@@ -141,11 +141,284 @@ it("renders icon-only move controls with accessible labels", () => {
   expect(html).not.toContain(">Move down<")
 })
 
+it("shows assigned app icons without a surrounding box", () => {
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [],
+          apps: [
+            {
+              boardId: "board-1",
+              appId: "plex",
+              categoryId: null,
+              position: 0,
+              app: {
+                id: "plex",
+                name: "Plex",
+                description: "",
+                url: "https://plex.example",
+                iconSlug: "plex",
+                status: "unknown",
+                lastCheckedAt: null,
+                createdAt: "",
+                updatedAt: "",
+              },
+            },
+          ],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+  const icon = html.match(/<img src="\/icons\/plex"[^>]*>/)?.[0]
+  expect(icon).toBeDefined()
+  expect(icon).not.toContain("border")
+  expect(icon).not.toContain("bg-surface")
+  expect(html).toContain("Add app")
+  expect(html).not.toContain("Add board")
+})
+
+it("separates admin app rows with spacing and a hover state instead of borders", () => {
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [],
+          apps: [
+            {
+              boardId: "board-1",
+              appId: "plex",
+              categoryId: null,
+              position: 0,
+              app: {
+                id: "plex",
+                name: "Plex",
+                description: "",
+                url: "https://plex.example",
+                iconSlug: "plex",
+                status: "unknown",
+                lastCheckedAt: null,
+                createdAt: "",
+                updatedAt: "",
+              },
+            },
+          ],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+  expect(html).not.toContain("border border-line")
+  const row = html.match(/<li class="[^"]*hover:bg-surface-alt[^"]*"/)?.[0]
+  expect(row).toBeDefined()
+  expect(row).not.toContain("border")
+  expect(row).toContain("hover:bg-surface-alt")
+})
+
+it("stacks admin app rows on phones and lays them out inline from sm up", () => {
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [
+            {
+              id: "movies",
+              title: "Movies",
+              description: "",
+              boardId: "board-1",
+              position: 0,
+              createdAt: "",
+              updatedAt: "",
+            },
+          ],
+          apps: [
+            {
+              boardId: "board-1",
+              appId: "plex",
+              categoryId: "movies",
+              position: 0,
+              app: {
+                id: "plex",
+                name: "Plex",
+                description: "",
+                url: "https://plex.example",
+                iconSlug: "plex",
+                status: "unknown",
+                lastCheckedAt: null,
+                createdAt: "",
+                updatedAt: "",
+              },
+            },
+          ],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+  const row = html.match(/<li class="flex flex-col[^"]*"/)?.[0]
+  expect(row).toBeDefined()
+  expect(row).toContain("sm:flex-row")
+  expect(row).toContain("sm:items-center")
+  const select = html.match(
+    /<button[^>]*aria-label="Category for Plex"[^>]*>/,
+  )?.[0]
+  expect(select).toContain("w-full")
+  expect(select).toContain("sm:w-auto")
+})
+
+it("uses a custom select to move an app between categories", () => {
+  const app = (id: string, name: string) => ({
+    id,
+    name,
+    description: "",
+    url: `https://${id}.example`,
+    iconSlug: id,
+    status: "unknown",
+    lastCheckedAt: null,
+    createdAt: "",
+    updatedAt: "",
+  })
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [
+            {
+              id: "movies",
+              title: "Movies",
+              description: "",
+              boardId: "board-1",
+              position: 0,
+              createdAt: "",
+              updatedAt: "",
+            },
+          ],
+          apps: [
+            {
+              boardId: "board-1",
+              appId: "plex",
+              categoryId: "movies",
+              position: 0,
+              app: app("plex", "Plex"),
+            },
+            {
+              boardId: "board-1",
+              appId: "sonarr",
+              categoryId: null,
+              position: 1,
+              app: app("sonarr", "Sonarr"),
+            },
+          ],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+
+  expect(html).not.toContain("<select")
+  const plex = html.match(
+    /<button[^>]*aria-label="Category for Plex"[^>]*>[\s\S]*?<\/button>/,
+  )?.[0]
+  expect(plex).toBeDefined()
+  expect(plex).toContain('role="combobox"')
+  expect(plex).toContain("Movies")
+  const sonarr = html.match(
+    /<button[^>]*aria-label="Category for Sonarr"[^>]*>[\s\S]*?<\/button>/,
+  )?.[0]
+  expect(sonarr).toContain("Uncategorized")
+})
+
 it("offers board and app creation from modal triggers instead of inline forms", () => {
   const html = renderToStaticMarkup(
     <BoardsAdmin initialBoards={[]} initialApps={[]} />,
   )
-  expect(html).toContain("Add board")
-  expect(html).toContain("Add app")
+  expect(html).toContain("Create board")
+  expect(html).toContain("Create app")
+  expect(html).not.toContain("Add board")
+  expect(html).not.toContain("Add app")
   expect(html).not.toContain("New board name")
+})
+
+it("keeps each category's controls and apps together in one section", () => {
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [
+            {
+              id: "movies",
+              title: "Movies",
+              description: "Films we watch",
+              boardId: "board-1",
+              position: 0,
+              createdAt: "",
+              updatedAt: "",
+            },
+          ],
+          apps: [
+            {
+              boardId: "board-1",
+              appId: "plex",
+              categoryId: "movies",
+              position: 0,
+              app: {
+                id: "plex",
+                name: "Plex",
+                description: "",
+                url: "https://plex.example",
+                iconSlug: "plex",
+                status: "unknown",
+                lastCheckedAt: null,
+                createdAt: "",
+                updatedAt: "",
+              },
+            },
+          ],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+
+  const section = html.match(
+    /<section[^>]*aria-label="Movies"[\s\S]*?<\/section>/,
+  )?.[0]
+  expect(section).toBeDefined()
+  expect(section).toContain("Films we watch")
+  expect(section).toContain('aria-label="Edit category Movies"')
+  expect(section).toContain('aria-label="Move category Movies up"')
+  expect(section).toContain('aria-label="Move category Movies down"')
+  expect(section).toContain("Plex")
+  expect(section).toContain('aria-label="Move Plex up"')
 })

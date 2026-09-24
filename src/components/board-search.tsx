@@ -226,7 +226,7 @@ export function BoardSearch({
                 aria-label={group.category?.title ?? "Uncategorized apps"}
               >
                 {group.category && (
-                  <header className="mb-3 border-b border-line pb-2">
+                  <header className="mb-3">
                     <h2 className="text-base font-semibold">
                       {group.category.title}
                     </h2>
