@@ -7,6 +7,11 @@
 - The first visitor may claim the instance; no setup token is required.
 - The new user creates their first board in `/admin`.
 
+## Stage-one application state
+
+- Until boards are available, a signed-in visitor to `/` is sent to `/admin`.
+- The initial `/admin` shell confirms account access and sign-out; board management is added in a later stage.
+
 ## Later access
 
 - Signed-out visitors see login at `/`. They can open a board directly at `/board/<nanoid>` without logging in.

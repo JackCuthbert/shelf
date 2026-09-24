@@ -9,6 +9,26 @@
 - Restarts and image upgrades preserve users, sessions, boards, apps, assignments, and selected icons through the directory volume. A fresh empty volume triggers first-account setup.
 - Document a Docker administrator password-reset command. It targets an account by email and prompts for the new password without putting it in process arguments.
 
+Example:
+
+```sh
+docker build -t hometime .
+docker run -d --name hometime \
+  -p 3000:3000 \
+  -e BETTER_AUTH_URL=https://hometime.example.com \
+  -e BETTER_AUTH_SECRET='replace-with-a-long-random-secret' \
+  -v hometime-data:/data \
+  hometime
+```
+
+Set `ENABLE_SIGNUP=true` to allow later account creation; it is disabled otherwise. To reset an account password without placing it in process arguments, run:
+
+```sh
+docker exec -it hometime npm run admin:reset-password -- person@example.com
+```
+
+The command prompts for the new password in the terminal.
+
 ## Operational checks
 
 - Start with an empty directory volume, create the first account and an app, restart the container, and confirm the account, app, database, and icon remain available.
