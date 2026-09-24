@@ -20,6 +20,8 @@ When work spans features, read only the affected specifications and resolve any 
 
 When implementing features, agents must keep output token efficient. Communicate only what is necessary for further development or to report a material blocker. Keep progress updates and final handoffs brief and concise.
 
+Implementers started by a primary agent must report back to that primary agent when finished, including the commit, verification results, and any unresolved issues.
+
 ## Commit convention
 
 Use Conventional Commits for every commit. Write the summary and any body so generated release notes clearly describe the change's user-visible effect; mark breaking changes with the conventional `!` and `BREAKING CHANGE:` footer.
