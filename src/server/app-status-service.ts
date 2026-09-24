@@ -1,3 +1,6 @@
+import http from "node:http"
+import https from "node:https"
+
 export type AppStatus = "unknown" | "up" | "down"
 
 export type AppStatusRecord = {
@@ -22,9 +25,34 @@ type Fetcher = (url: string, options: RequestInit) => Promise<Response>
 const CACHE_MS = 60_000
 const PROBE_TIMEOUT_MS = 3_000
 
+// Self-hosted apps commonly serve HTTPS with a self-signed certificate. A
+// liveness probe only needs an HTTP response, so certificate verification is
+// disabled rather than reporting a reachable app as down.
+export const probeHttpsAgent = new https.Agent({ rejectUnauthorized: false })
+
+function nodeFetch(url: string, options: RequestInit): Promise<Response> {
+  return new Promise((resolve, reject) => {
+    const transport = new URL(url).protocol === "https:" ? https : http
+    const request = transport.request(
+      url,
+      {
+        method: options.method ?? "GET",
+        agent: transport === https ? probeHttpsAgent : undefined,
+        signal: options.signal ?? undefined,
+      },
+      (response) => {
+        response.destroy()
+        resolve(new Response(null, { status: response.statusCode ?? 0 }))
+      },
+    )
+    request.on("error", reject)
+    request.end()
+  })
+}
+
 export function createAppStatusService(
   repository: AppStatusRepository,
-  fetcher: Fetcher = fetch,
+  fetcher: Fetcher = nodeFetch,
   now: () => Date = () => new Date(),
 ) {
   const inFlight = new Map<

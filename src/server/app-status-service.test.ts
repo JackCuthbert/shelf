@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import {
   createAppStatusService,
+  probeHttpsAgent,
   type AppStatusRepository,
 } from "./app-status-service"
 
@@ -35,6 +36,12 @@ function setup(
   )
   return { app, repository, fetcher, service }
 }
+
+describe("app status probe TLS", () => {
+  it("accepts self-signed certificates so self-hosted apps report up", () => {
+    expect(probeHttpsAgent.options.rejectUnauthorized).toBe(false)
+  })
+})
 
 describe("app status service", () => {
   it("probes unknown apps and stores the result", async () => {

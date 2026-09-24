@@ -10,7 +10,7 @@ Show whether an app assigned to a viewed board recently responded to a server-si
 - The server resolves the board by its public Nano ID and checks only apps currently assigned to that board. The client never supplies arbitrary URLs.
 - Store the latest result on `App`: `status` is `unknown`, `up`, or `down`; `lastCheckedAt` is nullable and records the most recent completed check.
 - A successful HTTP response of any status code means `up`; connection errors and timeouts mean `down`. A request timeout is three seconds. Status says only that the server received an HTTP response, not that the app is fully functional.
-- Requests use GET and cancel the response body after headers arrive. Redirects are not followed.
+- Requests use GET and cancel the response body after headers arrive. Redirects are not followed. HTTPS probes do not validate the server certificate, so self-hosted apps using self-signed certificates still report up.
 - Cache the latest completed check per app for 60 seconds. A board view within the cache window reuses the stored result; otherwise it performs a live check. Checks for a board may run concurrently.
 - A board refresh returns the current persisted statuses so visible tiles update without reloading the board.
 - Editing an app's URL resets its status to `unknown` and clears `lastCheckedAt`, so a board view probes the new endpoint immediately. Edits to the name, description, or icon preserve the cached status.
