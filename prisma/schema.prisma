@@ -74,3 +74,15 @@ model Instance {
   token     String   @unique
   claimedAt DateTime @default(now())
 }
+
+model App {
+  id        String   @id @default(cuid())
+  name      String
+  url       String
+  iconSlug  String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([iconSlug])
+  @@map("app")
+}

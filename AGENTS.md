@@ -16,6 +16,10 @@ The product specification lives in `spec/`. Read a feature specification only wh
 
 When work spans features, read only the affected specifications and resolve any conflicts against `spec/architecture.md`. Keep the relevant feature specification in sync with intentional behavior changes.
 
+## Implementer communication
+
+When implementing features, agents must keep output token efficient. Communicate only what is necessary for further development or to report a material blocker. Keep progress updates and final handoffs brief and concise.
+
 ## Commit convention
 
 Use Conventional Commits for every commit. Write the summary and any body so generated release notes clearly describe the change's user-visible effect; mark breaking changes with the conventional `!` and `BREAKING CHANGE:` footer.
