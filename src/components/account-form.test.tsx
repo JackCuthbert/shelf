@@ -4,9 +4,11 @@ import { AccountForm } from "./account-form"
 
 it("offers OIDC sign-in when an instance provider is configured", () => {
   const html = renderToStaticMarkup(
-    <AccountForm setup={false} signup={false} oidc={{ name: "Pocket ID" }} />,
+    <AccountForm setup={false} signup oidc={{ name: "Pocket ID" }} />,
   )
   expect(html).toContain("Continue with Pocket ID")
+  expect(html).not.toContain(">Name</label>")
+  expect(html).toContain("Sign up")
 })
 
 it("does not offer OIDC during first-account setup", () => {

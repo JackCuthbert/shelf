@@ -35,6 +35,7 @@ export function getOidcProviderConfig(env: OidcEnvironment) {
     clientSecret,
     discoveryUrl: `${issuerUrl}/.well-known/openid-configuration`,
     requireIdTokenVerification: true,
+    disableImplicitSignUp: true,
     scopes: ["openid", "email", "profile"],
   }
 }

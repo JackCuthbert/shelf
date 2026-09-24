@@ -18,6 +18,7 @@ it("uses OIDC discovery and the standard identity scopes", () => {
     clientId: "hometime",
     clientSecret: "secret",
     scopes: ["openid", "email", "profile"],
+    disableImplicitSignUp: true,
   })
 })
 

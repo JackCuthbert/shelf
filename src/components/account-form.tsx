@@ -19,14 +19,16 @@ export function AccountForm({
 }) {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+  const [signingUp, setSigningUp] = useState(false)
 
-  async function signInOidc() {
+  async function continueOidc() {
     setPending(true)
     setError("")
     try {
       const result = await authClient.signIn.social({
         provider: "oidc",
         callbackURL: "/admin",
+        requestSignUp: signup && signingUp,
       })
       if (result.error || !result.data?.url) {
         setError("Unable to start OpenID Connect sign-in.")
@@ -60,7 +62,7 @@ export function AccountForm({
         setPending(false)
         return
       }
-    } else if (signup) {
+    } else if (signup && signingUp) {
       const response = await fetch("/api/signup", {
         method: "POST",
         headers: { "content-type": "application/json" },
@@ -84,14 +86,7 @@ export function AccountForm({
   }
   return (
     <Form onFormSubmit={submit} className="panel space-y-4 p-6">
-      {setup && (
-        <Field.Root name="name" className="space-y-2">
-          <Field.Label className="text-xs text-muted">Name</Field.Label>
-          <Input className="field" autoComplete="name" required />
-          <Field.Error className="text-xs text-danger" />
-        </Field.Root>
-      )}
-      {!setup && signup && (
+      {(setup || (signup && signingUp)) && (
         <Field.Root name="name" className="space-y-2">
           <Field.Label className="text-xs text-muted">Name</Field.Label>
           <Input className="field" autoComplete="name" required />
@@ -108,7 +103,9 @@ export function AccountForm({
         <Input
           className="field"
           type="password"
-          autoComplete={setup || signup ? "new-password" : "current-password"}
+          autoComplete={
+            setup || signingUp ? "new-password" : "current-password"
+          }
           minLength={8}
           required
         />
@@ -126,7 +123,7 @@ export function AccountForm({
       >
         {pending ? (
           <LuLoader aria-hidden className="size-4 animate-spin" />
-        ) : setup || signup ? (
+        ) : setup || signingUp ? (
           <LuUserPlus aria-hidden className="size-4" />
         ) : (
           <LuLogIn aria-hidden className="size-4" />
@@ -136,7 +133,7 @@ export function AccountForm({
             ? "Please wait…"
             : setup
               ? "Create account"
-              : signup
+              : signingUp
                 ? "Create account"
                 : "Sign in"}
         </span>
@@ -146,9 +143,22 @@ export function AccountForm({
           type="button"
           disabled={pending}
           className="btn w-full"
-          onClick={signInOidc}
+          onClick={continueOidc}
         >
-          Continue with {oidc.name}
+          {signingUp ? "Sign up with" : "Continue with"} {oidc.name}
+        </Button>
+      )}
+      {!setup && signup && (
+        <Button
+          type="button"
+          disabled={pending}
+          className="w-full text-sm text-accent underline underline-offset-2"
+          onClick={() => {
+            setError("")
+            setSigningUp(!signingUp)
+          }}
+        >
+          {signingUp ? "Already have an account? Sign in" : "Sign up"}
         </Button>
       )}
     </Form>

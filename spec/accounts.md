@@ -18,6 +18,7 @@
 - Signed-in users visiting `/` see their default board. If they have no board, they go to the board-creation empty state in `/admin`.
 - `/admin` and all edit operations require a valid session. A signed-out visitor trying `/admin` is sent to login and returns to `/admin` after signing in.
 - Local login uses email and password. Passwords are hashed and sessions use the auth library's server-validated cookies. No email delivery or email verification is required in v1.
+- The login page initially shows only email and password. When sign-up is enabled, a Sign up action switches to a separate registration view with name, email, password, and OIDC registration if configured. OIDC sign-in never implicitly creates an account; OIDC registration is initiated from the sign-up view.
 - An instance may offer sign-in through one administrator-configured OpenID Connect provider. Users may create accounts through OIDC sign-in only when `ENABLE_SIGNUP=true`; first-account setup remains the local email-and-password flow.
 - OIDC identities are linked to an existing local account only when its signed-in user explicitly connects the provider from `/account`. Matching email addresses never link accounts automatically. Linking preserves the local user, email, and board IDs.
 - Self-sign-up after initial setup is controlled by the Docker administrator through `ENABLE_SIGNUP=true`. It is disabled when the variable is absent or false. The first-account flow works regardless of this setting.
