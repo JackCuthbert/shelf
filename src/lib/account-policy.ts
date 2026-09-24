@@ -8,3 +8,10 @@ export function canCreateFirstAccount(
 export function signupEnabled(value: string | undefined): boolean {
   return value === "true"
 }
+
+export function canCreateAuthUser(
+  userCount: number,
+  signupSetting: string | undefined,
+): boolean {
+  return userCount > 0 && signupEnabled(signupSetting)
+}

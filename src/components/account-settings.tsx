@@ -37,9 +37,11 @@ export async function updatePassword(
 export function AccountSettings({
   name,
   email,
+  oidc,
 }: {
   name: string
   email: string
+  oidc?: { name: string; connected: boolean }
 }) {
   const [nameState, setNameState] = useState({
     pending: false,
@@ -56,6 +58,32 @@ export function AccountSettings({
     message: "",
     error: false,
   })
+  const [oidcState, setOidcState] = useState({ pending: false, message: "" })
+
+  async function connectOidc() {
+    setOidcState({ pending: true, message: "" })
+    try {
+      const result = await authClient.linkSocial({
+        provider: "oidc",
+        callbackURL: "/account",
+        errorCallbackURL: "/account",
+      })
+      if (result.error || !result.data?.url) {
+        setOidcState({
+          pending: false,
+          message: "Unable to start the identity provider connection.",
+        })
+        return
+      }
+      window.location.assign(result.data.url)
+    } catch {
+      setOidcState({
+        pending: false,
+        message:
+          "Unable to connect the identity provider. Check your connection.",
+      })
+    }
+  }
 
   async function saveName(values: Record<string, unknown>) {
     setNameState({ pending: true, message: "", error: false })
@@ -196,9 +224,36 @@ export function AccountSettings({
           </Button>
         </Form>
       </section>
-      <section className="panel p-5">
-        <h2 className="text-lg font-semibold">Connected identity providers</h2>
-      </section>
+      {oidc && (
+        <section className="panel space-y-3 p-5">
+          <h2 className="text-lg font-semibold">
+            Connected identity providers
+          </h2>
+          {oidc.connected ? (
+            <p className="text-sm text-muted">{oidc.name} connected</p>
+          ) : (
+            <>
+              <p className="text-sm text-muted">
+                Connect {oidc.name} to sign in to this account with your
+                identity provider.
+              </p>
+              <Button
+                type="button"
+                className="btn"
+                disabled={oidcState.pending}
+                onClick={connectOidc}
+              >
+                {oidcState.pending ? "Connecting…" : `Connect ${oidc.name}`}
+              </Button>
+            </>
+          )}
+          {oidcState.message && (
+            <p role="alert" className="text-sm text-danger">
+              {oidcState.message}
+            </p>
+          )}
+        </section>
+      )}
     </div>
   )
 }

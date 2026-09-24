@@ -6,6 +6,7 @@
 - SQLite is the only database. Prisma owns the schema, migrations, and application data access.
 - tRPC defines typed procedures for app and board reads and writes; the frontend shares their TypeScript types. Server Components may call the tRPC server caller for initial data without an HTTP round trip. Small client components handle forms, the icon picker, and board search.
 - Better Auth handles local email/password credentials and sessions through its Next.js integration and Prisma adapter. Its auth routes are separate from tRPC. [Next.js integration](https://better-auth.com/docs/integrations/next), [Prisma adapter](https://better-auth.com/docs/adapters/prisma).
+- Better Auth's Generic OAuth plugin optionally handles one administrator-configured OIDC provider. OAuth tokens are encrypted in the database. Implicit email-based account linking is disabled; authenticated users explicitly link provider identities. The local user-creation hook enforces `ENABLE_SIGNUP` for OIDC sign-up as well as email sign-up.
 - Account settings use authenticated server-side operations for the current user. Email and password changes verify the existing local password; password changes revoke other sessions while preserving the current session.
 - When installing npm modules, use the versions tagged `latest` at installation time and commit the resulting lockfile.
 

@@ -3,7 +3,6 @@
 The following need their own design before implementation:
 
 - A liveness ping and visible status for saved apps (the desired simple "is it up" signal).
-- OIDC sign-in, including Pocket ID, and explicit linking to existing local accounts.
 - Drag and drop ordering, if Move up / Move down controls prove insufficient.
 - A redesigned keyboard interaction for board search and tiles.
 

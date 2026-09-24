@@ -1,5 +1,9 @@
 import { describe, expect, it } from "vitest"
-import { canCreateFirstAccount, signupEnabled } from "./account-policy"
+import {
+  canCreateAuthUser,
+  canCreateFirstAccount,
+  signupEnabled,
+} from "./account-policy"
 
 describe("account setup policy", () => {
   it("allows only the first account before the instance is claimed", () => {
@@ -13,5 +17,11 @@ describe("account setup policy", () => {
     expect(signupEnabled("false")).toBe(false)
     expect(signupEnabled("TRUE")).toBe(false)
     expect(signupEnabled("true")).toBe(true)
+  })
+
+  it("allows auth-based account creation only after setup and when enabled", () => {
+    expect(canCreateAuthUser(0, "true")).toBe(false)
+    expect(canCreateAuthUser(1, undefined)).toBe(false)
+    expect(canCreateAuthUser(1, "true")).toBe(true)
   })
 })

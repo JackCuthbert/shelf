@@ -1,6 +1,12 @@
 import { betterAuth } from "better-auth"
+import { APIError } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
+import { genericOAuth } from "better-auth/plugins"
+import { canCreateAuthUser } from "./account-policy"
+import { getOidcProviderConfig } from "./oidc"
 import { prisma } from "./prisma"
+
+const oidcProvider = getOidcProviderConfig(process.env)
 
 const commonOptions = {
   appName: "Hometime",
@@ -20,6 +26,35 @@ const commonOptions = {
 
 export const auth = betterAuth({
   ...commonOptions,
+  plugins: oidcProvider ? [genericOAuth({ config: [oidcProvider] })] : [],
+  account: {
+    encryptOAuthTokens: true,
+    accountLinking: {
+      enabled: true,
+      disableImplicitLinking: true,
+      trustedProviders: oidcProvider ? [oidcProvider.providerId] : [],
+      allowDifferentEmails: true,
+    },
+  },
+  databaseHooks: {
+    user: {
+      create: {
+        before: async () => {
+          if (
+            !canCreateAuthUser(
+              await prisma.user.count(),
+              process.env.ENABLE_SIGNUP,
+            )
+          ) {
+            throw new APIError("FORBIDDEN", {
+              message:
+                "Create the first account or enable sign-up to continue.",
+            })
+          }
+        },
+      },
+    },
+  },
   emailAndPassword: {
     ...commonOptions.emailAndPassword,
     disableSignUp: process.env.ENABLE_SIGNUP !== "true",

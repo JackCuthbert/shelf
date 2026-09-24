@@ -11,12 +11,35 @@ import { authClient } from "@/lib/auth-client"
 export function AccountForm({
   setup,
   signup,
+  oidc,
 }: {
   setup: boolean
   signup: boolean
+  oidc?: { name: string }
 }) {
   const [error, setError] = useState("")
   const [pending, setPending] = useState(false)
+
+  async function signInOidc() {
+    setPending(true)
+    setError("")
+    try {
+      const result = await authClient.signIn.social({
+        provider: "oidc",
+        callbackURL: "/admin",
+      })
+      if (result.error || !result.data?.url) {
+        setError("Unable to start OpenID Connect sign-in.")
+        setPending(false)
+        return
+      }
+      window.location.assign(result.data.url)
+    } catch {
+      setError("Unable to start OpenID Connect sign-in. Check your connection.")
+      setPending(false)
+    }
+  }
+
   async function submit(values: Record<string, unknown>) {
     setPending(true)
     setError("")
@@ -118,6 +141,16 @@ export function AccountForm({
                 : "Sign in"}
         </span>
       </Button>
+      {!setup && oidc && (
+        <Button
+          type="button"
+          disabled={pending}
+          className="btn w-full"
+          onClick={signInOidc}
+        >
+          Continue with {oidc.name}
+        </Button>
+      )}
     </Form>
   )
 }

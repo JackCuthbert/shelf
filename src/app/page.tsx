@@ -4,6 +4,7 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { AccountForm } from "@/components/account-form"
 import { signupEnabled } from "@/lib/account-policy"
+import { getOidcProviderConfig } from "@/lib/oidc"
 
 export const dynamic = "force-dynamic"
 
@@ -29,6 +30,7 @@ export default async function HomePage() {
   ])
   const setup = userCount === 0 && !instance
   const signup = signupEnabled(process.env.ENABLE_SIGNUP)
+  const oidcProvider = getOidcProviderConfig(process.env)
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
       <p className="mb-3 text-xs text-muted">Hometime</p>
@@ -42,7 +44,11 @@ export default async function HomePage() {
             ? "Sign in or create an account to continue."
             : "Sign in to continue to your dashboard."}
       </p>
-      <AccountForm setup={setup} signup={signup} />
+      <AccountForm
+        setup={setup}
+        signup={signup}
+        oidc={!setup && oidcProvider ? { name: oidcProvider.name } : undefined}
+      />
     </main>
   )
 }
