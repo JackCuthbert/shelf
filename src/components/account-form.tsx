@@ -1,17 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import { Button } from "@base-ui/react/button";
+import { Field } from "@base-ui/react/field";
+import { Form } from "@base-ui/react/form";
+import { Input } from "@base-ui/react/input";
+import { LuLoader, LuLogIn, LuUserPlus } from "react-icons/lu";
 import { authClient } from "@/lib/auth-client";
 
 export function AccountForm({ setup, signup }: { setup: boolean; signup: boolean }) {
   const [error, setError] = useState("");
   const [pending, setPending] = useState(false);
-  async function submit(form: FormData) {
+  async function submit(values: Record<string, unknown>) {
     setPending(true);
     setError("");
-    const email = String(form.get("email") ?? "").trim().toLowerCase();
-    const password = String(form.get("password") ?? "");
-    const name = String(form.get("name") ?? "").trim();
+    const email = String(values.email ?? "").trim().toLowerCase();
+    const password = String(values.password ?? "");
+    const name = String(values.name ?? "").trim();
     if (setup) {
       const response = await fetch("/api/setup", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify({ name, email, password }) });
       const result = await response.json();
@@ -26,12 +31,12 @@ export function AccountForm({ setup, signup }: { setup: boolean; signup: boolean
     }
     location.assign("/admin");
   }
-  return <form action={submit} className="space-y-4 rounded-2xl border border-stone-200 bg-white p-6 shadow-sm">
-    {setup && <label className="block text-sm">Name<input name="name" autoComplete="name" required className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2" /></label>}
-    {!setup && signup && <label className="block text-sm">Name<input name="name" autoComplete="name" required className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2" /></label>}
-    <label className="block text-sm">Email<input name="email" type="email" autoComplete="email" required className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2" /></label>
-    <label className="block text-sm">Password<input name="password" type="password" autoComplete={setup || signup ? "new-password" : "current-password"} minLength={8} required className="mt-1 block w-full rounded-lg border border-stone-300 px-3 py-2" /></label>
-    {error && <p role="alert" className="text-sm text-red-700">{error}</p>}
-    <button disabled={pending} className="w-full rounded-lg bg-emerald-900 px-4 py-2.5 font-medium text-white disabled:opacity-60">{pending ? "Please wait…" : setup ? "Create account" : signup ? "Create account" : "Sign in"}</button>
-  </form>;
+  return <Form onFormSubmit={submit} className="panel space-y-4 p-6">
+    {setup && <Field.Root name="name" className="space-y-2"><Field.Label className="text-xs text-muted">Name</Field.Label><Input className="field" autoComplete="name" required /><Field.Error className="text-xs text-danger" /></Field.Root>}
+    {!setup && signup && <Field.Root name="name" className="space-y-2"><Field.Label className="text-xs text-muted">Name</Field.Label><Input className="field" autoComplete="name" required /><Field.Error className="text-xs text-danger" /></Field.Root>}
+    <Field.Root name="email" className="space-y-2"><Field.Label className="text-xs text-muted">Email</Field.Label><Input className="field" type="email" autoComplete="email" required /><Field.Error className="text-xs text-danger" /></Field.Root>
+    <Field.Root name="password" className="space-y-2"><Field.Label className="text-xs text-muted">Password</Field.Label><Input className="field" type="password" autoComplete={setup || signup ? "new-password" : "current-password"} minLength={8} required /><Field.Error className="text-xs text-danger" /></Field.Root>
+    {error && <p role="alert" className="text-sm text-danger">{error}</p>}
+    <Button type="submit" disabled={pending} className="btn btn-primary w-full">{pending ? <LuLoader aria-hidden className="size-4 animate-spin" /> : setup || signup ? <LuUserPlus aria-hidden className="size-4" /> : <LuLogIn aria-hidden className="size-4" />}<span>{pending ? "Please wait…" : setup ? "Create account" : signup ? "Create account" : "Sign in"}</span></Button>
+  </Form>;
 }

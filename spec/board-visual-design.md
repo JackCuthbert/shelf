@@ -11,16 +11,16 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 ## App tiles
 
-- Display assigned apps as square, rounded cards with solid surfaces and subtle depth. Each card shows the app name above a centered cached icon. Names occupy one line and use an ellipsis when too long; the full name remains available to assistive technology and on hover or focus.
+- Display assigned apps as square, sharp-cornered cards with solid surfaces, hard 1px borders, and minimal depth. Each card shows the app name above a centered cached icon. Names occupy one line and use an ellipsis when too long; the full name remains available to assistive technology and on hover or focus.
 - The whole tile is a link that opens the app in a new tab. It has clear hover, focus, and pressed states, a visible keyboard focus indicator, and a touch target large enough to use comfortably.
 - Show no URL, hostname, widget, status indicator, or configuration control on a tile in this stage.
 - Keep the board's saved manual order in left-to-right, top-to-bottom reading order. Search results use their ranked order and reflow through the same grid.
 
 ## Responsive layout and appearance
 
-- Use a wide, centered content area with a sensible maximum width. The grid has two square tiles per row on phones. At wider widths, tiles wrap into additional columns automatically as space allows, without horizontal scrolling.
+- Use a wide, centered content area with a sensible maximum width. The grid has two square tiles per row on phones. Tiles keep a consistent size and fill left to right; at wider widths additional columns appear automatically, without horizontal scrolling.
 - Tile order and membership are the same at every viewport size. Do not store coordinates, separate mobile positions, custom breakpoints, or per-board layout settings.
-- Follow the device's light or dark setting. Both modes keep text, icons, focus states, and tile boundaries legible. There is no manual theme control in this stage.
+- Use a Google-hosted monospace typeface at a 14px base and a restrained, high-contrast palette with hard 1px lines, derived from one shared set of design tokens. Use sentence case, not all caps. Follow the device's light or dark setting. Both modes keep text, icons, focus states, and tile boundaries legible. There is no manual theme control in this stage.
 - Empty and no-results states remain clear and fit the new layout.
 
 ## Search interaction

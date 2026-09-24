@@ -1,5 +1,65 @@
 @import "tailwindcss";
 
-:root { color-scheme: light; }
-body { margin: 0; background: #f7f5f0; color: #20211f; font-family: Arial, Helvetica, sans-serif; }
-input, button { font: inherit; }
+@theme {
+  --font-mono: var(--font-ibm-plex-mono), ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  --color-background: #fafbfc;
+  --color-surface: #ffffff;
+  --color-surface-alt: #f1f2f4;
+  --color-foreground: #1f2229;
+  --color-muted: #626770;
+  --color-line: #dddfe3;
+  --color-accent: #2563eb;
+  --color-accent-foreground: #ffffff;
+  --color-danger: #dc2626;
+  --color-focus: #2563eb;
+  --color-grid: rgb(31 34 41 / 0.06);
+}
+
+@utility bg-dot-grid {
+  background-image: radial-gradient(var(--color-grid) 1px, transparent 1.5px);
+  background-size: 24px 24px;
+}
+
+:root {
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+    --color-background: #0d1017;
+    --color-surface: #14181f;
+    --color-surface-alt: #1c212a;
+    --color-foreground: #e9ebef;
+    --color-muted: #9aa1ab;
+    --color-line: #2a2f38;
+    --color-accent: #60a5fa;
+    --color-accent-foreground: #0d1017;
+    --color-danger: #f87171;
+    --color-focus: #60a5fa;
+    --color-grid: rgb(233 235 239 / 0.09);
+  }
+}
+
+@layer components {
+  .panel {
+    @apply rounded-[2px] border border-line bg-surface;
+  }
+
+  .field {
+    @apply block w-full rounded-[2px] border border-line bg-surface px-2.5 py-2 text-sm text-foreground placeholder:text-muted focus-visible:border-focus focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus;
+  }
+
+  .btn {
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-[2px] border border-line bg-surface px-3 py-2 text-xs leading-none text-foreground hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50;
+  }
+
+  .btn-primary {
+    @apply border-accent bg-accent text-accent-foreground hover:border-accent hover:brightness-105;
+  }
+
+  .btn-danger {
+    @apply text-danger hover:border-danger;
+  }
+}

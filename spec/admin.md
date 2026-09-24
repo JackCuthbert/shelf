@@ -1,19 +1,19 @@
 # Management interface
 
-`/admin` is an authenticated page with a shared app library area and an area for the signed-in user's boards. It must work on narrow screens and with keyboard navigation. It is the destination after first-account setup.
+`/admin` is an authenticated view for the signed-in user's boards; the shared app library lives in a separate authenticated view at `/admin/apps`. Both must work on narrow screens and with keyboard navigation. A shared sticky menubar, matching the board view, links the views and offers a sign-out control. Creating or editing a board or app opens an accessible modal dialog, and destructive actions ask for confirmation before proceeding. `/admin` is the destination after first-account setup.
 
 ## Shared app library
 
-- List app names, URLs, and saved icons.
+- List app names, URLs, and saved icons in a single-column list with a filter.
 - Create an app with name, URL, and explicit icon search/selection.
 - Edit name, URL, or icon. Deleting prompts for confirmation that the app disappears from every board.
 - Every signed-in user sees and can manage the same library.
 
 ## My boards
 
-- List only boards owned by the signed-in user for editing, identifying the default board and offering each board's shareable direct URL.
-- Create, rename, delete, and choose a default board.
-- For each board, add apps from the shared library, remove assignments, and reorder them with Move up / Move down controls. These controls work by touch, pointer, and keyboard; drag and drop is not part of v1.
+- List only boards owned by the signed-in user for editing, identifying the default board and offering each board's shareable route (`/board/<id>`), which opens in a new tab.
+- Create, rename, delete, and choose a default board. The current default board is marked and its set-default control is disabled.
+- For each board, add apps from the shared library through a filterable add-app dialog, remove assignments, and reorder them with Move up / Move down controls. Each assigned app row shows its name and domain. These controls work by touch, pointer, and keyboard; drag and drop is not part of v1.
 - Creation of a user's first board sets it as default. When a user owns no board, show a clear create-board empty state.
 - Changes persist immediately and the affected board view reflects them on its next load. Failed operations show an actionable error without falsely displaying success.
 

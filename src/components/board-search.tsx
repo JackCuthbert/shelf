@@ -1,78 +1,60 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMemo, useState } from "react";
+import { Input } from "@base-ui/react/input";
+import { LuLayoutDashboard, LuSettings } from "react-icons/lu";
 import { rankApps } from "@/lib/board-search";
 
 type BoardApp = { id: string; name: string; url: string; iconSlug: string };
 
-export function BoardSearch({ apps }: { apps: BoardApp[] }) {
+export function BoardSearch({ boardName, apps }: { boardName: string; apps: BoardApp[] }) {
   const [query, setQuery] = useState("");
-  const [highlighted, setHighlighted] = useState(0);
-  const inputRef = useRef<HTMLInputElement>(null);
   const results = useMemo(() => rankApps(apps, query), [apps, query]);
 
-  const clear = useCallback(() => {
-    setQuery("");
-    setHighlighted(0);
-  }, []);
-
-  useEffect(() => {
-    setHighlighted(0);
-  }, [query]);
-
-  useEffect(() => {
-    const onKeyDown = (event: KeyboardEvent) => {
-      const target = event.target;
-      const typing = target instanceof HTMLElement && (target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName));
-      if ((event.key === "/" || ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k")) && !typing) {
-        event.preventDefault();
-        inputRef.current?.focus();
-      }
-    };
-    window.addEventListener("keydown", onKeyDown);
-    return () => window.removeEventListener("keydown", onKeyDown);
-  }, []);
-
-  const onSearchKeyDown = (event: React.KeyboardEvent<HTMLInputElement>) => {
-    if (event.key === "ArrowDown" && results.length) {
-      event.preventDefault();
-      setHighlighted((current) => (current + 1) % results.length);
-    } else if (event.key === "ArrowUp" && results.length) {
-      event.preventDefault();
-      setHighlighted((current) => (current - 1 + results.length) % results.length);
-    } else if (event.key === "Enter" && results.length) {
-      event.preventDefault();
-      window.open(results[highlighted]?.url, "_blank", "noopener,noreferrer");
-    } else if (event.key === "Escape") {
-      event.preventDefault();
-      clear();
-    }
-  };
-
-  return <section aria-label="Board apps">
-    <label htmlFor="board-search" className="sr-only">Search apps</label>
-    <input
-      ref={inputRef}
-      id="board-search"
-      type="search"
-      value={query}
-      onChange={(event) => setQuery(event.target.value)}
-      onKeyDown={onSearchKeyDown}
-      placeholder="Search apps…"
-      aria-controls="board-app-results"
-      aria-describedby="board-search-hint"
-      className="mt-7 w-full rounded-xl border border-stone-300 bg-white px-4 py-3 outline-none placeholder:text-stone-400 focus-visible:border-emerald-700 focus-visible:ring-2 focus-visible:ring-emerald-700/30"
-    />
-    <p id="board-search-hint" className="sr-only">Use up and down arrows to select an app, Enter to open it in a new tab, and Escape to clear.</p>
-    {results.length === 0 ? <p className="mt-4 rounded-xl border border-stone-200 bg-white px-5 py-8 text-center text-stone-600" role="status">No apps match “{query}”.</p> :
-      <ul id="board-app-results" className="mt-4 divide-y divide-stone-200 overflow-hidden rounded-2xl border border-stone-200 bg-white">
-        {results.map((app, index) => <li key={app.id}>
-          <a href={app.url} target="_blank" rel="noreferrer" aria-current={index === highlighted ? "true" : undefined} onFocus={() => setHighlighted(index)} className={`flex min-w-0 items-center gap-4 p-4 focus-visible:z-10 focus-visible:outline-2 focus-visible:outline-emerald-700 sm:p-5 ${index === highlighted ? "bg-emerald-50" : "hover:bg-stone-50"}`}>
-            <img src={`/icons/${app.iconSlug}`} alt="" className="h-12 w-12 shrink-0 rounded-xl bg-stone-50 object-contain p-1" />
-            <span className="min-w-0 flex-1 truncate font-medium">{app.name}</span>
-            <span aria-hidden="true" className="text-stone-400">↗</span>
-          </a>
-        </li>)}
-      </ul>}
-  </section>;
+  return <main className="min-h-screen">
+    <header className="sticky top-0 z-20 border-b border-line bg-background">
+      <div className="mx-auto grid max-w-5xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
+        <div className="order-1 flex min-w-0 items-center gap-2">
+          <LuLayoutDashboard aria-hidden className="size-5 shrink-0" />
+          <div className="min-w-0">
+            <p className="text-xs leading-none text-muted">Hometime</p>
+            <h1 className="truncate text-base font-semibold leading-tight" title={boardName}>{boardName}</h1>
+          </div>
+        </div>
+        <div className="order-3 col-span-2 sm:order-2 sm:col-span-1">
+          <label htmlFor="board-search" className="sr-only">Search apps</label>
+          <Input
+            id="board-search"
+            type="search"
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+            placeholder="Search apps…"
+            aria-controls="board-app-results"
+            className="field"
+          />
+        </div>
+        <a href="/admin" className="btn order-2 justify-self-end sm:order-3"><LuSettings aria-hidden className="size-4" />Admin</a>
+      </div>
+    </header>
+    <div id="board-app-results" className="mx-auto max-w-5xl px-4 py-6 sm:px-6">
+      {apps.length === 0 ? <p className="panel px-6 py-12 text-center text-muted">This board is empty. The board owner can add apps from admin.</p>
+        : results.length === 0 ? <p role="status" className="panel px-6 py-12 text-center text-muted">No apps match “{query}”.</p>
+        : <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
+          {results.map((app) => <li key={app.id}>
+            <a
+              href={app.url}
+              target="_blank"
+              rel="noreferrer"
+              title={app.name}
+              className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
+            >
+              <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">{app.name}</span>
+              <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
+                <img src={`/icons/${app.iconSlug}`} alt="" className="h-full w-full object-contain" />
+              </span>
+            </a>
+          </li>)}
+        </ul>}
+    </div>
+  </main>;
 }

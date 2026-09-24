@@ -14,6 +14,7 @@
     "admin:reset-password": "node scripts/reset-password.js"
   },
   "dependencies": {
+    "@base-ui/react": "^1.8.0",
     "@libsql/client": "^0.18.0",
     "@prisma/adapter-libsql": "^7.10.0",
     "@prisma/client": "^7.10.0",
@@ -26,6 +27,7 @@
     "next": "^16.3.6",
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
+    "react-icons": "^5.7.0",
     "zod": "^4.6.5"
   },
   "devDependencies": {

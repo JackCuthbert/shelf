@@ -22,9 +22,9 @@ export default async function HomePage() {
   const setup = userCount === 0 && !instance;
   const signup = signupEnabled(process.env.ENABLE_SIGNUP);
   return <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-    <p className="mb-3 text-sm font-semibold tracking-[0.2em] text-emerald-800">HOMETIME</p>
+    <p className="mb-3 text-xs text-muted">Hometime</p>
     <h1 className="mb-2 text-3xl font-semibold">{setup ? "Make yourself at home." : "Welcome back."}</h1>
-    <p className="mb-8 text-stone-600">{setup ? "Create the first account to set up this space." : signup ? "Sign in or create an account to continue." : "Sign in to continue to your dashboard."}</p>
+    <p className="mb-8 text-muted">{setup ? "Create the first account to set up this space." : signup ? "Sign in or create an account to continue." : "Sign in to continue to your dashboard."}</p>
     <AccountForm setup={setup} signup={signup} />
   </main>;
 }
