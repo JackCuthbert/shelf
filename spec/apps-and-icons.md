@@ -4,6 +4,7 @@
 
 - Every signed-in user can create, edit, and delete apps in the shared household library.
 - An app requires a nonempty name, an HTTP or HTTPS URL, and one explicitly selected icon. URLs may point to private household hosts or IP addresses. Other URL schemes are rejected.
+- An app may have a plain-text description of up to 280 characters. Empty descriptions are allowed. Existing apps have an empty description after migration.
 - App names are not unique. The admin list shows the URL alongside the name to distinguish duplicates.
 - A saved app can be assigned to one or more boards by each board's owner. Editing an app updates it everywhere it is assigned.
 - Deleting an app requires confirmation and removes it from every board.
@@ -22,3 +23,4 @@
 - Selecting an icon and saving an app yields one local PNG used by the board.
 - Searching or previewing icons without saving an app leaves `/data/icons/` unchanged.
 - Editing a shared app changes it on all assigned boards; deleting it removes all assignments.
+- A saved description appears in the shared app library and in the app edit form. Board tiles expose it through an immediately opened popover on hover or keyboard focus. A separate info button opens it on touch screens without changing the tile's app link. Apps without descriptions have no popover or info button.

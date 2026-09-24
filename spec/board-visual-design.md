@@ -13,7 +13,7 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 - Display assigned apps as square, sharp-cornered cards with solid surfaces, hard 1px borders, and minimal depth. Each card shows the app name above a centered cached icon. Names occupy one line and use an ellipsis when too long; the full name remains available to assistive technology and on hover or focus.
 - The whole tile is a link that opens the app in a new tab. It has clear hover, focus, and pressed states, a visible keyboard focus indicator, and a touch target large enough to use comfortably.
-- Show no URL, hostname, widget, status indicator, or configuration control on a tile in this stage.
+- Show no URL, hostname, widget, status indicator, or configuration control on a tile in this stage. When an app has a description, show it in a popover that opens immediately on tile hover or keyboard focus. Provide a separate info button to open the popover on touch screens; activating the tile itself still opens the app. Apps without descriptions have no info button or popover.
 - Keep the board's saved manual order in left-to-right, top-to-bottom reading order. Search results use their ranked order and reflow through the same grid.
 
 ## Responsive layout and appearance

@@ -11,7 +11,7 @@
 ## Core records
 
 - **User:** an account with a nullable default board reference. Authentication tables are managed through Better Auth's Prisma schema generation, with migrations applied by Prisma.
-- **App:** one shared household record with a name, HTTP(S) URL, and selected Dashboard Icons slug. Two apps may have the same name.
+- **App:** one shared household record with a name, optional plain-text description, HTTP(S) URL, and selected Dashboard Icons slug. Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name.
 - **Board:** a name, an unguessable Nano ID used in its public URL, and one owning user.
 - **Board app:** a unique board/app assignment with a persisted position. The same app can appear on multiple boards, at different positions.
 
