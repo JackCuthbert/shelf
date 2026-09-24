@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { trpc } from "@/components/trpc-provider";
 
 type Board = { id: string; name: string; nanoid: string; ownerId: string; createdAt: string; updatedAt: string; apps: Array<{ boardId: string; appId: string; position: number; app: App }> };
@@ -12,6 +12,8 @@ export function BoardsAdmin({ initialBoards, initialApps }: { initialBoards: Boa
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, { initialData: initialApps });
   const [name, setName] = useState("");
   const [error, setError] = useState("");
+  const [origin, setOrigin] = useState("");
+  useEffect(() => setOrigin(window.location.origin), []);
   const refresh = () => { setError(""); void utils.boards.list.invalidate(); };
   const fail = (cause: { message: string }) => setError(cause.message);
   const create = trpc.boards.create.useMutation({ onSuccess: refresh, onError: fail });
@@ -33,7 +35,7 @@ export function BoardsAdmin({ initialBoards, initialApps }: { initialBoards: Boa
     {boards.length === 0 ? <p className="mt-5 rounded-2xl border border-dashed border-stone-300 bg-white p-8 text-center text-stone-600">Create your first board to start sharing apps.</p> : <ul className="mt-5 space-y-4">
       {boards.map((board) => <li key={board.id} className="rounded-2xl border border-stone-200 bg-white p-5">
         <div className="flex flex-wrap items-start justify-between gap-3">
-          <div><h3 className="text-lg font-semibold">{board.name}</h3><a className="break-all text-sm text-emerald-800 underline" href={`/board/${board.nanoid}`}>{`${typeof window === "undefined" ? "" : window.location.origin}/board/${board.nanoid}`}</a></div>
+          <div><h3 className="text-lg font-semibold">{board.name}</h3><a className="break-all text-sm text-emerald-800 underline" href={`/board/${board.nanoid}`}>{`${origin}/board/${board.nanoid}`}</a></div>
           <div className="flex flex-wrap gap-2">
             <button type="button" onClick={() => { const next = window.prompt("Rename board", board.name); if (next?.trim()) rename.mutate({ id: board.id, name: next }); }} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">Rename</button>
             <button type="button" onClick={() => setDefault.mutate({ id: board.id })} className="rounded-lg border border-stone-300 px-3 py-2 text-sm">Set as default</button>
