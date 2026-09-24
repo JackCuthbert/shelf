@@ -22,7 +22,7 @@
 - An instance may offer sign-in through one administrator-configured OpenID Connect provider. Users may create accounts through OIDC sign-in only when `ENABLE_SIGNUP=true`; first-account setup remains the local email-and-password flow.
 - OIDC identities are linked to an existing local account only when its signed-in user explicitly connects the provider from `/account`. Matching email addresses never link accounts automatically. Linking preserves the local user, email, and board IDs.
 - Self-sign-up after initial setup is controlled by the Docker administrator through `ENABLE_SIGNUP=true`. It is disabled when the variable is absent or false. The first-account flow works regardless of this setting.
-- Signed-in users can sign out. New users have no board until they create one in `/admin`.
+- Signed-in users can sign out and return to Hometime's home page after the identity provider ends its session. New users have no board until they create one in `/admin`.
 
 ## Account settings
 

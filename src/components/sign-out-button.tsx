@@ -9,6 +9,7 @@ export function SignOutButton() {
     <Button
       onClick={() =>
         authClient.signOut({
+          callbackURL: "/",
           fetchOptions: { onSuccess: () => location.assign("/") },
         })
       }

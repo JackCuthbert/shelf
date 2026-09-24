@@ -47,6 +47,7 @@ export function UserMenu({ user }: { user: { name: string } | null }) {
               closeOnClick={false}
               onClick={() =>
                 authClient.signOut({
+                  callbackURL: "/",
                   fetchOptions: { onSuccess: () => location.assign("/") },
                 })
               }
