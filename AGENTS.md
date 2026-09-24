@@ -2,18 +2,18 @@
 
 The product specification lives in `spec/`. Read a feature specification only when working on that feature. Do not load every specification file by default. Read `spec/architecture.md` when changing a shared boundary, data model, or API, and `spec/deployment.md` when changing persistence or container startup.
 
-| Work area | Specification |
-| --- | --- |
-| Scope and feature map | `spec/README.md` |
-| Next.js, tRPC, Prisma, shared data model | `spec/architecture.md` |
-| First-run setup, login, sign-up, access | `spec/accounts.md` |
-| Shared apps and icon selection/cache | `spec/apps-and-icons.md` |
-| Board ownership, routes, ordering, display | `spec/boards.md` |
+| Work area                                           | Specification                 |
+| --------------------------------------------------- | ----------------------------- |
+| Scope and feature map                               | `spec/README.md`              |
+| Next.js, tRPC, Prisma, shared data model            | `spec/architecture.md`        |
+| First-run setup, login, sign-up, access             | `spec/accounts.md`            |
+| Shared apps and icon selection/cache                | `spec/apps-and-icons.md`      |
+| Board ownership, routes, ordering, display          | `spec/boards.md`              |
 | Board tile layout, header, theme, responsive design | `spec/board-visual-design.md` |
-| Fuzzy filtering and current keyboard behavior | `spec/search.md` |
-| App and board management UI | `spec/admin.md` |
-| Docker, data volume, migrations, recovery | `spec/deployment.md` |
-| Features deferred beyond v1 | `spec/future.md` |
+| Fuzzy filtering and current keyboard behavior       | `spec/search.md`              |
+| App and board management UI                         | `spec/admin.md`               |
+| Docker, data volume, migrations, recovery           | `spec/deployment.md`          |
+| Features deferred beyond v1                         | `spec/future.md`              |
 
 When work spans features, read only the affected specifications and resolve any conflicts against `spec/architecture.md`. Keep the relevant feature specification in sync with intentional behavior changes.
 

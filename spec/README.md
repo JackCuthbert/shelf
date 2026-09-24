@@ -4,21 +4,21 @@ Hometime is a small, self-hosted dashboard for one household. It provides a shar
 
 ## V1 feature specifications
 
-| Feature | File |
-| --- | --- |
-| System architecture and data ownership | [architecture.md](architecture.md) |
-| Accounts, setup, and access | [accounts.md](accounts.md) |
-| Apps and icon selection | [apps-and-icons.md](apps-and-icons.md) |
-| Boards and display | [boards.md](boards.md) |
-| Board search | [search.md](search.md) |
-| Management interface | [admin.md](admin.md) |
-| Deployment and persistence | [deployment.md](deployment.md) |
-| Deferred features and exclusions | [future.md](future.md) |
+| Feature                                | File                                   |
+| -------------------------------------- | -------------------------------------- |
+| System architecture and data ownership | [architecture.md](architecture.md)     |
+| Accounts, setup, and access            | [accounts.md](accounts.md)             |
+| Apps and icon selection                | [apps-and-icons.md](apps-and-icons.md) |
+| Boards and display                     | [boards.md](boards.md)                 |
+| Board search                           | [search.md](search.md)                 |
+| Management interface                   | [admin.md](admin.md)                   |
+| Deployment and persistence             | [deployment.md](deployment.md)         |
+| Deferred features and exclusions       | [future.md](future.md)                 |
 
 ## Next feature specification
 
-| Feature | File |
-| --- | --- |
+| Feature                           | File                                             |
+| --------------------------------- | ------------------------------------------------ |
 | Responsive board tiles and header | [board-visual-design.md](board-visual-design.md) |
 
 V1's responsive list remains described in [boards.md](boards.md). The next feature replaces that presentation with responsive tiles and removes custom search keyboard shortcuts.
