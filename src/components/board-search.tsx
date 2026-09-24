@@ -1,11 +1,13 @@
 "use client"
 
-import { useMemo, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
 import { LuInfo, LuLayoutDashboard } from "react-icons/lu"
 import { rankApps } from "@/lib/board-search"
 import { UserMenu } from "@/components/user-menu"
+import { trpc } from "@/components/trpc-provider"
+import type { AppStatus } from "@/server/app-status-service"
 
 type BoardApp = {
   id: string
@@ -13,6 +15,20 @@ type BoardApp = {
   description: string
   url: string
   iconSlug: string
+  status: AppStatus
+  lastCheckedAt: number | null
+}
+
+function statusLabel(status: AppStatus) {
+  if (status === "up") return "Responding"
+  if (status === "down") return "Not responding"
+  return "Status unknown"
+}
+
+function statusColor(status: AppStatus) {
+  if (status === "up") return "bg-accent"
+  if (status === "down") return "bg-danger"
+  return "bg-muted"
 }
 
 export function descriptionTileHandlers(
@@ -28,16 +44,42 @@ export function descriptionTileHandlers(
 
 export function BoardSearch({
   boardName,
+  boardNanoid,
   apps,
   user,
 }: {
   boardName: string
+  boardNanoid: string
   apps: BoardApp[]
   user: { name: string } | null
 }) {
   const [query, setQuery] = useState("")
   const [openDescription, setOpenDescription] = useState<string | null>(null)
+  const [statuses, setStatuses] = useState(() =>
+    Object.fromEntries(
+      apps.map((app) => [
+        app.id,
+        { status: app.status, lastCheckedAt: app.lastCheckedAt },
+      ]),
+    ),
+  )
+  const refreshStatuses = trpc.boards.refreshStatuses.useMutation()
   const results = useMemo(() => rankApps(apps, query), [apps, query])
+
+  useEffect(() => {
+    if (apps.length === 0) return
+    let active = true
+    refreshStatuses
+      .mutateAsync({ nanoid: boardNanoid })
+      .then((result) => {
+        if (!active) return
+        setStatuses(Object.fromEntries(result.map((app) => [app.id, app])))
+      })
+      .catch(() => {})
+    return () => {
+      active = false
+    }
+  }, [apps.length, boardNanoid, refreshStatuses.mutateAsync])
 
   return (
     <main className="min-h-screen">
@@ -88,64 +130,78 @@ export function BoardSearch({
           </p>
         ) : (
           <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
-            {results.map((app) => (
-              <li key={app.id}>
-                <Popover.Root
-                  open={openDescription === app.id}
-                  onOpenChange={(open) =>
-                    setOpenDescription(open ? app.id : null)
-                  }
-                >
-                  <div className="relative">
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      title={app.name}
-                      {...descriptionTileHandlers(
-                        app.id,
-                        Boolean(app.description),
-                        setOpenDescription,
-                      )}
-                      className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
-                    >
-                      <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
-                        {app.name}
-                      </span>
-                      <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
-                        <img
-                          src={`/icons/${app.iconSlug}`}
-                          alt=""
-                          className="h-full w-full object-contain"
+            {results.map((app) => {
+              const status = statuses[app.id] ?? app
+              const label = statusLabel(status.status)
+              const checked =
+                status.lastCheckedAt === null
+                  ? "not checked yet"
+                  : `last checked ${new Date(status.lastCheckedAt).toISOString()}`
+              return (
+                <li key={app.id}>
+                  <Popover.Root
+                    open={openDescription === app.id}
+                    onOpenChange={(open) =>
+                      setOpenDescription(open ? app.id : null)
+                    }
+                  >
+                    <div className="relative">
+                      <a
+                        href={app.url}
+                        target="_blank"
+                        rel="noreferrer"
+                        title={app.name}
+                        {...descriptionTileHandlers(
+                          app.id,
+                          Boolean(app.description),
+                          setOpenDescription,
+                        )}
+                        className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
+                      >
+                        <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
+                          {app.name}
+                        </span>
+                        <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
+                          <img
+                            src={`/icons/${app.iconSlug}`}
+                            alt=""
+                            className="h-full w-full object-contain"
+                          />
+                        </span>
+                        <span
+                          role="img"
+                          aria-label={`${label}; ${checked}`}
+                          title={checked}
+                          className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status.status)}`}
                         />
-                      </span>
-                    </a>
-                    {app.description && (
-                      <>
-                        <Popover.Trigger
-                          openOnHover
-                          delay={0}
-                          aria-label={`About ${app.name}`}
-                          className="absolute right-1 top-1 flex size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-                        >
-                          <LuInfo aria-hidden className="size-4" />
-                        </Popover.Trigger>
-                        <Popover.Portal>
-                          <Popover.Positioner side="top" sideOffset={8}>
-                            <Popover.Popup
-                              className="panel max-w-64 p-3 text-sm shadow-lg"
-                              aria-label={`${app.name} description`}
-                            >
-                              {app.description}
-                            </Popover.Popup>
-                          </Popover.Positioner>
-                        </Popover.Portal>
-                      </>
-                    )}
-                  </div>
-                </Popover.Root>
-              </li>
-            ))}
+                      </a>
+                      {app.description && (
+                        <>
+                          <Popover.Trigger
+                            openOnHover
+                            delay={0}
+                            aria-label={`About ${app.name}`}
+                            className="absolute right-1 top-1 flex size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+                          >
+                            <LuInfo aria-hidden className="size-4" />
+                          </Popover.Trigger>
+                          <Popover.Portal>
+                            <Popover.Positioner side="top" sideOffset={8}>
+                              <Popover.Popup
+                                className="panel max-w-64 p-3 text-sm shadow-lg"
+                                aria-label={`${app.name} description`}
+                              >
+                                {app.description}
+                              </Popover.Popup>
+                            </Popover.Positioner>
+                          </Popover.Portal>
+                        </>
+                      )}
+                    </div>
+                  </Popover.Root>
+                </li>
+              )
+            })}
           </ul>
         )}
       </div>

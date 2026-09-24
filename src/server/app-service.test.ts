@@ -15,6 +15,8 @@ function setup() {
       const app = {
         ...input,
         id: String(++nextId),
+        status: "unknown",
+        lastCheckedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -103,14 +105,67 @@ describe("shared app service", () => {
     expect(records.get(created.id)?.iconSlug).toBe("plex")
   })
 
-  it("persists description changes when an app is edited", async () => {
-    const { service } = setup()
+  it("preserves cached status when the description changes", async () => {
+    const { service, records } = setup()
     const created = await service.create(input)
+    const checkedAt = new Date("2026-09-24T00:00:00Z")
+    records.set(created.id, {
+      ...created,
+      status: "up",
+      lastCheckedAt: checkedAt,
+    })
     const updated = await service.update({
       ...input,
       id: created.id,
       description: "Movies and shows",
     })
     expect(updated.description).toBe("Movies and shows")
+    expect(updated.status).toBe("up")
+    expect(updated.lastCheckedAt).toEqual(checkedAt)
+  })
+
+  it.each([
+    ["name", { name: "Media updated" }],
+    ["icon", { iconSlug: "jellyfin" }],
+  ])(
+    "preserves cached status when only the app %s changes",
+    async (_, fields) => {
+      const { service, records } = setup()
+      const created = await service.create(input)
+      const checkedAt = new Date("2026-09-24T00:00:00Z")
+      records.set(created.id, {
+        ...created,
+        status: "up",
+        lastCheckedAt: checkedAt,
+      })
+
+      const updated = await service.update({
+        ...input,
+        ...fields,
+        id: created.id,
+      })
+
+      expect(updated.status).toBe("up")
+      expect(updated.lastCheckedAt).toEqual(checkedAt)
+    },
+  )
+
+  it("clears cached status when an app URL changes", async () => {
+    const { service, records } = setup()
+    const created = await service.create(input)
+    records.set(created.id, {
+      ...created,
+      status: "up",
+      lastCheckedAt: new Date("2026-09-24T00:00:00Z"),
+    })
+
+    const updated = await service.update({
+      ...input,
+      id: created.id,
+      url: "https://new-media.home",
+    })
+
+    expect(updated.status).toBe("unknown")
+    expect(updated.lastCheckedAt).toBeNull()
   })
 })

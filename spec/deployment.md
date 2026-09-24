@@ -6,7 +6,7 @@
 - Store the SQLite database at exactly `/data/app.db` and downloaded app icons under `/data/icons/<slug>.png`. Keep all runtime persistent data under `/data`.
 - Configure the public application URL, a persistent authentication secret, and optional `ENABLE_SIGNUP=true` through environment variables. Document a `docker build` and `docker run` example with the directory volume. Self-sign-up defaults to disabled.
 - On container start, create needed directories, check `/data` is writable, apply committed Prisma migrations, then start the Next.js server. A migration or permission failure stops startup with a clear error.
-- Restarts and image upgrades preserve users, sessions, boards, apps, assignments, and selected icons through the directory volume. A fresh empty volume triggers first-account setup.
+- Restarts and image upgrades preserve users, sessions, boards, apps, assignments, selected icons, and app liveness status through the directory volume. A fresh empty volume triggers first-account setup.
 - Document a Docker administrator password-reset command. It targets an account by email and prompts for the new password without putting it in process arguments.
 
 Example:

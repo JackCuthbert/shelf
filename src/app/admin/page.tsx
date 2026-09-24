@@ -35,6 +35,7 @@ export default async function AdminPage() {
               ...entry,
               app: {
                 ...entry.app,
+                lastCheckedAt: entry.app.lastCheckedAt?.toISOString() ?? null,
                 createdAt: entry.app.createdAt.toISOString(),
                 updatedAt: entry.app.updatedAt.toISOString(),
               },
@@ -42,6 +43,7 @@ export default async function AdminPage() {
           }))}
           initialApps={apps.map((app) => ({
             ...app,
+            lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,
             createdAt: app.createdAt.toISOString(),
             updatedAt: app.updatedAt.toISOString(),
           }))}

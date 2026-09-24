@@ -2,6 +2,16 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it, vi } from "vitest"
 import { BoardSearch, descriptionTileHandlers } from "./board-search"
 
+vi.mock("@/components/trpc-provider", () => ({
+  trpc: {
+    boards: {
+      refreshStatuses: {
+        useMutation: () => ({ mutateAsync: async () => [] }),
+      },
+    },
+  },
+}))
+
 const apps = [
   {
     id: "plex",
@@ -9,6 +19,8 @@ const apps = [
     description: "Movies and shows",
     url: "https://plex.example",
     iconSlug: "plex",
+    status: "up" as const,
+    lastCheckedAt: Date.parse("2026-09-24T00:00:00Z"),
   },
   {
     id: "sonarr",
@@ -16,13 +28,20 @@ const apps = [
     description: "",
     url: "https://sonarr.example",
     iconSlug: "sonarr",
+    status: "unknown" as const,
+    lastCheckedAt: null,
   },
 ]
 
 describe("BoardSearch", () => {
   it("renders a sticky header with the board name, search field, and anonymous sign-in link", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} user={null} />,
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        user={null}
+      />,
     )
     expect(html).toContain("sticky")
     expect(html).toContain("Home")
@@ -33,7 +52,12 @@ describe("BoardSearch", () => {
 
   it("renders each app as a new-tab tile in manual order", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} user={null} />,
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        user={null}
+      />,
     )
     const hrefs = [...html.matchAll(/<a[^>]*href="(https:[^"]+)"[^>]*>/g)].map(
       (match) => match[1],
@@ -45,11 +69,20 @@ describe("BoardSearch", () => {
     expect(html).toContain("Plex")
     expect(html).toContain("aspect-square")
     expect(html).toContain("repeat(auto-fit,8.5rem)")
+    expect(html).toContain(
+      'aria-label="Responding; last checked 2026-09-24T00:00:00.000Z"',
+    )
+    expect(html).toContain('aria-label="Status unknown; not checked yet"')
   })
 
   it("keeps the search field visible on an empty board", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Empty" apps={[]} user={null} />,
+      <BoardSearch
+        boardName="Empty"
+        boardNanoid="abcdefgh"
+        apps={[]}
+        user={null}
+      />,
     )
     expect(html).toContain('id="board-search"')
     expect(html).toContain("This board is empty")
@@ -57,7 +90,12 @@ describe("BoardSearch", () => {
 
   it("shows description access outside the app link and omits it without a description", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} user={null} />,
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        user={null}
+      />,
     )
     expect(html).toContain('aria-label="About Plex"')
     expect(html).not.toContain('aria-label="About Sonarr"')
@@ -83,7 +121,12 @@ describe("BoardSearch", () => {
 
   it("does not advertise the removed custom keyboard shortcuts", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} user={null} />,
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        user={null}
+      />,
     )
     expect(html).not.toMatch(/escape|ctrl|cmd|arrow/i)
   })

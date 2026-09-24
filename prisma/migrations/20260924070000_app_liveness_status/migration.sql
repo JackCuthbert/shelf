@@ -1,0 +1,2 @@
+ALTER TABLE "app" ADD COLUMN "status" TEXT NOT NULL DEFAULT 'unknown';
+ALTER TABLE "app" ADD COLUMN "lastCheckedAt" DATETIME;

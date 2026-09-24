@@ -38,6 +38,8 @@ it("shows a filter and a single-column list when apps exist", () => {
           description: "Movies and shows",
           url: "https://plex.example",
           iconSlug: "plex",
+          status: "unknown",
+          lastCheckedAt: null,
           createdAt: "",
           updatedAt: "",
         },

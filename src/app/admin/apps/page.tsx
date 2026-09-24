@@ -18,6 +18,7 @@ export default async function AdminAppsPage() {
         <SharedApps
           initialApps={apps.map((app) => ({
             ...app,
+            lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,
             createdAt: app.createdAt.toISOString(),
             updatedAt: app.updatedAt.toISOString(),
           }))}

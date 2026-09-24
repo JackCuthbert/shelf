@@ -38,6 +38,8 @@ type App = {
   description: string
   url: string
   iconSlug: string
+  status: string
+  lastCheckedAt: string | null
   createdAt: string
   updatedAt: string
 }

@@ -25,6 +25,7 @@ export default async function BoardPage({
   return (
     <BoardSearch
       boardName={board.name}
+      boardNanoid={board.nanoid}
       user={session ? { name: session.user.name } : null}
       apps={board.apps.map(({ app }) => ({
         id: app.id,
@@ -32,6 +33,9 @@ export default async function BoardPage({
         description: app.description,
         url: app.url,
         iconSlug: app.iconSlug,
+        status:
+          app.status === "up" || app.status === "down" ? app.status : "unknown",
+        lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
       }))}
     />
   )

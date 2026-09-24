@@ -3,6 +3,48 @@ import { z } from "zod"
 import { prisma } from "@/lib/prisma"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
 import { createBoardNanoid, moveItem } from "@/server/board-service"
+import { createAppStatusService } from "@/server/app-status-service"
+
+const appStatusService = createAppStatusService({
+  listBoardApps: async (nanoid) => {
+    const board = await prisma.board.findUnique({
+      where: { nanoid },
+      select: {
+        apps: {
+          select: {
+            app: {
+              select: {
+                id: true,
+                url: true,
+                status: true,
+                lastCheckedAt: true,
+              },
+            },
+          },
+        },
+      },
+    })
+    if (!board) return null
+    return board.apps.map(({ app }) => ({
+      ...app,
+      status:
+        app.status === "up" || app.status === "down" ? app.status : "unknown",
+    }))
+  },
+  isBoardAppAssigned: async (nanoid, appId) => {
+    const board = await prisma.board.findUnique({
+      where: { nanoid },
+      select: { apps: { where: { appId }, select: { appId: true } } },
+    })
+    return Boolean(board?.apps.length)
+  },
+  updateStatus: async (id, status, lastCheckedAt) => {
+    await prisma.app.update({
+      where: { id },
+      data: { status, lastCheckedAt },
+    })
+  },
+})
 
 const nameSchema = z.string().trim().min(1).max(80)
 
@@ -204,4 +246,15 @@ export const boardRouter = router({
         },
       }),
     ),
+  refreshStatuses: publicProcedure
+    .input(z.object({ nanoid: z.string().min(8).max(30) }))
+    .mutation(async ({ input }) => {
+      const statuses = await appStatusService.refreshBoard(input.nanoid)
+      if (!statuses)
+        throw new TRPCError({ code: "NOT_FOUND", message: "Board not found." })
+      return statuses.map((app) => ({
+        ...app,
+        lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
+      }))
+    }),
 })

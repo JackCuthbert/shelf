@@ -112,6 +112,8 @@ it("renders icon-only move controls with accessible labels", () => {
                 description: "",
                 url: "https://plex.example",
                 iconSlug: "plex",
+                status: "unknown",
+                lastCheckedAt: null,
                 createdAt: "",
                 updatedAt: "",
               },

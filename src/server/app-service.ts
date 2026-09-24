@@ -4,6 +4,8 @@ export type SharedApp = {
   description: string
   url: string
   iconSlug: string
+  status: string
+  lastCheckedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -12,12 +14,14 @@ export type AppValues = Pick<
   SharedApp,
   "name" | "description" | "url" | "iconSlug"
 >
+export type AppUpdateValues = AppValues &
+  Partial<Pick<SharedApp, "status" | "lastCheckedAt">>
 
 export interface AppRepository {
   list(): Promise<SharedApp[]>
   find(id: string): Promise<SharedApp | null>
   create(input: AppValues): Promise<SharedApp>
-  update(id: string, input: AppValues): Promise<SharedApp>
+  update(id: string, input: AppUpdateValues): Promise<SharedApp>
   delete(id: string): Promise<SharedApp>
   countIcon(slug: string): Promise<number>
 }
@@ -75,12 +79,17 @@ export function createSharedAppService(
         const newlyCached = await icons.ensure(input.iconSlug)
         let updated: SharedApp
         try {
-          updated = await repository.update(input.id, {
+          const appValues = {
             name: input.name,
             description: input.description,
             url: input.url,
             iconSlug: input.iconSlug,
-          })
+          }
+          const values: AppUpdateValues =
+            existing.url === input.url
+              ? appValues
+              : { ...appValues, status: "unknown", lastCheckedAt: null }
+          updated = await repository.update(input.id, values)
         } catch (error) {
           if (newlyCached && (await repository.countIcon(input.iconSlug)) === 0)
             await icons.remove(input.iconSlug)

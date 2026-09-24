@@ -11,6 +11,7 @@ Hometime is a small, self-hosted dashboard for one household. It provides a shar
 | Apps and icon selection                | [apps-and-icons.md](apps-and-icons.md) |
 | Boards and display                     | [boards.md](boards.md)                 |
 | Board categories                       | [categories.md](categories.md)         |
+| App liveness status                    | [app-status.md](app-status.md)         |
 | Board search                           | [search.md](search.md)                 |
 | Management interface                   | [admin.md](admin.md)                   |
 | Deployment and persistence             | [deployment.md](deployment.md)         |
