@@ -7,6 +7,7 @@ import { LuPlus } from "react-icons/lu"
 import { ModalContent } from "@/components/modal"
 
 type App = { id: string; name: string; url: string; iconSlug: string }
+type Category = { id: string; title: string }
 
 function hostname(url: string) {
   try {
@@ -19,14 +20,18 @@ function hostname(url: string) {
 export function BoardAppDialog({
   boardName,
   apps,
+  categories,
   onAssign,
 }: {
   boardName: string
   apps: App[]
-  onAssign: (appId: string) => void
+  categories: Category[]
+  onAssign: (appId: string, categoryId: string | null) => void
 }) {
   const [filter, setFilter] = useState("")
+  const [categoryId, setCategoryId] = useState("")
   const filterId = useId()
+  const categoryFieldId = useId()
   const needle = filter.trim().toLowerCase()
   const visible = needle
     ? apps.filter((app) =>
@@ -37,7 +42,10 @@ export function BoardAppDialog({
   return (
     <Dialog.Root
       onOpenChange={(open) => {
-        if (!open) setFilter("")
+        if (!open) {
+          setFilter("")
+          setCategoryId("")
+        }
       }}
     >
       <Dialog.Trigger className="btn text-xs">
@@ -54,6 +62,29 @@ export function BoardAppDialog({
           </p>
         ) : (
           <>
+            {categories.length > 0 && (
+              <div className="mb-3 space-y-1">
+                <label
+                  htmlFor={categoryFieldId}
+                  className="block text-xs text-muted"
+                >
+                  Category
+                </label>
+                <select
+                  id={categoryFieldId}
+                  className="field"
+                  value={categoryId}
+                  onChange={(event) => setCategoryId(event.target.value)}
+                >
+                  <option value="">Uncategorized</option>
+                  {categories.map((category) => (
+                    <option key={category.id} value={category.id}>
+                      {category.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
             <label htmlFor={filterId} className="sr-only">
               Filter apps
             </label>
@@ -74,7 +105,7 @@ export function BoardAppDialog({
                 {visible.map((app) => (
                   <li key={app.id}>
                     <Dialog.Close
-                      onClick={() => onAssign(app.id)}
+                      onClick={() => onAssign(app.id, categoryId || null)}
                       className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt"
                     >
                       <img

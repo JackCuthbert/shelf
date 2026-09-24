@@ -19,6 +19,11 @@ vi.mock("@/components/trpc-provider", () => {
         assign: { useMutation },
         unassign: { useMutation },
         move: { useMutation },
+        setAssignmentCategory: { useMutation },
+        createCategory: { useMutation },
+        updateCategory: { useMutation },
+        moveCategory: { useMutation },
+        deleteCategory: { useMutation },
       },
       apps: {
         list: {
@@ -47,6 +52,7 @@ it("renders the same board link during server and browser initial renders", () =
         ownerId: "user-1",
         createdAt: "",
         updatedAt: "",
+        categories: [],
         apps: [],
       },
     ],
@@ -78,6 +84,7 @@ it("marks the default board and disables its set-default control", () => {
           ownerId: "user-1",
           createdAt: "",
           updatedAt: "",
+          categories: [],
           apps: [],
         },
       ]}
@@ -101,10 +108,12 @@ it("renders icon-only move controls with accessible labels", () => {
           ownerId: "user-1",
           createdAt: "",
           updatedAt: "",
+          categories: [],
           apps: [
             {
               boardId: "board-1",
               appId: "plex",
+              categoryId: null,
               position: 0,
               app: {
                 id: "plex",

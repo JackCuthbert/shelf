@@ -1,5 +1,18 @@
 export type SearchableApp = { id: string; name: string }
 
+export type CategorySummary = {
+  id: string
+  title: string
+  description: string
+}
+
+export type CategorizedApp = SearchableApp & { categoryId: string | null }
+
+export type AppGroup<T> = {
+  category: CategorySummary | null
+  apps: T[]
+}
+
 function scoreName(name: string, query: string): number | null {
   const normalizedName = name.toLocaleLowerCase()
   const normalizedQuery = query.toLocaleLowerCase().trim()
@@ -33,4 +46,38 @@ export function rankApps<T extends SearchableApp>(
     )
     .sort((a, b) => a.score - b.score || a.index - b.index)
     .map(({ app }) => app)
+}
+
+/**
+ * Splits a board's apps into display groups: uncategorized apps first (when
+ * present), then every category in its saved order, including empty ones.
+ */
+export function groupBoardApps<T extends CategorizedApp>(
+  apps: readonly T[],
+  categories: readonly CategorySummary[],
+): AppGroup<T>[] {
+  const groups: AppGroup<T>[] = []
+  const uncategorized = apps.filter((app) => app.categoryId === null)
+  if (uncategorized.length > 0)
+    groups.push({ category: null, apps: uncategorized })
+  for (const category of categories)
+    groups.push({
+      category,
+      apps: apps.filter((app) => app.categoryId === category.id),
+    })
+  return groups
+}
+
+/**
+ * Ranks matches within each group and hides empty groups. With an empty query
+ * every group is kept so empty categories stay visible.
+ */
+export function filterAppGroups<T extends SearchableApp>(
+  groups: readonly AppGroup<T>[],
+  query: string,
+): AppGroup<T>[] {
+  if (!query.trim()) return groups.map((group) => ({ ...group }))
+  return groups
+    .map((group) => ({ ...group, apps: rankApps(group.apps, query) }))
+    .filter((group) => group.apps.length > 0)
 }

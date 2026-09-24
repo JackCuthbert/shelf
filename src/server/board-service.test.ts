@@ -1,5 +1,12 @@
 import { describe, expect, it } from "vitest"
-import { createBoardNanoid, moveItem, orderedPositions } from "./board-service"
+import {
+  createBoardNanoid,
+  moveItem,
+  normalizeCategoryTitle,
+  orderedBoardAssignmentIds,
+  orderedGroupAssignmentIds,
+  orderedPositions,
+} from "./board-service"
 
 describe("board public IDs", () => {
   it("generates eight URL-safe characters with fresh random values", () => {
@@ -20,5 +27,43 @@ describe("board ordering", () => {
     expect(moveItem(["a", "b", "c"], 1, -1)).toEqual(["b", "a", "c"])
     expect(moveItem(["a", "b", "c"], 1, 1)).toEqual(["a", "c", "b"])
     expect(moveItem(["a", "b"], 0, -1)).toEqual(["a", "b"])
+  })
+})
+
+describe("category grouping and ordering", () => {
+  const assignments = [
+    { appId: "uncategorized-2", categoryId: null, position: 3 },
+    { appId: "media-2", categoryId: "media", position: 0 },
+    { appId: "uncategorized-1", categoryId: null, position: 1 },
+    { appId: "media-1", categoryId: "media", position: 4 },
+    { appId: "tools-1", categoryId: "tools", position: 2 },
+  ]
+
+  it("orders each group by persisted position", () => {
+    expect(orderedGroupAssignmentIds(assignments, "media")).toEqual([
+      "media-2",
+      "media-1",
+    ])
+    expect(orderedGroupAssignmentIds(assignments, null)).toEqual([
+      "uncategorized-1",
+      "uncategorized-2",
+    ])
+  })
+
+  it("flattens uncategorized first, then categories in the given order", () => {
+    expect(orderedBoardAssignmentIds(assignments, ["tools", "media"])).toEqual([
+      "uncategorized-1",
+      "uncategorized-2",
+      "tools-1",
+      "media-2",
+      "media-1",
+    ])
+  })
+
+  it("normalizes titles for case-insensitive uniqueness checks", () => {
+    expect(normalizeCategoryTitle("  Media  ")).toBe("media")
+    expect(normalizeCategoryTitle("MEDIA")).toBe(
+      normalizeCategoryTitle("media"),
+    )
   })
 })

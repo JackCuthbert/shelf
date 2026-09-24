@@ -19,6 +19,7 @@ const apps = [
     description: "Movies and shows",
     url: "https://plex.example",
     iconSlug: "plex",
+    categoryId: null,
     status: "up" as const,
     lastCheckedAt: Date.parse("2026-09-24T00:00:00Z"),
   },
@@ -28,6 +29,7 @@ const apps = [
     description: "",
     url: "https://sonarr.example",
     iconSlug: "sonarr",
+    categoryId: null,
     status: "unknown" as const,
     lastCheckedAt: null,
   },
@@ -40,6 +42,7 @@ describe("BoardSearch", () => {
         boardName="Home"
         boardNanoid="abcdefgh"
         apps={apps}
+        categories={[]}
         user={null}
       />,
     )
@@ -56,6 +59,7 @@ describe("BoardSearch", () => {
         boardName="Home"
         boardNanoid="abcdefgh"
         apps={apps}
+        categories={[]}
         user={null}
       />,
     )
@@ -81,6 +85,7 @@ describe("BoardSearch", () => {
         boardName="Empty"
         boardNanoid="abcdefgh"
         apps={[]}
+        categories={[]}
         user={null}
       />,
     )
@@ -94,6 +99,7 @@ describe("BoardSearch", () => {
         boardName="Home"
         boardNanoid="abcdefgh"
         apps={apps}
+        categories={[]}
         user={null}
       />,
     )
@@ -125,6 +131,7 @@ describe("BoardSearch", () => {
         boardName="Home"
         boardNanoid="abcdefgh"
         apps={apps}
+        categories={[]}
         user={null}
       />,
     )

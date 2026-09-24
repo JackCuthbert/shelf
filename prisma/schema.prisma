@@ -94,30 +94,51 @@ model App {
 }
 
 model Board {
-  id        String      @id @default(cuid())
-  nanoid    String      @unique
-  name      String
-  ownerId   String
-  owner     User        @relation(fields: [ownerId], references: [id], onDelete: Cascade)
-  defaults  User[]      @relation("UserDefaultBoard")
-  apps      BoardApp[]
-  createdAt DateTime    @default(now())
-  updatedAt DateTime    @updatedAt
+  id         String          @id @default(cuid())
+  nanoid     String          @unique
+  name       String
+  ownerId    String
+  owner      User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  defaults   User[]          @relation("UserDefaultBoard")
+  apps       BoardApp[]
+  categories BoardCategory[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   @@unique([ownerId, id])
   @@index([ownerId, createdAt])
   @@map("board")
 }
 
+model BoardCategory {
+  id          String     @id @default(cuid())
+  boardId     String
+  title       String
+  description String     @default("")
+  position    Int
+  board       Board      @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  apps        BoardApp[]
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  @@unique([boardId, position])
+  @@unique([boardId, title])
+  @@index([boardId])
+  @@map("board_category")
+}
+
 model BoardApp {
-  boardId  String
-  appId    String
-  position Int
-  board    Board @relation(fields: [boardId], references: [id], onDelete: Cascade)
-  app      App   @relation(fields: [appId], references: [id], onDelete: Cascade)
+  boardId    String
+  appId      String
+  categoryId String?
+  position   Int
+  board      Board          @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  app        App            @relation(fields: [appId], references: [id], onDelete: Cascade)
+  category   BoardCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
 
   @@id([boardId, appId])
   @@unique([boardId, position])
   @@index([appId])
+  @@index([categoryId])
   @@map("board_app")
 }

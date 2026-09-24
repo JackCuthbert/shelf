@@ -16,6 +16,7 @@ export default async function BoardPage({
     prisma.board.findUnique({
       where: { nanoid },
       include: {
+        categories: { orderBy: { position: "asc" } },
         apps: { include: { app: true }, orderBy: { position: "asc" } },
       },
     }),
@@ -27,12 +28,18 @@ export default async function BoardPage({
       boardName={board.name}
       boardNanoid={board.nanoid}
       user={session ? { name: session.user.name } : null}
-      apps={board.apps.map(({ app }) => ({
+      categories={board.categories.map((category) => ({
+        id: category.id,
+        title: category.title,
+        description: category.description,
+      }))}
+      apps={board.apps.map(({ app, categoryId }) => ({
         id: app.id,
         name: app.name,
         description: app.description,
         url: app.url,
         iconSlug: app.iconSlug,
+        categoryId,
         status:
           app.status === "up" || app.status === "down" ? app.status : "unknown",
         lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,

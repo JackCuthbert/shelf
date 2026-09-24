@@ -13,6 +13,7 @@ export default async function AdminPage() {
     prisma.board.findMany({
       where: { ownerId: session.user.id },
       include: {
+        categories: { orderBy: { position: "asc" } },
         apps: { include: { app: true }, orderBy: { position: "asc" } },
       },
       orderBy: { createdAt: "asc" },
@@ -31,6 +32,15 @@ export default async function AdminPage() {
             ...board,
             createdAt: board.createdAt.toISOString(),
             updatedAt: board.updatedAt.toISOString(),
+            categories: board.categories.map((category) => ({
+              id: category.id,
+              boardId: category.boardId,
+              title: category.title,
+              description: category.description,
+              position: category.position,
+              createdAt: category.createdAt.toISOString(),
+              updatedAt: category.updatedAt.toISOString(),
+            })),
             apps: board.apps.map((entry) => ({
               ...entry,
               app: {

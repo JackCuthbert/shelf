@@ -1,8 +1,17 @@
 import { TRPCError } from "@trpc/server"
 import { z } from "zod"
+import { categoryInputSchema } from "@/lib/category-validation"
 import { prisma } from "@/lib/prisma"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
-import { createBoardNanoid, moveItem } from "@/server/board-service"
+import {
+  createBoardNanoid,
+  moveItem,
+  normalizeCategoryTitle,
+  orderedBoardAssignmentIds,
+  orderedGroupAssignmentIds,
+  writeAssignmentPositions,
+  writeCategoryPositions,
+} from "@/server/board-service"
 import { createAppStatusService } from "@/server/app-status-service"
 
 const appStatusService = createAppStatusService({
@@ -47,6 +56,8 @@ const appStatusService = createAppStatusService({
 })
 
 const nameSchema = z.string().trim().min(1).max(80)
+const boardIdSchema = z.string().min(1)
+const categoryIdSchema = z.string().min(1).nullable()
 
 async function ownedBoard(id: string, ownerId: string) {
   const board = await prisma.board.findFirst({ where: { id, ownerId } })
@@ -55,11 +66,58 @@ async function ownedBoard(id: string, ownerId: string) {
   return board
 }
 
+async function ownedCategory(id: string, ownerId: string) {
+  const category = await prisma.boardCategory.findUnique({
+    where: { id },
+    include: { board: { select: { ownerId: true } } },
+  })
+  if (!category || category.board.ownerId !== ownerId)
+    throw new TRPCError({ code: "NOT_FOUND", message: "Category not found." })
+  return category
+}
+
+async function categoryOnBoard(categoryId: string | null, boardId: string) {
+  if (categoryId === null) return
+  const category = await prisma.boardCategory.findUnique({
+    where: { id: categoryId },
+    select: { boardId: true },
+  })
+  if (!category || category.boardId !== boardId)
+    throw new TRPCError({
+      code: "BAD_REQUEST",
+      message: "Choose a category from this board.",
+    })
+}
+
+async function assertUniqueTitle(
+  boardId: string,
+  title: string,
+  exceptId?: string,
+) {
+  const normalized = normalizeCategoryTitle(title)
+  const categories = await prisma.boardCategory.findMany({
+    where: { boardId },
+    select: { id: true, title: true },
+  })
+  if (
+    categories.some(
+      (category) =>
+        category.id !== exceptId &&
+        normalizeCategoryTitle(category.title) === normalized,
+    )
+  )
+    throw new TRPCError({
+      code: "CONFLICT",
+      message: "A category with that title already exists on this board.",
+    })
+}
+
 export const boardRouter = router({
   list: protectedProcedure.query(({ ctx }) =>
     prisma.board.findMany({
       where: { ownerId: ctx.session.user.id },
       include: {
+        categories: { orderBy: { position: "asc" } },
         apps: { include: { app: true }, orderBy: { position: "asc" } },
       },
       orderBy: { createdAt: "asc" },
@@ -130,76 +188,102 @@ export const boardRouter = router({
       })
     }),
   assign: protectedProcedure
-    .input(z.object({ boardId: z.string(), appId: z.string() }))
+    .input(
+      z.object({
+        boardId: boardIdSchema,
+        appId: z.string().min(1),
+        categoryId: categoryIdSchema.optional(),
+      }),
+    )
     .mutation(async ({ ctx, input }) => {
       await ownedBoard(input.boardId, ctx.session.user.id)
+      const categoryId = input.categoryId ?? null
+      await categoryOnBoard(categoryId, input.boardId)
       const existing = await prisma.boardApp.findMany({
         where: { boardId: input.boardId },
         orderBy: { position: "asc" },
-        select: { appId: true },
       })
       if (existing.some((entry) => entry.appId === input.appId))
         return { success: true }
       await prisma.$transaction(async (tx) => {
+        const position =
+          existing.reduce((max, entry) => Math.max(max, entry.position), -1) + 1
         await tx.boardApp.create({
           data: {
             boardId: input.boardId,
             appId: input.appId,
-            position: existing.length + 1000000,
+            categoryId,
+            position,
           },
         })
-        await tx.boardApp.update({
-          where: {
-            boardId_appId: { boardId: input.boardId, appId: input.appId },
-          },
-          data: { position: existing.length },
+        const categories = await tx.boardCategory.findMany({
+          where: { boardId: input.boardId },
+          orderBy: { position: "asc" },
+          select: { id: true },
         })
+        const assignments = [
+          ...existing.map((entry) => ({
+            appId: entry.appId,
+            categoryId: entry.categoryId,
+            position: entry.position,
+          })),
+          { appId: input.appId, categoryId, position },
+        ]
+        await writeAssignmentPositions(
+          tx,
+          input.boardId,
+          orderedBoardAssignmentIds(
+            assignments,
+            categories.map((category) => category.id),
+          ),
+        )
       })
       return { success: true }
     }),
   unassign: protectedProcedure
-    .input(z.object({ boardId: z.string(), appId: z.string() }))
+    .input(z.object({ boardId: boardIdSchema, appId: z.string().min(1) }))
     .mutation(async ({ ctx, input }) => {
       await ownedBoard(input.boardId, ctx.session.user.id)
       const assignments = await prisma.boardApp.findMany({
         where: { boardId: input.boardId },
         orderBy: { position: "asc" },
-        select: { appId: true },
       })
       if (!assignments.some((entry) => entry.appId === input.appId))
         return { success: true }
       const remaining = assignments
         .filter((entry) => entry.appId !== input.appId)
-        .map((entry) => entry.appId)
+        .map((entry) => ({
+          appId: entry.appId,
+          categoryId: entry.categoryId,
+          position: entry.position,
+        }))
       await prisma.$transaction(async (tx) => {
-        await tx.boardApp.update({
-          where: {
-            boardId_appId: { boardId: input.boardId, appId: input.appId },
-          },
-          data: { position: { increment: 1000000 } },
-        })
         await tx.boardApp.delete({
           where: {
             boardId_appId: { boardId: input.boardId, appId: input.appId },
           },
         })
-        await tx.boardApp.updateMany({
+        const categories = await tx.boardCategory.findMany({
           where: { boardId: input.boardId },
-          data: { position: { increment: 1000000 } },
+          orderBy: { position: "asc" },
+          select: { id: true },
         })
-        for (const [position, appId] of remaining.entries())
-          await tx.boardApp.update({
-            where: { boardId_appId: { boardId: input.boardId, appId } },
-            data: { position },
-          })
+        await writeAssignmentPositions(
+          tx,
+          input.boardId,
+          orderedBoardAssignmentIds(
+            remaining,
+            categories.map((category) => category.id),
+          ),
+        )
       })
       return { success: true }
     }),
   move: protectedProcedure
     .input(
       z.object({
-        boardId: z.string(),
-        appId: z.string(),
+        boardId: boardIdSchema,
+        appId: z.string().min(1),
         direction: z.enum(["up", "down"]),
       }),
     )
@@ -208,31 +292,191 @@ export const boardRouter = router({
       const assignments = await prisma.boardApp.findMany({
         where: { boardId: input.boardId },
         orderBy: { position: "asc" },
-        select: { appId: true },
       })
-      const index = assignments.findIndex(
-        (entry) => entry.appId === input.appId,
-      )
-      if (index < 0)
+      const current = assignments.find((entry) => entry.appId === input.appId)
+      if (!current)
         throw new TRPCError({
           code: "NOT_FOUND",
           message: "App assignment not found.",
         })
-      const moved = moveItem(
+      const categories = await prisma.boardCategory.findMany({
+        where: { boardId: input.boardId },
+        orderBy: { position: "asc" },
+        select: { id: true },
+      })
+      const categoryIds = categories.map((category) => category.id)
+      const groupIds = orderedGroupAssignmentIds(
         assignments,
+        current.categoryId,
+      )
+      const groupIndex = groupIds.indexOf(input.appId)
+      const movedGroup = moveItem(
+        groupIds,
+        groupIndex,
+        input.direction === "up" ? -1 : 1,
+      )
+      const nextOrder = [null, ...categoryIds].flatMap((categoryId) =>
+        categoryId === current.categoryId
+          ? movedGroup
+          : orderedGroupAssignmentIds(assignments, categoryId),
+      )
+      await prisma.$transaction((tx) =>
+        writeAssignmentPositions(tx, input.boardId, nextOrder),
+      )
+      return { success: true }
+    }),
+  setAssignmentCategory: protectedProcedure
+    .input(
+      z.object({
+        boardId: boardIdSchema,
+        appId: z.string().min(1),
+        categoryId: categoryIdSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ownedBoard(input.boardId, ctx.session.user.id)
+      await categoryOnBoard(input.categoryId, input.boardId)
+      const assignments = await prisma.boardApp.findMany({
+        where: { boardId: input.boardId },
+        orderBy: { position: "asc" },
+      })
+      if (!assignments.some((entry) => entry.appId === input.appId))
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "App assignment not found.",
+        })
+      const position =
+        assignments.reduce((max, entry) => Math.max(max, entry.position), -1) +
+        1
+      await prisma.$transaction(async (tx) => {
+        await tx.boardApp.update({
+          where: {
+            boardId_appId: { boardId: input.boardId, appId: input.appId },
+          },
+          data: { categoryId: input.categoryId, position },
+        })
+        const categories = await tx.boardCategory.findMany({
+          where: { boardId: input.boardId },
+          orderBy: { position: "asc" },
+          select: { id: true },
+        })
+        const nextAssignments = assignments.map((entry) =>
+          entry.appId === input.appId
+            ? {
+                appId: entry.appId,
+                categoryId: input.categoryId,
+                position,
+              }
+            : {
+                appId: entry.appId,
+                categoryId: entry.categoryId,
+                position: entry.position,
+              },
+        )
+        await writeAssignmentPositions(
+          tx,
+          input.boardId,
+          orderedBoardAssignmentIds(
+            nextAssignments,
+            categories.map((category) => category.id),
+          ),
+        )
+      })
+      return { success: true }
+    }),
+  createCategory: protectedProcedure
+    .input(z.object({ boardId: boardIdSchema, ...categoryInputSchema.shape }))
+    .mutation(async ({ ctx, input }) => {
+      await ownedBoard(input.boardId, ctx.session.user.id)
+      await assertUniqueTitle(input.boardId, input.title)
+      const position = await prisma.boardCategory.count({
+        where: { boardId: input.boardId },
+      })
+      return prisma.boardCategory.create({
+        data: {
+          boardId: input.boardId,
+          title: input.title,
+          description: input.description,
+          position,
+        },
+      })
+    }),
+  updateCategory: protectedProcedure
+    .input(z.object({ id: z.string().min(1), ...categoryInputSchema.shape }))
+    .mutation(async ({ ctx, input }) => {
+      const category = await ownedCategory(input.id, ctx.session.user.id)
+      await assertUniqueTitle(category.boardId, input.title, category.id)
+      return prisma.boardCategory.update({
+        where: { id: category.id },
+        data: { title: input.title, description: input.description },
+      })
+    }),
+  moveCategory: protectedProcedure
+    .input(
+      z.object({
+        boardId: boardIdSchema,
+        id: z.string().min(1),
+        direction: z.enum(["up", "down"]),
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ownedBoard(input.boardId, ctx.session.user.id)
+      const categories = await prisma.boardCategory.findMany({
+        where: { boardId: input.boardId },
+        orderBy: { position: "asc" },
+        select: { id: true },
+      })
+      const index = categories.findIndex((category) => category.id === input.id)
+      if (index < 0)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "Category not found.",
+        })
+      const moved = moveItem(
+        categories.map((category) => category.id),
         index,
         input.direction === "up" ? -1 : 1,
-      ).map((entry) => entry.appId)
+      )
+      await prisma.$transaction((tx) =>
+        writeCategoryPositions(tx, input.boardId, moved),
+      )
+      return { success: true }
+    }),
+  deleteCategory: protectedProcedure
+    .input(z.object({ id: z.string().min(1) }))
+    .mutation(async ({ ctx, input }) => {
+      const category = await ownedCategory(input.id, ctx.session.user.id)
       await prisma.$transaction(async (tx) => {
-        await tx.boardApp.updateMany({
-          where: { boardId: input.boardId },
-          data: { position: { increment: 1000000 } },
+        const assignments = await tx.boardApp.findMany({
+          where: { boardId: category.boardId },
+          orderBy: { position: "asc" },
         })
-        for (const [position, appId] of moved.entries())
-          await tx.boardApp.update({
-            where: { boardId_appId: { boardId: input.boardId, appId } },
-            data: { position },
-          })
+        const categories = await tx.boardCategory.findMany({
+          where: { boardId: category.boardId },
+          orderBy: { position: "asc" },
+          select: { id: true },
+        })
+        const uncategorized = orderedGroupAssignmentIds(assignments, null)
+        const deleted = orderedGroupAssignmentIds(assignments, category.id)
+        const remaining = categories.filter((entry) => entry.id !== category.id)
+        await tx.boardApp.updateMany({
+          where: { boardId: category.boardId, categoryId: category.id },
+          data: { categoryId: null },
+        })
+        await tx.boardCategory.delete({ where: { id: category.id } })
+        const nextOrder = [
+          ...uncategorized,
+          ...deleted,
+          ...remaining.flatMap((entry) =>
+            orderedGroupAssignmentIds(assignments, entry.id),
+          ),
+        ]
+        await writeAssignmentPositions(tx, category.boardId, nextOrder)
+        await writeCategoryPositions(
+          tx,
+          category.boardId,
+          remaining.map((entry) => entry.id),
+        )
       })
       return { success: true }
     }),
@@ -242,6 +486,7 @@ export const boardRouter = router({
       prisma.board.findUnique({
         where: { nanoid: input.nanoid },
         include: {
+          categories: { orderBy: { position: "asc" } },
           apps: { include: { app: true }, orderBy: { position: "asc" } },
         },
       }),
