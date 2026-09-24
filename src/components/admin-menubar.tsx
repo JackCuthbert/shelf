@@ -1,6 +1,12 @@
-import { SignOutButton } from "@/components/sign-out-button"
+import { UserMenu } from "@/components/user-menu"
 
-export function AdminMenubar({ active }: { active: "boards" | "apps" }) {
+export function AdminMenubar({
+  active,
+  user,
+}: {
+  active: "boards" | "apps" | "account"
+  user: { name: string }
+}) {
   const linkClass = (value: "boards" | "apps") =>
     `border px-2 py-1 transition ${active === value ? "border-accent bg-accent font-semibold text-accent-foreground" : "border-transparent text-muted hover:text-foreground"}`
   return (
@@ -30,7 +36,7 @@ export function AdminMenubar({ active }: { active: "boards" | "apps" }) {
             </a>
           </nav>
         </div>
-        <SignOutButton />
+        <UserMenu user={user} />
       </div>
     </header>
   )

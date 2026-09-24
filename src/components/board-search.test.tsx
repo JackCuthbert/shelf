@@ -20,19 +20,20 @@ const apps = [
 ]
 
 describe("BoardSearch", () => {
-  it("renders a sticky header with the board name, search field, and admin link", () => {
+  it("renders a sticky header with the board name, search field, and anonymous sign-in link", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} />,
+      <BoardSearch boardName="Home" apps={apps} user={null} />,
     )
     expect(html).toContain("sticky")
     expect(html).toContain("Home")
     expect(html).toContain('id="board-search"')
-    expect(html).toContain('href="/admin"')
+    expect(html).toContain('href="/"')
+    expect(html).toContain("Sign in")
   })
 
   it("renders each app as a new-tab tile in manual order", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} />,
+      <BoardSearch boardName="Home" apps={apps} user={null} />,
     )
     const hrefs = [...html.matchAll(/<a[^>]*href="(https:[^"]+)"[^>]*>/g)].map(
       (match) => match[1],
@@ -48,7 +49,7 @@ describe("BoardSearch", () => {
 
   it("keeps the search field visible on an empty board", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Empty" apps={[]} />,
+      <BoardSearch boardName="Empty" apps={[]} user={null} />,
     )
     expect(html).toContain('id="board-search"')
     expect(html).toContain("This board is empty")
@@ -56,7 +57,7 @@ describe("BoardSearch", () => {
 
   it("shows description access outside the app link and omits it without a description", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} />,
+      <BoardSearch boardName="Home" apps={apps} user={null} />,
     )
     expect(html).toContain('aria-label="About Plex"')
     expect(html).not.toContain('aria-label="About Sonarr"')
@@ -82,7 +83,7 @@ describe("BoardSearch", () => {
 
   it("does not advertise the removed custom keyboard shortcuts", () => {
     const html = renderToStaticMarkup(
-      <BoardSearch boardName="Home" apps={apps} />,
+      <BoardSearch boardName="Home" apps={apps} user={null} />,
     )
     expect(html).not.toMatch(/escape|ctrl|cmd|arrow/i)
   })

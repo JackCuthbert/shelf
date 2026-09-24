@@ -3,8 +3,9 @@
 import { useMemo, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
-import { LuInfo, LuLayoutDashboard, LuSettings } from "react-icons/lu"
+import { LuInfo, LuLayoutDashboard } from "react-icons/lu"
 import { rankApps } from "@/lib/board-search"
+import { UserMenu } from "@/components/user-menu"
 
 type BoardApp = {
   id: string
@@ -28,9 +29,11 @@ export function descriptionTileHandlers(
 export function BoardSearch({
   boardName,
   apps,
+  user,
 }: {
   boardName: string
   apps: BoardApp[]
+  user: { name: string } | null
 }) {
   const [query, setQuery] = useState("")
   const [openDescription, setOpenDescription] = useState<string | null>(null)
@@ -66,10 +69,9 @@ export function BoardSearch({
               className="field"
             />
           </div>
-          <a href="/admin" className="btn order-2 justify-self-end sm:order-3">
-            <LuSettings aria-hidden className="size-4" />
-            Admin
-          </a>
+          <div className="order-2 min-w-0 justify-self-end sm:order-3">
+            <UserMenu user={user} />
+          </div>
         </div>
       </header>
       <div

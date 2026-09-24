@@ -24,7 +24,7 @@ export default async function AdminPage() {
   ])
   return (
     <>
-      <AdminMenubar active="boards" />
+      <AdminMenubar active="boards" user={{ name: session.user.name }} />
       <main className="mx-auto min-h-screen max-w-5xl px-5 pt-5 pb-8 sm:px-8">
         <BoardsAdmin
           initialBoards={boards.map((board) => ({
