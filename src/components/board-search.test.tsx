@@ -1,6 +1,6 @@
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it } from "vitest"
-import { BoardSearch } from "./board-search"
+import { describe, expect, it, vi } from "vitest"
+import { BoardSearch, descriptionTileHandlers } from "./board-search"
 
 const apps = [
   {
@@ -63,6 +63,21 @@ describe("BoardSearch", () => {
     expect(html).toMatch(
       /<a[^>]*href="https:\/\/plex\.example"[^>]*>.*?<\/a><button/,
     )
+  })
+
+  it("opens the description from tile hover and keyboard focus", () => {
+    const open = vi.fn()
+    const handlers = descriptionTileHandlers("plex", true, open)
+
+    handlers.onMouseEnter()
+    expect(open).toHaveBeenLastCalledWith("plex")
+    handlers.onFocus()
+    expect(open).toHaveBeenLastCalledWith("plex")
+
+    const emptyHandlers = descriptionTileHandlers("sonarr", false, open)
+    emptyHandlers.onMouseEnter()
+    emptyHandlers.onFocus()
+    expect(open).toHaveBeenCalledTimes(2)
   })
 
   it("does not advertise the removed custom keyboard shortcuts", () => {

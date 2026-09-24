@@ -14,6 +14,17 @@ type BoardApp = {
   iconSlug: string
 }
 
+export function descriptionTileHandlers(
+  appId: string,
+  hasDescription: boolean,
+  open: (id: string) => void,
+) {
+  const showDescription = () => {
+    if (hasDescription) open(appId)
+  }
+  return { onMouseEnter: showDescription, onFocus: showDescription }
+}
+
 export function BoardSearch({
   boardName,
   apps,
@@ -22,6 +33,7 @@ export function BoardSearch({
   apps: BoardApp[]
 }) {
   const [query, setQuery] = useState("")
+  const [openDescription, setOpenDescription] = useState<string | null>(null)
   const results = useMemo(() => rankApps(apps, query), [apps, query])
 
   return (
@@ -76,13 +88,23 @@ export function BoardSearch({
           <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
             {results.map((app) => (
               <li key={app.id}>
-                <Popover.Root>
+                <Popover.Root
+                  open={openDescription === app.id}
+                  onOpenChange={(open) =>
+                    setOpenDescription(open ? app.id : null)
+                  }
+                >
                   <div className="relative">
                     <a
                       href={app.url}
                       target="_blank"
                       rel="noreferrer"
                       title={app.name}
+                      {...descriptionTileHandlers(
+                        app.id,
+                        Boolean(app.description),
+                        setOpenDescription,
+                      )}
                       className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
                     >
                       <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
