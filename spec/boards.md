@@ -12,9 +12,9 @@
 ## Board view
 
 - `/` resolves the signed-in user's default board. `/board/<nanoid>` resolves that board for any visitor with the link.
-- V1 renders app icons and names in one responsive list using the board's persisted top-to-bottom order. The list adapts to narrow screens without horizontal scrolling or a separate mobile layout.
+- V1 renders app icons and names in one responsive list using the board's persisted top-to-bottom order. The next visual-design stage replaces the list with responsive tiles, specified in [board-visual-design.md](board-visual-design.md).
 - Selecting an app by pointer, touch, or keyboard opens its URL in a new tab.
 - Empty boards show an understandable empty state. Owners can navigate to `/admin` to add apps; visitors see a read-only empty state.
-- The search control and keyboard behavior are defined in [search.md](search.md).
+- The search control and filtering behavior are defined in [search.md](search.md).
 
 No grid coordinates, tiles, resize controls, layout breakpoints, or separate per-device positions exist in v1.

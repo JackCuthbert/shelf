@@ -9,7 +9,8 @@ The product specification lives in `spec/`. Read a feature specification only wh
 | First-run setup, login, sign-up, access | `spec/accounts.md` |
 | Shared apps and icon selection/cache | `spec/apps-and-icons.md` |
 | Board ownership, routes, ordering, display | `spec/boards.md` |
-| Fuzzy filtering and keyboard behavior | `spec/search.md` |
+| Board tile layout, header, theme, responsive design | `spec/board-visual-design.md` |
+| Fuzzy filtering and current keyboard behavior | `spec/search.md` |
 | App and board management UI | `spec/admin.md` |
 | Docker, data volume, migrations, recovery | `spec/deployment.md` |
 | Features deferred beyond v1 | `spec/future.md` |
