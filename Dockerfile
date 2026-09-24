@@ -25,8 +25,8 @@ COPY --from=builder --chown=app:app /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=app:app /app/scripts ./scripts
 COPY --from=builder --chown=app:app /app/src/generated ./src/generated
 COPY --from=builder --chown=app:app /app/src/lib ./src/lib
-COPY scripts/start.sh /usr/local/bin/hometime-start
-RUN chmod +x /usr/local/bin/hometime-start
+COPY scripts/start.sh /usr/local/bin/shelf-start
+RUN chmod +x /usr/local/bin/shelf-start
 USER root
 EXPOSE 3000
-CMD ["/usr/local/bin/hometime-start"]
+CMD ["/usr/local/bin/shelf-start"]

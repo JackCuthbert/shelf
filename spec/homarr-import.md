@@ -40,7 +40,7 @@ Import apps from an existing Homarr instance into the shared app library. Only a
 
 ## Privacy and network
 
-- The API key is sent only to the Hometime server in the request body and used only for the fetch made during that request. It is never persisted, returned to the client, or included in URLs.
+- The API key is sent only to the Shelf server in the request body and used only for the fetch made during that request. It is never persisted, returned to the client, or included in URLs.
 - The server fetches only the fixed `/api/apps` path on the supplied origin, rejects embedded credentials, and otherwise follows the existing allowance for private household hosts. Large responses and excessively long app lists are rejected before use.
 
 ## Acceptance checks

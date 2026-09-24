@@ -1,4 +1,4 @@
-# Hometime Stage 3 Implementation Plan
+# Shelf Stage 3 Implementation Plan
 
 **Goal:** Add owned boards, per-board app assignments and manual ordering, public board views, and signed-in default-board routing.
 

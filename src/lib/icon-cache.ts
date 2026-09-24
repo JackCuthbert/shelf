@@ -7,7 +7,7 @@ import { PLACEHOLDER_ICON_SLUG } from "./placeholder-icon"
 const CDN = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/"
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 const MAX_ICON_BYTES = 5 * 1024 * 1024
-export const iconDirectory = process.env.HOMETIME_ICON_DIR ?? "/data/icons"
+export const iconDirectory = process.env.SHELF_ICON_DIR ?? "/data/icons"
 
 function assertPng(bytes: Buffer, message: string) {
   if (

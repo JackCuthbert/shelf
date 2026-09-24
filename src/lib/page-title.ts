@@ -1,4 +1,4 @@
-export const APP_NAME = "Hometime"
+export const APP_NAME = "Shelf"
 export const TITLE_SEPARATOR = " · "
 
 export function appTitle(section: string): string {

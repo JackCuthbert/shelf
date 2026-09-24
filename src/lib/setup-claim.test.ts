@@ -11,7 +11,7 @@ const clients: Client[] = []
 let path = ""
 
 async function freshDatabase() {
-  path = `/tmp/hometime-claim-${crypto.randomUUID()}.db`
+  path = `/tmp/shelf-claim-${crypto.randomUUID()}.db`
   const a = createClient({ url: `file:${path}`, timeout: 5000 })
   const b = createClient({ url: `file:${path}`, timeout: 5000 })
   clients.push(a, b)

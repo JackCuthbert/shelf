@@ -2,7 +2,7 @@
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
-**Goal:** Import apps from an existing Homarr instance into Hometime's shared app library through a two-step modal wizard.
+**Goal:** Import apps from an existing Homarr instance into Shelf's shared app library through a two-step modal wizard.
 
 **Architecture:** A server-only Homarr client fetches `GET <base>/api/apps` with a request-scoped `ApiKey` header and normalizes the records. A protected tRPC `imports.previewHomarr` mutation exposes that to a client wizard. The wizard reviews the apps, chooses Dashboard Icons with auto-suggested slugs plus a bundled placeholder, and saves each app through the existing `apps.create` path.
 
@@ -29,7 +29,7 @@ Failure modes the spec implies that no single task's happy-path test covers. Eac
 2. An empty Homarr instance (`[]`) — the review step must show a clear empty state instead of a Save that does nothing (Task 7).
 3. A very large Homarr response or app list — must be rejected before use, not crash or freeze the server (Task 3).
 4. The icon catalogue is unavailable during review — suggested slugs must be cleared gracefully and manual selection plus placeholder saves must still work (Task 4, Task 6).
-5. Odd records: whitespace-only URLs, missing/blank descriptions, non-string ids, non-HTTP(S) `href` — normalization must produce valid Hometime records or mark rows non-importable (Task 3).
+5. Odd records: whitespace-only URLs, missing/blank descriptions, non-string ids, non-HTTP(S) `href` — normalization must produce valid Shelf records or mark rows non-importable (Task 3).
 
 ---
 
@@ -2101,7 +2101,7 @@ git commit -m "test: verify Homarr import end to end"
 
 ## Manual verification (for the reviewer)
 
-1. Start Hometime and sign in; open `/admin/apps`.
+1. Start Shelf and sign in; open `/admin/apps`.
 2. Click **Import from Homarr**. Enter an unreachable address — expect a clear, retryable error and the entered values retained.
 3. Enter a wrong API key against a real Homarr instance — expect "Homarr rejected the API key."
 4. Enter a valid address and key — expect the review list. Confirm a known app with a dashboard-icons icon URL shows the matching slug, a custom-scheme app is disabled with a reason, and editing an icon updates its preview.

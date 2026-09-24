@@ -1,4 +1,4 @@
-# Hometime stage 1 implementation plan
+# Shelf stage 1 implementation plan
 
 ## Goal
 

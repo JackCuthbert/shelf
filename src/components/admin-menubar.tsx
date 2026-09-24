@@ -14,7 +14,7 @@ export function AdminMenubar({
       <div className="mx-auto flex max-w-5xl items-center justify-between gap-4 px-4 py-2 sm:px-6">
         <div className="flex min-w-0 items-center gap-4">
           <a href="/" className="truncate font-semibold">
-            Hometime
+            Shelf
           </a>
           <nav
             className="flex items-center gap-4 text-sm"

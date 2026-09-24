@@ -13,23 +13,23 @@
 Example:
 
 ```sh
-docker build -t hometime .
-docker run -d --name hometime \
+docker build -t shelf .
+docker run -d --name shelf \
   -p 3000:3000 \
-  -e BETTER_AUTH_URL=https://hometime.example.com \
+  -e BETTER_AUTH_URL=https://shelf.example.com \
   -e BETTER_AUTH_SECRET='replace-with-a-long-random-secret' \
-  -v hometime-data:/data \
-  hometime
+  -v shelf-data:/data \
+  shelf
 ```
 
 Set `ENABLE_SIGNUP=true` to allow later account creation; it is disabled otherwise.
 
-For OIDC, set the issuer URL and client credentials in the container environment. For example, Pocket ID can be used like any other OIDC provider. Register `https://hometime.example.com/api/auth/callback/oidc` as the redirect URI. OIDC provider setup takes effect after restarting the container.
+For OIDC, set the issuer URL and client credentials in the container environment. For example, Pocket ID can be used like any other OIDC provider. Register `https://shelf.example.com/api/auth/callback/oidc` as the redirect URI. OIDC provider setup takes effect after restarting the container.
 
 To reset an account password without placing it in process arguments, run:
 
 ```sh
-docker exec -it hometime npm run admin:reset-password -- person@example.com
+docker exec -it shelf npm run admin:reset-password -- person@example.com
 ```
 
 The command prompts for the new password in the terminal.

@@ -1,4 +1,4 @@
-# Hometime Stage 2 Implementation Plan
+# Shelf Stage 2 Implementation Plan
 
 **Goal:** Add a shared household app library with authenticated CRUD, explicit Dashboard Icons selection, and durable local PNG caching.
 

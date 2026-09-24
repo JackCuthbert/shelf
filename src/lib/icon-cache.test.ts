@@ -14,7 +14,7 @@ afterEach(async () => {
 })
 
 async function setup() {
-  directory = await mkdtemp(join(tmpdir(), "hometime-icons-"))
+  directory = await mkdtemp(join(tmpdir(), "shelf-icons-"))
   return directory
 }
 

@@ -33,7 +33,7 @@ export default async function HomePage() {
   const oidcProvider = getOidcProviderConfig(process.env)
   return (
     <main className="mx-auto flex min-h-screen max-w-md flex-col justify-center px-6">
-      <p className="mb-3 text-xs text-muted">Hometime</p>
+      <p className="mb-3 text-xs text-muted">Shelf</p>
       <h1 className="mb-2 text-3xl font-semibold">
         {setup ? "Make yourself at home." : "Welcome back."}
       </h1>

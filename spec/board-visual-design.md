@@ -4,7 +4,7 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 ## Header
 
-- A single sticky header spans the board. It shows the board name on the left, a centered search field, and an account control on the right. The browser tab title shows the board name followed by the site name, separated by a middle dot: `Home · Hometime`.
+- A single sticky header spans the board. It shows the board name on the left, a centered search field, and an account control on the right. The browser tab title shows the board name followed by the site name, separated by a middle dot: `Home · Shelf`.
 - On narrow screens, the name and account control remain on the first row and the search field moves to a full-width second row. The header must not cause horizontal scrolling.
 - Signed-in visitors see the shared user menu used in admin: a person icon and display name, with Account, Boards, Apps, and Sign out actions. Anonymous visitors see a Sign in button. The menu must work with keyboard, pointer, and touch input.
 - Search remains visible for empty boards and filters only apps on the viewed board. Filtering and ranking follow [search.md](search.md).

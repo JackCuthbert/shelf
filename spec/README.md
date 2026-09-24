@@ -1,6 +1,6 @@
-# Hometime specification
+# Shelf specification
 
-Hometime is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards. The experience favors a reliable mobile layout, simple board editing, and fast search over configurable layouts, widgets, and integrations.
+Shelf is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards. The experience favors a reliable mobile layout, simple board editing, and fast search over configurable layouts, widgets, and integrations.
 
 ## V1 feature specifications
 

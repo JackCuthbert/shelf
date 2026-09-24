@@ -224,7 +224,7 @@ export function BoardSearch({
           <div className="order-1 flex min-w-0 items-center gap-2">
             <LuLayoutDashboard aria-hidden className="size-5 shrink-0" />
             <div className="min-w-0">
-              <p className="text-xs leading-none text-muted">Hometime</p>
+              <p className="text-xs leading-none text-muted">Shelf</p>
               <h1
                 className="truncate text-base font-semibold leading-tight"
                 title={boardName}

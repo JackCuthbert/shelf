@@ -1,6 +1,6 @@
-# Hometime
+# Shelf
 
-Hometime is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards that are quick to search and easy to edit on any screen — no widgets, YAML, or per-device layouts.
+Shelf is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards that are quick to search and easy to edit on any screen — no widgets, YAML, or per-device layouts.
 
 ## Features
 
@@ -21,21 +21,21 @@ Create a `compose.yaml`:
 
 ```yaml
 services:
-  hometime:
-    image: ghcr.io/JackCuthbert/hometime:latest
-    container_name: hometime
+  shelf:
+    image: ghcr.io/JackCuthbert/shelf:latest
+    container_name: shelf
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
-      BETTER_AUTH_URL: https://hometime.example.com
+      BETTER_AUTH_URL: https://shelf.example.com
       BETTER_AUTH_SECRET: replace-with-a-long-random-secret
       # ENABLE_SIGNUP: "true"
     volumes:
-      - hometime-data:/data
+      - shelf-data:/data
 
 volumes:
-  hometime-data:
+  shelf-data:
 ```
 
 Start it:
@@ -50,14 +50,14 @@ Open `BETTER_AUTH_URL`; the first visit runs first-account setup. To keep data a
 
 | Variable             | Required | Purpose                                                                                                         |
 | -------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `BETTER_AUTH_URL`    | Yes      | Hometime's public URL, e.g. `https://hometime.example.com`. Used for auth and OIDC redirects.                   |
+| `BETTER_AUTH_URL`    | Yes      | Shelf's public URL, e.g. `https://shelf.example.com`. Used for auth and OIDC redirects.                         |
 | `BETTER_AUTH_SECRET` | Yes      | Long random signing secret. Generate one with `openssl rand -base64 32` and keep it stable.                     |
 | `ENABLE_SIGNUP`      | No       | Set to `true` to allow creating additional accounts. Defaults to disabled; the first account is always allowed. |
 | `OIDC_ISSUER`        | No       | Generic OIDC issuer URL.                                                                                        |
 | `OIDC_CLIENT_ID`     | No       | OIDC client ID.                                                                                                 |
 | `OIDC_CLIENT_SECRET` | No       | OIDC client secret.                                                                                             |
 | `OIDC_PROVIDER_NAME` | No       | Display name for the provider. Defaults to `OpenID Connect`.                                                    |
-| `HOMETIME_ICON_DIR`  | No       | Icon cache directory. Defaults to `/data/icons`.                                                                |
+| `SHELF_ICON_DIR`     | No       | Icon cache directory. Defaults to `/data/icons`.                                                                |
 | `PORT`               | No       | HTTP port. Defaults to `3000`.                                                                                  |
 
 The OIDC variables must all be set together or startup fails. Register `<BETTER_AUTH_URL>/api/auth/callback/oidc` as the provider's redirect URI, and restart the container after changing these settings. Existing users can connect OIDC from **Account settings** after signing in locally.
@@ -69,5 +69,5 @@ The OIDC variables must all be set together or startup fails. Register `<BETTER_
 Reset a password by email; the command prompts for the new password instead of taking it as an argument:
 
 ```sh
-docker compose exec hometime npm run admin:reset-password -- person@example.com
+docker compose exec shelf npm run admin:reset-password -- person@example.com
 ```

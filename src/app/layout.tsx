@@ -11,7 +11,7 @@ const mono = IBM_Plex_Mono({
 })
 
 export const metadata: Metadata = {
-  title: "Hometime",
+  title: "Shelf",
   description: "A calm home dashboard",
 }
 
