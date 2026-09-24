@@ -1,12 +1,71 @@
-# OIDC setup
+# Hometime
 
-Set `BETTER_AUTH_URL` to Hometime's public URL, then configure:
+Hometime is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards that are quick to search and easy to edit on any screen — no widgets, YAML, or per-device layouts.
 
-```env
-OIDC_ISSUER=https://id.example.com
-OIDC_CLIENT_ID=hometime
-OIDC_CLIENT_SECRET=your-client-secret
-OIDC_PROVIDER_NAME=Pocket ID
+## Features
+
+- A shared app library with a name, optional description, HTTP(S) URL, and an explicitly chosen [Dashboard Icons](https://dashboardicons.com) icon.
+- Personal boards with an unguessable public link, owned by one user.
+- A responsive tile grid that fills the screen, with app descriptions on hover or focus (and a touch button).
+- Board categories to group apps, with manual ordering.
+- Fast client-side search across a board.
+- App liveness indicators (up, down, not checked).
+- Local email/password accounts plus an optional single OIDC provider.
+- Import apps from an existing Homarr instance.
+
+## Running with Docker Compose
+
+Create a `compose.yaml`:
+
+```yaml
+services:
+  hometime:
+    image: ghcr.io/JackCuthbert/hometime:latest
+    container_name: hometime
+    restart: unless-stopped
+    ports:
+      - "3000:3000"
+    environment:
+      BETTER_AUTH_URL: https://hometime.example.com
+      BETTER_AUTH_SECRET: replace-with-a-long-random-secret
+      # ENABLE_SIGNUP: "true"
+    volumes:
+      - hometime-data:/data
+
+volumes:
+  hometime-data:
 ```
 
-Register `<BETTER_AUTH_URL>/api/auth/callback/oidc` as the provider's redirect URI. If the provider requires post-logout URLs to be allowlisted, add `<BETTER_AUTH_URL>/` so sign-out returns to Hometime. Set `ENABLE_SIGNUP=true` to allow new accounts. Existing users can connect OIDC from **Account settings** after signing in locally. Restart Hometime after changing these settings.
+Start it:
+
+```sh
+docker compose up -d
+```
+
+Open `BETTER_AUTH_URL`; the first visit runs first-account setup. To keep data across upgrades, keep the `/data` volume — it holds the SQLite database (`/data/app.db`) and downloaded icons (`/data/icons`).
+
+## Configuration
+
+| Variable             | Required | Purpose                                                                                                         |
+| -------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
+| `BETTER_AUTH_URL`    | Yes      | Hometime's public URL, e.g. `https://hometime.example.com`. Used for auth and OIDC redirects.                   |
+| `BETTER_AUTH_SECRET` | Yes      | Long random signing secret. Generate one with `openssl rand -base64 32` and keep it stable.                     |
+| `ENABLE_SIGNUP`      | No       | Set to `true` to allow creating additional accounts. Defaults to disabled; the first account is always allowed. |
+| `OIDC_ISSUER`        | No       | Generic OIDC issuer URL.                                                                                        |
+| `OIDC_CLIENT_ID`     | No       | OIDC client ID.                                                                                                 |
+| `OIDC_CLIENT_SECRET` | No       | OIDC client secret.                                                                                             |
+| `OIDC_PROVIDER_NAME` | No       | Display name for the provider. Defaults to `OpenID Connect`.                                                    |
+| `HOMETIME_ICON_DIR`  | No       | Icon cache directory. Defaults to `/data/icons`.                                                                |
+| `PORT`               | No       | HTTP port. Defaults to `3000`.                                                                                  |
+
+The OIDC variables must all be set together or startup fails. Register `<BETTER_AUTH_URL>/api/auth/callback/oidc` as the provider's redirect URI, and restart the container after changing these settings. Existing users can connect OIDC from **Account settings** after signing in locally.
+
+`BETTER_AUTH_URL` must match the address users actually visit, so terminate TLS in front of the container and point that hostname at port 3000.
+
+## Account maintenance
+
+Reset a password by email; the command prompts for the new password instead of taking it as an argument:
+
+```sh
+docker compose exec hometime npm run admin:reset-password -- person@example.com
+```
