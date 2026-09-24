@@ -12,7 +12,8 @@
 ## Icon selection and persistence
 
 - Opening the icon picker fetches the published Dashboard Icons `metadata.json` in the browser. The picker searches icon slugs and aliases and shows remote CDN previews. No catalogue or unselected preview icon is saved in `/data`. [Published metadata](https://github.com/homarr-labs/dashboard-icons/blob/main/metadata.json).
-- A user chooses an icon explicitly; the app name does not auto-select one.
+- A user chooses an icon explicitly; the app name does not auto-select one. The Homarr import is the one exception: it may pre-select a slug detected from the source icon URL, and assigns the reserved placeholder icon when a row is saved without a chosen icon. See [homarr-import.md](homarr-import.md).
+- The placeholder icon is bundled with the application, never downloaded from the CDN, and never removed by icon cleanup.
 - On app save, the server validates the selected slug and downloads its PNG from the fixed Dashboard Icons CDN pattern into `/data/icons/<slug>.png`. The file is reused when another saved app selects the same slug. The source README documents the CDN URL pattern and PNG format. [Dashboard Icons README](https://github.com/homarr-labs/dashboard-icons/blob/main/README.md).
 - Boards serve saved icons from `/data/icons/`, so displaying existing apps does not require the icon source to be available.
 - Saving an app with a newly selected icon succeeds only after its download succeeds. On failure, keep the form entries and show a retryable error; do not leave a broken app or overwrite an existing icon choice.

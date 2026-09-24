@@ -1,6 +1,11 @@
 import { appRouter } from "./routers/app"
-import { router } from "./trpc"
 import { boardRouter } from "./routers/board"
+import { importRouter } from "./routers/imports"
+import { router } from "./trpc"
 
-export const appRouterRoot = router({ apps: appRouter, boards: boardRouter })
+export const appRouterRoot = router({
+  apps: appRouter,
+  boards: boardRouter,
+  imports: importRouter,
+})
 export type AppRouter = typeof appRouterRoot

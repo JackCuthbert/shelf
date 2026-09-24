@@ -7,16 +7,20 @@ import { LuX } from "react-icons/lu"
 export function ModalContent({
   title,
   description,
+  wide = false,
   children,
 }: {
   title: string
   description?: string
+  wide?: boolean
   children: React.ReactNode
 }) {
   return (
     <Dialog.Portal>
       <Dialog.Backdrop className="fixed inset-0 z-40 bg-black/50" />
-      <Dialog.Popup className="panel fixed left-1/2 top-1/2 z-50 max-h-[90vh] w-[min(92vw,30rem)] -translate-x-1/2 -translate-y-1/2 overflow-y-auto p-5">
+      <Dialog.Popup
+        className={`panel fixed left-1/2 top-1/2 z-50 max-h-[90vh] ${wide ? "w-[min(92vw,44rem)]" : "w-[min(92vw,30rem)]"} -translate-x-1/2 -translate-y-1/2 overflow-y-auto p-5`}
+      >
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
             <Dialog.Title className="text-base font-semibold">

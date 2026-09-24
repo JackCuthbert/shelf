@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto"
 import { mkdir, readFile, rename, rm, writeFile } from "node:fs/promises"
 import { join } from "node:path"
 import { iconSlugSchema } from "./app-validation"
+import { PLACEHOLDER_ICON_SLUG } from "./placeholder-icon"
 
 const CDN = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/"
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
@@ -15,6 +16,7 @@ export function createIconCache(
   return {
     async ensure(slug: string): Promise<boolean> {
       iconSlugSchema.parse(slug)
+      if (slug === PLACEHOLDER_ICON_SLUG) return false
       await mkdir(directory, { recursive: true })
       const destination = join(directory, `${slug}.png`)
       try {
@@ -44,6 +46,7 @@ export function createIconCache(
     },
     async remove(slug: string): Promise<void> {
       iconSlugSchema.parse(slug)
+      if (slug === PLACEHOLDER_ICON_SLUG) return
       await rm(join(directory, `${slug}.png`), { force: true })
     },
   }

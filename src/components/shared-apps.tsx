@@ -5,8 +5,9 @@ import { AlertDialog } from "@base-ui/react/alert-dialog"
 import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
-import { LuPencil, LuPlus, LuTrash2 } from "react-icons/lu"
+import { LuDownload, LuPencil, LuPlus, LuTrash2 } from "react-icons/lu"
 import { AppFormDialog } from "@/components/app-form-dialog"
+import { HomarrImportDialog } from "@/components/homarr-import-dialog"
 import { ConfirmContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 
@@ -28,6 +29,8 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
     initialData: initialApps,
   })
   const [editing, setEditing] = useState<App | null | undefined>(undefined)
+  const [importing, setImporting] = useState(false)
+  const [importedCount, setImportedCount] = useState<number | null>(null)
   const [filter, setFilter] = useState("")
   const [error, setError] = useState("")
   const remove = trpc.apps.delete.useMutation({
@@ -53,18 +56,38 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
         <p className="text-muted">
           Apps are available to everyone in your household.
         </p>
-        <AppFormDialog
-          open={editing !== undefined}
-          app={editing ?? null}
-          onOpenChange={(open) => setEditing(open ? null : undefined)}
-          trigger={
-            <Dialog.Trigger className="btn btn-primary">
-              <LuPlus aria-hidden className="size-4" />
-              Create app
-            </Dialog.Trigger>
-          }
-        />
+        <div className="flex flex-wrap items-center gap-2">
+          <HomarrImportDialog
+            open={importing}
+            onOpenChange={setImporting}
+            onImported={(count) => setImportedCount(count)}
+            trigger={
+              <Dialog.Trigger className="btn">
+                <LuDownload aria-hidden className="size-4" />
+                Import from Homarr
+              </Dialog.Trigger>
+            }
+          />
+          <AppFormDialog
+            open={editing !== undefined}
+            app={editing ?? null}
+            onOpenChange={(open) => setEditing(open ? null : undefined)}
+            trigger={
+              <Dialog.Trigger className="btn btn-primary">
+                <LuPlus aria-hidden className="size-4" />
+                Create app
+              </Dialog.Trigger>
+            }
+          />
+        </div>
       </div>
+
+      {importedCount !== null && (
+        <p role="status" className="mt-4 border border-line p-3 text-sm">
+          Imported {importedCount} app{importedCount === 1 ? "" : "s"} from
+          Homarr.
+        </p>
+      )}
 
       {apps.length > 0 && (
         <div className="mt-4">

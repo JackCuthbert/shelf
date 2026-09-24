@@ -3,6 +3,7 @@ import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { afterEach, describe, expect, it, vi } from "vitest"
 import { createIconCache } from "./icon-cache"
+import { PLACEHOLDER_ICON_SLUG } from "./placeholder-icon"
 
 const png = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10, 0])
 let directory = ""
@@ -40,6 +41,16 @@ describe("icon cache", () => {
     const path = await setup()
     const cache = createIconCache(path, async () => Buffer.from("not png"))
     await expect(cache.ensure("home-assistant")).rejects.toThrow("PNG")
+    expect(await readdir(path)).toEqual([])
+  })
+
+  it("keeps the placeholder available without downloading or writing a file", async () => {
+    const path = await setup()
+    const download = vi.fn(async () => png)
+    const cache = createIconCache(path, download)
+    await cache.ensure(PLACEHOLDER_ICON_SLUG)
+    await cache.remove(PLACEHOLDER_ICON_SLUG)
+    expect(download).not.toHaveBeenCalled()
     expect(await readdir(path)).toEqual([])
   })
 })

@@ -9,6 +9,7 @@
 - Better Auth's Generic OAuth plugin optionally handles one administrator-configured OIDC provider. OAuth tokens are encrypted in the database. Implicit email-based account linking is disabled; authenticated users explicitly link provider identities. The local user-creation hook enforces `ENABLE_SIGNUP` for OIDC sign-up as well as email sign-up.
 - Account settings use authenticated server-side operations for the current user. Email and password changes verify the existing local password; password changes revoke other sessions while preserving the current session.
 - When installing npm modules, use the versions tagged `latest` at installation time and commit the resulting lockfile.
+- Importing apps from a Homarr instance runs entirely server-side: a protected tRPC procedure fetches the user-supplied Homarr instance's app list, and the supplied credentials are request-scoped and never persisted. See [homarr-import.md](homarr-import.md).
 
 ## Core records
 

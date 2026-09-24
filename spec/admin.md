@@ -7,6 +7,7 @@
 - List app names, descriptions when present, URLs, and saved icons in a single-column list with a filter.
 - Create an app with name, optional plain-text description of up to 280 characters, URL, and explicit icon search/selection.
 - Edit name, description, URL, or icon. Deleting prompts for confirmation that the app disappears from every board.
+- Import apps from an existing Homarr instance through the two-step wizard described in [homarr-import.md](homarr-import.md).
 - Every signed-in user sees and can manage the same library.
 
 ## My boards

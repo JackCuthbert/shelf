@@ -16,6 +16,7 @@ vi.mock("@/components/trpc-provider", () => {
         update: { useMutation },
         delete: { useMutation },
       },
+      imports: { previewHomarr: { useMutation } },
     },
   }
 })
@@ -25,6 +26,7 @@ import { SharedApps } from "./shared-apps"
 it("opens app creation from a modal trigger instead of an inline form", () => {
   const html = renderToStaticMarkup(<SharedApps initialApps={[]} />)
   expect(html).toContain("Create app")
+  expect(html).toContain("Import from Homarr")
   expect(html).not.toContain("Add app")
   expect(html).not.toContain('placeholder="https://example.home"')
 })
