@@ -6,8 +6,16 @@ import { Input } from "@base-ui/react/input"
 import { LuPlus } from "react-icons/lu"
 import { CategorySelect } from "@/components/category-select"
 import { ModalContent } from "@/components/modal"
+import { iconKey } from "@/lib/app-icon"
 
-type App = { id: string; name: string; url: string; iconSlug: string }
+type App = {
+  id: string
+  name: string
+  url: string
+  iconSource: string
+  iconSlug: string | null
+  iconHash: string | null
+}
 type Category = { id: string; title: string }
 
 function hostname(url: string) {
@@ -104,7 +112,7 @@ export function BoardAppDialog({
                       className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt"
                     >
                       <img
-                        src={`/icons/${app.iconSlug}`}
+                        src={`/icons/${iconKey(app)}`}
                         alt=""
                         className="h-9 w-9 shrink-0 object-contain p-1"
                       />

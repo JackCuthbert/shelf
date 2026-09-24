@@ -18,7 +18,7 @@ type BoardApp = {
   name: string
   description: string
   url: string
-  iconSlug: string
+  iconKey: string
   categoryId: string | null
   status: AppStatus
   lastCheckedAt: number | null
@@ -91,7 +91,7 @@ function BoardTile({
             </span>
             <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
               <img
-                src={`/icons/${app.iconSlug}`}
+                src={`/icons/${app.iconKey}`}
                 alt=""
                 className="h-full w-full object-contain"
               />

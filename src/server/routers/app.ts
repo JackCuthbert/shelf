@@ -1,5 +1,9 @@
 import { TRPCError } from "@trpc/server"
-import { appIdInputSchema, appInputSchema } from "@/lib/app-validation"
+import {
+  appIdInputSchema,
+  appInputSchema,
+  appUpdateInputSchema,
+} from "@/lib/app-validation"
 import { iconCache } from "@/lib/icon-cache"
 import { prisma } from "@/lib/prisma"
 import { AppNotFoundError, createSharedAppService } from "@/server/app-service"
@@ -13,7 +17,10 @@ const appService = createSharedAppService(
     create: (data) => prisma.app.create({ data }),
     update: (id, data) => prisma.app.update({ where: { id }, data }),
     delete: (id) => prisma.app.delete({ where: { id } }),
-    countIcon: (iconSlug) => prisma.app.count({ where: { iconSlug } }),
+    countIcon: (key) =>
+      prisma.app.count({
+        where: { OR: [{ iconSlug: key }, { iconHash: key }] },
+      }),
   },
   iconCache,
 )
@@ -24,7 +31,7 @@ export const appRouter = router({
     .input(appInputSchema)
     .mutation(({ input }) => appService.create(input)),
   update: protectedProcedure
-    .input(appIdInputSchema.extend(appInputSchema.shape))
+    .input(appUpdateInputSchema)
     .mutation(async ({ input }) => {
       try {
         return await appService.update(input)

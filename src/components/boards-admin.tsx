@@ -27,6 +27,7 @@ import { BoardAppDialog } from "@/components/board-app-dialog"
 import { CategorySelect } from "@/components/category-select"
 import { ConfirmContent, ModalContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
+import { iconKey } from "@/lib/app-icon"
 
 type Category = CategoryRecord & {
   boardId: string
@@ -56,7 +57,10 @@ type App = {
   name: string
   description: string
   url: string
-  iconSlug: string
+  iconSource: string
+  iconSlug: string | null
+  customIconUrl: string | null
+  iconHash: string | null
   status: string
   lastError: string | null
   lastCheckedAt: string | null
@@ -238,7 +242,7 @@ export function BoardsAdmin({
       >
         <div className="flex min-w-0 items-center gap-2 sm:flex-1">
           <img
-            src={`/icons/${entry.app.iconSlug}`}
+            src={`/icons/${iconKey(entry.app)}`}
             alt=""
             className="h-9 w-9 shrink-0 object-contain p-1"
           />

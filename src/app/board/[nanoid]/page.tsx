@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
+import { iconKey } from "@/lib/app-icon"
 import { BoardSearch } from "@/components/board-search"
 import { auth } from "@/lib/auth"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
@@ -55,7 +56,7 @@ export default async function BoardPage({
         name: app.name,
         description: app.description,
         url: app.url,
-        iconSlug: app.iconSlug,
+        iconKey: iconKey(app),
         categoryId,
         status:
           app.status === "up" || app.status === "down" ? app.status : "unknown",

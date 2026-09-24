@@ -11,13 +11,17 @@ import { AppFormDialog } from "@/components/app-form-dialog"
 import { HomarrImportDialog } from "@/components/homarr-import-dialog"
 import { ConfirmContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
+import { iconKey } from "@/lib/app-icon"
 
 type App = {
   id: string
   name: string
   description: string
   url: string
-  iconSlug: string
+  iconSource: string
+  iconSlug: string | null
+  customIconUrl: string | null
+  iconHash: string | null
   status: string
   lastError: string | null
   lastCheckedAt: string | null
@@ -164,7 +168,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                 className="panel flex min-w-0 items-center gap-3 p-3"
               >
                 <img
-                  src={`/icons/${app.iconSlug}`}
+                  src={`/icons/${iconKey(app)}`}
                   alt=""
                   className="h-12 w-12 shrink-0 object-contain"
                 />

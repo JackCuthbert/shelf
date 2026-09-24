@@ -82,7 +82,10 @@ model App {
   name          String
   description   String    @default("")
   url           String
-  iconSlug      String
+  iconSource    String    @default("dashboard")
+  iconSlug      String?
+  customIconUrl String?
+  iconHash      String?
   status        String    @default("unknown")
   lastCheckedAt DateTime?
   lastError     String?
@@ -91,6 +94,7 @@ model App {
   boards        BoardApp[]
 
   @@index([iconSlug])
+  @@index([iconHash])
   @@map("app")
 }
 

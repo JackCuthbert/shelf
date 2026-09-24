@@ -1,9 +1,14 @@
+import type { AppInput } from "@/lib/app-validation"
+
 export type SharedApp = {
   id: string
   name: string
   description: string
   url: string
-  iconSlug: string
+  iconSource: string
+  iconSlug: string | null
+  customIconUrl: string | null
+  iconHash: string | null
   status: string
   lastCheckedAt: Date | null
   lastError: string | null
@@ -13,7 +18,13 @@ export type SharedApp = {
 
 export type AppValues = Pick<
   SharedApp,
-  "name" | "description" | "url" | "iconSlug"
+  | "name"
+  | "description"
+  | "url"
+  | "iconSource"
+  | "iconSlug"
+  | "customIconUrl"
+  | "iconHash"
 >
 export type AppUpdateValues = AppValues &
   Partial<Pick<SharedApp, "status" | "lastCheckedAt" | "lastError">>
@@ -24,18 +35,23 @@ export interface AppRepository {
   create(input: AppValues): Promise<SharedApp>
   update(id: string, input: AppUpdateValues): Promise<SharedApp>
   delete(id: string): Promise<SharedApp>
-  countIcon(slug: string): Promise<number>
+  countIcon(key: string): Promise<number>
 }
 
 export interface AppIconCache {
   ensure(slug: string): Promise<boolean>
-  remove(slug: string): Promise<void>
+  storeFromUrl(url: string): Promise<{ hash: string; created: boolean }>
+  remove(key: string): Promise<void>
 }
 
 export class AppNotFoundError extends Error {
   constructor() {
     super("App not found.")
   }
+}
+
+function iconKey(app: Pick<SharedApp, "iconSource" | "iconSlug" | "iconHash">) {
+  return app.iconSource === "url" ? (app.iconHash ?? "") : (app.iconSlug ?? "")
 }
 
 export function createSharedAppService(
@@ -56,53 +72,81 @@ export function createSharedAppService(
       release()
     }
   }
-  async function removeIfUnreferenced(slug: string) {
-    if ((await repository.countIcon(slug)) === 0) await icons.remove(slug)
+  async function removeIfUnreferenced(key: string) {
+    if (key && (await repository.countIcon(key)) === 0) await icons.remove(key)
+  }
+
+  async function createValues(
+    input: AppInput,
+  ): Promise<{ values: AppValues; created: string | null }> {
+    if (input.iconSource === "url") {
+      const { hash, created } = await icons.storeFromUrl(input.iconUrl)
+      return {
+        values: {
+          name: input.name,
+          description: input.description,
+          url: input.url,
+          iconSource: "url",
+          iconSlug: null,
+          customIconUrl: input.iconUrl,
+          iconHash: hash,
+        },
+        created: created ? hash : null,
+      }
+    }
+    const newlyCached = await icons.ensure(input.iconSlug)
+    return {
+      values: {
+        name: input.name,
+        description: input.description,
+        url: input.url,
+        iconSource: "dashboard",
+        iconSlug: input.iconSlug,
+        customIconUrl: null,
+        iconHash: null,
+      },
+      created: newlyCached ? input.iconSlug : null,
+    }
   }
 
   return {
     list: () => repository.list(),
-    create: (input: AppValues) =>
+    create: (input: AppInput) =>
       serialize(async () => {
-        const newlyCached = await icons.ensure(input.iconSlug)
+        const { values, created } = await createValues(input)
         try {
-          return await repository.create(input)
+          return await repository.create(values)
         } catch (error) {
-          if (newlyCached && (await repository.countIcon(input.iconSlug)) === 0)
-            await icons.remove(input.iconSlug)
+          if (created && (await repository.countIcon(created)) === 0)
+            await icons.remove(created)
           throw error
         }
       }),
-    update: (input: AppValues & { id: string }) =>
+    update: (input: AppInput & { id: string }) =>
       serialize(async () => {
         const existing = await repository.find(input.id)
         if (!existing) throw new AppNotFoundError()
-        const newlyCached = await icons.ensure(input.iconSlug)
+        const { values, created } = await createValuesForUpdate(input, existing)
         let updated: SharedApp
         try {
-          const appValues = {
-            name: input.name,
-            description: input.description,
-            url: input.url,
-            iconSlug: input.iconSlug,
-          }
-          const values: AppUpdateValues =
+          const valuesWithStatus: AppUpdateValues =
             existing.url === input.url
-              ? appValues
+              ? values
               : {
-                  ...appValues,
+                  ...values,
                   status: "unknown",
                   lastCheckedAt: null,
                   lastError: null,
                 }
-          updated = await repository.update(input.id, values)
+          updated = await repository.update(input.id, valuesWithStatus)
         } catch (error) {
-          if (newlyCached && (await repository.countIcon(input.iconSlug)) === 0)
-            await icons.remove(input.iconSlug)
+          if (created && (await repository.countIcon(created)) === 0)
+            await icons.remove(created)
           throw error
         }
-        if (existing.iconSlug !== updated.iconSlug)
-          await removeIfUnreferenced(existing.iconSlug)
+        const previous = iconKey(existing)
+        const next = iconKey(updated)
+        if (previous !== next) await removeIfUnreferenced(previous)
         return updated
       }),
     delete: (id: string) =>
@@ -110,8 +154,60 @@ export function createSharedAppService(
         const existing = await repository.find(id)
         if (!existing) throw new AppNotFoundError()
         const deleted = await repository.delete(id)
-        await removeIfUnreferenced(deleted.iconSlug)
+        await removeIfUnreferenced(iconKey(deleted))
         return deleted
       }),
+  }
+
+  async function createValuesForUpdate(
+    input: AppInput,
+    existing: SharedApp,
+  ): Promise<{ values: AppValues; created: string | null }> {
+    if (input.iconSource === "url") {
+      if (
+        existing.iconSource === "url" &&
+        existing.customIconUrl === input.iconUrl &&
+        existing.iconHash
+      ) {
+        return {
+          values: {
+            name: input.name,
+            description: input.description,
+            url: input.url,
+            iconSource: "url",
+            iconSlug: null,
+            customIconUrl: input.iconUrl,
+            iconHash: existing.iconHash,
+          },
+          created: null,
+        }
+      }
+      const { hash, created } = await icons.storeFromUrl(input.iconUrl)
+      return {
+        values: {
+          name: input.name,
+          description: input.description,
+          url: input.url,
+          iconSource: "url",
+          iconSlug: null,
+          customIconUrl: input.iconUrl,
+          iconHash: hash,
+        },
+        created: created ? hash : null,
+      }
+    }
+    const newlyCached = await icons.ensure(input.iconSlug)
+    return {
+      values: {
+        name: input.name,
+        description: input.description,
+        url: input.url,
+        iconSource: "dashboard",
+        iconSlug: input.iconSlug,
+        customIconUrl: null,
+        iconHash: null,
+      },
+      created: newlyCached ? input.iconSlug : null,
+    }
   }
 }

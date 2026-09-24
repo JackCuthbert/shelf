@@ -7,13 +7,32 @@ describe("app input validation", () => {
       appInputSchema.parse({
         name: "Router",
         url: "http://192.168.1.1",
+        iconSource: "dashboard",
         iconSlug: "home-assistant",
       }),
     ).toEqual({
       name: "Router",
       description: "",
       url: "http://192.168.1.1/",
+      iconSource: "dashboard",
       iconSlug: "home-assistant",
+    })
+  })
+
+  it("accepts a custom image URL as the icon source", () => {
+    expect(
+      appInputSchema.parse({
+        name: "Router",
+        url: "http://192.168.1.1",
+        iconSource: "url",
+        iconUrl: "https://images.home/router.png",
+      }),
+    ).toEqual({
+      name: "Router",
+      description: "",
+      url: "http://192.168.1.1/",
+      iconSource: "url",
+      iconUrl: "https://images.home/router.png",
     })
   })
 
@@ -23,6 +42,7 @@ describe("app input validation", () => {
         name: "App",
         description: ` ${"a".repeat(280)} `,
         url: "https://example.com",
+        iconSource: "dashboard",
         iconSlug: "app",
       }).description,
     ).toBe("a".repeat(280))
@@ -31,16 +51,36 @@ describe("app input validation", () => {
         name: "App",
         description: "a".repeat(281),
         url: "https://example.com",
+        iconSource: "dashboard",
         iconSlug: "app",
       }).success,
     ).toBe(false)
   })
 
   it.each(["javascript:alert(1)", "ftp://example.com", "not a url"])(
-    "rejects unsupported URL %s",
+    "rejects unsupported app URL %s",
     (url) => {
       expect(
-        appInputSchema.safeParse({ name: "App", url, iconSlug: "app" }).success,
+        appInputSchema.safeParse({
+          name: "App",
+          url,
+          iconSource: "dashboard",
+          iconSlug: "app",
+        }).success,
+      ).toBe(false)
+    },
+  )
+
+  it.each(["javascript:alert(1)", "ftp://example.com", "not a url"])(
+    "rejects unsupported image URL %s",
+    (iconUrl) => {
+      expect(
+        appInputSchema.safeParse({
+          name: "App",
+          url: "https://example.com",
+          iconSource: "url",
+          iconUrl,
+        }).success,
       ).toBe(false)
     },
   )
@@ -50,6 +90,7 @@ describe("app input validation", () => {
       appInputSchema.safeParse({
         name: "  ",
         url: "https://example.com",
+        iconSource: "dashboard",
         iconSlug: "valid",
       }).success,
     ).toBe(false)
@@ -57,7 +98,31 @@ describe("app input validation", () => {
       appInputSchema.safeParse({
         name: "App",
         url: "https://example.com",
+        iconSource: "dashboard",
         iconSlug: "../secret",
+      }).success,
+    ).toBe(false)
+  })
+
+  it("requires the field that matches the chosen icon source", () => {
+    expect(
+      appInputSchema.safeParse({
+        name: "App",
+        url: "https://example.com",
+        iconSource: "dashboard",
+      }).success,
+    ).toBe(false)
+    expect(
+      appInputSchema.safeParse({
+        name: "App",
+        url: "https://example.com",
+        iconSource: "url",
+      }).success,
+    ).toBe(false)
+    expect(
+      appInputSchema.safeParse({
+        name: "App",
+        url: "https://example.com",
       }).success,
     ).toBe(false)
   })

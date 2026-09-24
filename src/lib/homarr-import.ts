@@ -58,6 +58,7 @@ export async function runImport(
     name: string
     description: string
     url: string
+    iconSource: "dashboard"
     iconSlug: string
   }) => Promise<unknown>,
 ): Promise<{ importedKeys: Set<string>; failures: ImportFailure[] }> {
@@ -69,6 +70,7 @@ export async function runImport(
         name: row.name,
         description: row.description,
         url: row.url,
+        iconSource: "dashboard",
         iconSlug: row.iconSlug || PLACEHOLDER_ICON_SLUG,
       })
       importedKeys.add(row.key)

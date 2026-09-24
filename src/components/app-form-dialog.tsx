@@ -16,15 +16,26 @@ export type AppRecord = {
   name: string
   description: string
   url: string
-  iconSlug: string
+  iconSource: string
+  iconSlug: string | null
+  customIconUrl: string | null
 }
 type Draft = {
   name: string
   description: string
   url: string
+  iconSource: "dashboard" | "url"
   iconSlug: string
+  iconUrl: string
 }
-const emptyDraft: Draft = { name: "", description: "", url: "", iconSlug: "" }
+const emptyDraft: Draft = {
+  name: "",
+  description: "",
+  url: "",
+  iconSource: "dashboard",
+  iconSlug: "",
+  iconUrl: "",
+}
 
 export function AppFormDialog({
   open,
@@ -60,7 +71,9 @@ export function AppFormDialog({
             name: app.name,
             description: app.description ?? "",
             url: app.url,
-            iconSlug: app.iconSlug,
+            iconSource: app.iconSource === "url" ? "url" : "dashboard",
+            iconSlug: app.iconSlug ?? "",
+            iconUrl: app.customIconUrl ?? "",
           }
         : emptyDraft,
     )
@@ -72,14 +85,28 @@ export function AppFormDialog({
     onSaved?.()
     onOpenChange(false)
   }
+  function payload() {
+    const base = {
+      name: draft.name,
+      description: draft.description,
+      url: draft.url,
+    }
+    return draft.iconSource === "url"
+      ? { ...base, iconSource: "url" as const, iconUrl: draft.iconUrl }
+      : { ...base, iconSource: "dashboard" as const, iconSlug: draft.iconSlug }
+  }
   function save() {
     setError("")
-    if (!draft.iconSlug) {
+    if (draft.iconSource === "dashboard" && !draft.iconSlug) {
       setError("Choose an icon before saving.")
       return
     }
-    if (app) update.mutate({ id: app.id, ...draft })
-    else create.mutate(draft)
+    if (draft.iconSource === "url" && !draft.iconUrl.trim()) {
+      setError("Enter an image URL before saving.")
+      return
+    }
+    if (app) update.mutate({ id: app.id, ...payload() })
+    else create.mutate(payload())
   }
 
   return (
@@ -138,9 +165,22 @@ export function AppFormDialog({
             <p className="text-xs text-muted">{draft.description.length}/280</p>
           </Field.Root>
           <IconPicker
-            value={draft.iconSlug}
-            cachedValue={app?.iconSlug}
-            onChange={(iconSlug) => setDraft({ ...draft, iconSlug })}
+            value={{
+              source: draft.iconSource,
+              slug: draft.iconSlug,
+              url: draft.iconUrl,
+            }}
+            cachedSlug={
+              app?.iconSource === "dashboard" ? app.iconSlug : undefined
+            }
+            onChange={(icon) =>
+              setDraft({
+                ...draft,
+                iconSource: icon.source,
+                iconSlug: icon.slug,
+                iconUrl: icon.url,
+              })
+            }
           />
           {error && (
             <p
