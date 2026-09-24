@@ -58,7 +58,7 @@ export function AppFormDialog({
       app
         ? {
             name: app.name,
-            description: app.description,
+            description: app.description ?? "",
             url: app.url,
             iconSlug: app.iconSlug,
           }
