@@ -14,6 +14,7 @@
 - List only boards owned by the signed-in user for editing, identifying the default board and offering each board's shareable route (`/board/<id>`), which opens in a new tab.
 - Create, rename, delete, and choose a default board. The current default board is marked and its set-default control is disabled.
 - For each board, add apps from the shared library through a filterable add-app dialog, remove assignments, and reorder them with Move up / Move down controls. Each assigned app row shows its name and domain. These controls work by touch, pointer, and keyboard; drag and drop is not part of v1.
+- For each board, create, edit, reorder, and delete categories. Assign apps to one category or leave them uncategorized; Move up / Move down controls reorder categories and apps within each group. The add-app dialog offers an optional category choice. Deleting a category moves its apps to the end of the uncategorized group; see [categories.md](categories.md).
 - Creation of a user's first board sets it as default. When a user owns no board, show a clear create-board empty state.
 - Changes persist immediately and the affected board view reflects them on its next load. Failed operations show an actionable error without falsely displaying success.
 

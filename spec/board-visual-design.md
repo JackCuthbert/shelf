@@ -15,6 +15,7 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 - The whole tile is a link that opens the app in a new tab. It has clear hover, focus, and pressed states, a visible keyboard focus indicator, and a touch target large enough to use comfortably.
 - Show no URL, hostname, widget, status indicator, or configuration control on a tile in this stage. When an app has a description, show it in a popover that opens immediately on tile hover or keyboard focus. Provide a separate info button to open the popover on touch screens; activating the tile itself still opens the app. Apps without descriptions have no info button or popover.
 - Keep the board's saved manual order in left-to-right, top-to-bottom reading order. Search results use their ranked order and reflow through the same grid.
+- Board categories add full-width sections below uncategorized tiles. Within each section, apps use this same tile grid; see [categories.md](categories.md).
 
 ## Responsive layout and appearance
 

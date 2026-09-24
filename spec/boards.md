@@ -7,6 +7,7 @@
 - The creator's first board automatically becomes their default. They can select another owned board as default later.
 - If the default board is deleted, the oldest remaining owned board becomes default. If none remain, the user's default is empty and `/` sends them to the board-creation empty state in `/admin`.
 - A board owner can assign an app from the shared library once per board, remove an assignment without deleting the app, and move assigned apps up or down. Order is independent on each board.
+- A board owner can organize assignments into board-owned categories. Uncategorized apps appear first; categories follow in manual order. Category behavior is specified in [categories.md](categories.md).
 - A deleted board URL returns a not-found view. There is no public board listing or search across boards.
 
 ## Board view
@@ -16,5 +17,6 @@
 - Selecting an app by pointer, touch, or keyboard opens its URL in a new tab.
 - Empty boards show an understandable empty state. Owners can navigate to `/admin` to add apps; visitors see a read-only empty state.
 - The search control and filtering behavior are defined in [search.md](search.md).
+- Category sections span the board width, and apps within them use the same tiles as uncategorized apps; see [categories.md](categories.md).
 
 No grid coordinates, tiles, resize controls, layout breakpoints, or separate per-device positions exist in v1.
