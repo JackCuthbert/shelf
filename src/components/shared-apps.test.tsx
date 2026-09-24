@@ -3,18 +3,24 @@ import { expect, it, vi } from "vitest"
 
 vi.mock("@/components/trpc-provider", () => {
   const useMutation = () => ({})
+  const useQuery = (_input: unknown, options?: { initialData: unknown }) => ({
+    data: options?.initialData ?? [],
+  })
   return {
     trpc: {
-      useUtils: () => ({ apps: { list: { invalidate: () => {} } } }),
+      useUtils: () => ({
+        apps: { list: { invalidate: () => {} } },
+        boards: { list: { invalidate: () => {} } },
+      }),
       apps: {
-        list: {
-          useQuery: (_input: unknown, options: { initialData: unknown }) => ({
-            data: options.initialData,
-          }),
-        },
+        list: { useQuery },
         create: { useMutation },
         update: { useMutation },
         delete: { useMutation },
+      },
+      boards: {
+        list: { useQuery },
+        assign: { useMutation },
       },
       imports: { previewHomarr: { useMutation } },
     },
@@ -42,6 +48,7 @@ it("shows a filter and a single-column list when apps exist", () => {
           url: "https://plex.example",
           iconSlug: "plex",
           status: "unknown",
+          lastError: null,
           lastCheckedAt: null,
           createdAt: "",
           updatedAt: "",
@@ -57,4 +64,49 @@ it("shows a filter and a single-column list when apps exist", () => {
   expect(icon).toBeDefined()
   expect(icon).not.toContain("border-line")
   expect(icon).not.toContain("bg-background")
+})
+
+it("shows the last recorded state and failure reason without re-checking", () => {
+  const html = renderToStaticMarkup(
+    <SharedApps
+      initialApps={[
+        {
+          id: "a1",
+          name: "Proxmox",
+          description: "",
+          url: "https://pve.example",
+          iconSlug: "proxmox",
+          status: "down",
+          lastError: "Connection refused",
+          lastCheckedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(html).toContain("Not responding")
+  expect(html).toContain("Connection refused")
+})
+
+it("offers an add-to-board control on each app", () => {
+  const html = renderToStaticMarkup(
+    <SharedApps
+      initialApps={[
+        {
+          id: "a1",
+          name: "Plex",
+          description: "",
+          url: "https://plex.example",
+          iconSlug: "plex",
+          status: "up",
+          lastError: null,
+          lastCheckedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(html).toContain("Add to board")
 })

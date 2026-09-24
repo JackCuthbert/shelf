@@ -123,6 +123,7 @@ it("renders icon-only move controls with accessible labels", () => {
                 iconSlug: "plex",
                 status: "unknown",
                 lastCheckedAt: null,
+                lastError: null,
                 createdAt: "",
                 updatedAt: "",
               },
@@ -167,6 +168,7 @@ it("shows assigned app icons without a surrounding box", () => {
                 iconSlug: "plex",
                 status: "unknown",
                 lastCheckedAt: null,
+                lastError: null,
                 createdAt: "",
                 updatedAt: "",
               },
@@ -211,6 +213,7 @@ it("separates admin app rows with spacing and a hover state instead of borders",
                 iconSlug: "plex",
                 status: "unknown",
                 lastCheckedAt: null,
+                lastError: null,
                 createdAt: "",
                 updatedAt: "",
               },
@@ -264,6 +267,7 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
                 iconSlug: "plex",
                 status: "unknown",
                 lastCheckedAt: null,
+                lastError: null,
                 createdAt: "",
                 updatedAt: "",
               },
@@ -294,6 +298,7 @@ it("uses a custom select to move an app between categories", () => {
     iconSlug: id,
     status: "unknown",
     lastCheckedAt: null,
+    lastError: null,
     createdAt: "",
     updatedAt: "",
   })
@@ -400,6 +405,7 @@ it("keeps each category's controls and apps together in one section", () => {
                 iconSlug: "plex",
                 status: "unknown",
                 lastCheckedAt: null,
+                lastError: null,
                 createdAt: "",
                 updatedAt: "",
               },
@@ -419,6 +425,7 @@ it("keeps each category's controls and apps together in one section", () => {
   expect(section).toContain('aria-label="Edit category Movies"')
   expect(section).toContain('aria-label="Move category Movies up"')
   expect(section).toContain('aria-label="Move category Movies down"')
+  expect(section).toContain('aria-label="Add app to Movies"')
   expect(section).toContain("Plex")
   expect(section).toContain('aria-label="Move Plex up"')
 })

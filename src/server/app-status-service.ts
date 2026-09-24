@@ -17,6 +17,7 @@ export interface AppStatusRepository {
     id: string,
     status: Exclude<AppStatus, "unknown">,
     at: Date,
+    error: string | null,
   ): Promise<void>
 }
 
@@ -50,6 +51,19 @@ function nodeFetch(url: string, options: RequestInit): Promise<Response> {
   })
 }
 
+export function describeProbeError(error: unknown): string {
+  const name = error instanceof Error ? error.name : ""
+  const code = (error as { code?: string } | null | undefined)?.code ?? ""
+  const message = error instanceof Error ? error.message : ""
+  if (name === "TimeoutError" || name === "AbortError")
+    return "Timed out after 3s"
+  if (code === "ECONNREFUSED") return "Connection refused"
+  if (code === "ENOTFOUND" || code === "EAI_AGAIN") return "Host not found"
+  if (code.includes("CERT") || /certificate/i.test(message))
+    return "TLS certificate error"
+  return "Could not reach the app"
+}
+
 export function createAppStatusService(
   repository: AppStatusRepository,
   fetcher: Fetcher = nodeFetch,
@@ -67,6 +81,7 @@ export function createAppStatusService(
 
     const check = (async () => {
       let status: "up" | "down"
+      let error: string | null = null
       try {
         const response = await fetcher(app.url, {
           method: "GET",
@@ -75,11 +90,12 @@ export function createAppStatusService(
         })
         await response.body?.cancel().catch(() => {})
         status = "up"
-      } catch {
+      } catch (cause) {
         status = "down"
+        error = describeProbeError(cause)
       }
       const lastCheckedAt = now()
-      await repository.updateStatus(app.id, status, lastCheckedAt)
+      await repository.updateStatus(app.id, status, lastCheckedAt, error)
       return { status, lastCheckedAt }
     })()
 

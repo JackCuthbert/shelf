@@ -22,15 +22,20 @@ export function BoardAppDialog({
   boardName,
   apps,
   categories,
+  lockedCategoryId,
+  triggerAriaLabel,
   onAssign,
 }: {
   boardName: string
   apps: App[]
   categories: Category[]
+  lockedCategoryId?: string | null
+  triggerAriaLabel?: string
   onAssign: (appId: string, categoryId: string | null) => void
 }) {
+  const locked = lockedCategoryId !== undefined
   const [filter, setFilter] = useState("")
-  const [categoryId, setCategoryId] = useState("")
+  const [categoryId, setCategoryId] = useState(lockedCategoryId ?? "")
   const filterId = useId()
   const needle = filter.trim().toLowerCase()
   const visible = needle
@@ -44,11 +49,11 @@ export function BoardAppDialog({
       onOpenChange={(open) => {
         if (!open) {
           setFilter("")
-          setCategoryId("")
+          setCategoryId(lockedCategoryId ?? "")
         }
       }}
     >
-      <Dialog.Trigger className="btn text-xs">
+      <Dialog.Trigger className="btn text-xs" aria-label={triggerAriaLabel}>
         <LuPlus aria-hidden className="size-4" />
         Add app
       </Dialog.Trigger>
@@ -70,6 +75,7 @@ export function BoardAppDialog({
                   categories={categories}
                   label="Category"
                   className="w-full"
+                  disabled={locked}
                   onChange={(next) => setCategoryId(next ?? "")}
                 />
               </div>

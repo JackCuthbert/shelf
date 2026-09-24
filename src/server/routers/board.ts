@@ -47,10 +47,10 @@ const appStatusService = createAppStatusService({
     })
     return Boolean(board?.apps.length)
   },
-  updateStatus: async (id, status, lastCheckedAt) => {
+  updateStatus: async (id, status, lastCheckedAt, lastError) => {
     await prisma.app.update({
       where: { id },
-      data: { status, lastCheckedAt },
+      data: { status, lastCheckedAt, lastError },
     })
   },
 })

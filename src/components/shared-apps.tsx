@@ -6,6 +6,7 @@ import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
 import { LuDownload, LuPencil, LuPlus, LuTrash2 } from "react-icons/lu"
+import { AppBoardDialog } from "@/components/app-board-dialog"
 import { AppFormDialog } from "@/components/app-form-dialog"
 import { HomarrImportDialog } from "@/components/homarr-import-dialog"
 import { ConfirmContent } from "@/components/modal"
@@ -18,9 +19,25 @@ type App = {
   url: string
   iconSlug: string
   status: string
+  lastError: string | null
   lastCheckedAt: string | null
   createdAt: string
   updatedAt: string
+}
+
+function appStatusColor(status: string) {
+  if (status === "up") return "bg-green-600 dark:bg-green-400"
+  if (status === "down") return "bg-danger"
+  return "bg-muted"
+}
+
+function appStatusText(app: App) {
+  if (app.status === "up") return "Responding"
+  if (app.status === "down")
+    return app.lastError
+      ? `Not responding — ${app.lastError}`
+      : "Not responding"
+  return "Not checked yet"
 }
 
 export function SharedApps({ initialApps }: { initialApps: App[] }) {
@@ -28,6 +45,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
     initialData: initialApps,
   })
+  const { data: boards = [] } = trpc.boards.list.useQuery()
   const [editing, setEditing] = useState<App | null | undefined>(undefined)
   const [importing, setImporting] = useState(false)
   const [importedCount, setImportedCount] = useState<number | null>(null)
@@ -37,6 +55,13 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
     onSuccess: () => {
       setError("")
       void utils.apps.list.invalidate()
+    },
+    onError: (cause) => setError(cause.message),
+  })
+  const assign = trpc.boards.assign.useMutation({
+    onSuccess: () => {
+      setError("")
+      void utils.boards.list.invalidate()
     },
     onError: (cause) => setError(cause.message),
   })
@@ -129,68 +154,87 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
         </p>
       ) : (
         <ul className="mt-5 space-y-2">
-          {visible.map((app) => (
-            <li
-              key={app.id}
-              className="panel flex min-w-0 items-center gap-3 p-3"
-            >
-              <img
-                src={`/icons/${app.iconSlug}`}
-                alt=""
-                className="h-12 w-12 shrink-0 object-contain"
-              />
-              <div className="min-w-0 flex-1">
-                <h3 className="truncate font-semibold">{app.name}</h3>
-                {app.description && (
-                  <p className="line-clamp-2 text-sm text-muted">
-                    {app.description}
+          {visible.map((app) => {
+            const boardsMissingApp = boards.filter(
+              (board) => !board.apps.some((entry) => entry.appId === app.id),
+            )
+            return (
+              <li
+                key={app.id}
+                className="panel flex min-w-0 items-center gap-3 p-3"
+              >
+                <img
+                  src={`/icons/${app.iconSlug}`}
+                  alt=""
+                  className="h-12 w-12 shrink-0 object-contain"
+                />
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-semibold">{app.name}</h3>
+                  {app.description && (
+                    <p className="line-clamp-2 text-sm text-muted">
+                      {app.description}
+                    </p>
+                  )}
+                  <a
+                    href={app.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-sm text-accent underline underline-offset-2"
+                  >
+                    {app.url}
+                  </a>
+                  <p className="mt-1 flex items-center gap-2 text-xs text-muted">
+                    <span
+                      aria-hidden
+                      className={`size-2 shrink-0 rounded-full ${appStatusColor(app.status)}`}
+                    />
+                    <span>{appStatusText(app)}</span>
                   </p>
-                )}
-                <a
-                  href={app.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="block truncate text-sm text-accent underline underline-offset-2"
-                >
-                  {app.url}
-                </a>
-              </div>
-              <div className="flex shrink-0 gap-1">
-                <Button
-                  className="btn text-xs"
-                  onClick={() => setEditing(app)}
-                  aria-label={`Edit ${app.name}`}
-                >
-                  <LuPencil aria-hidden className="size-4" />
-                  Edit
-                </Button>
-                <AlertDialog.Root>
-                  <AlertDialog.Trigger
-                    className="btn btn-danger text-xs"
-                    aria-label={`Delete ${app.name}`}
+                </div>
+                <div className="flex shrink-0 gap-1">
+                  <AppBoardDialog
+                    appName={app.name}
+                    boards={boardsMissingApp}
+                    onAssign={(boardId, categoryId) =>
+                      assign.mutate({ boardId, appId: app.id, categoryId })
+                    }
+                  />
+                  <Button
+                    className="btn text-xs"
+                    onClick={() => setEditing(app)}
+                    aria-label={`Edit ${app.name}`}
                   >
-                    <LuTrash2 aria-hidden className="size-4" />
-                    Delete
-                  </AlertDialog.Trigger>
-                  <ConfirmContent
-                    title="Delete app"
-                    description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
-                  >
-                    <AlertDialog.Close className="btn">
-                      Cancel
-                    </AlertDialog.Close>
-                    <AlertDialog.Close
-                      className="btn btn-danger"
-                      onClick={() => remove.mutate({ id: app.id })}
+                    <LuPencil aria-hidden className="size-4" />
+                    Edit
+                  </Button>
+                  <AlertDialog.Root>
+                    <AlertDialog.Trigger
+                      className="btn btn-danger text-xs"
+                      aria-label={`Delete ${app.name}`}
                     >
                       <LuTrash2 aria-hidden className="size-4" />
                       Delete
-                    </AlertDialog.Close>
-                  </ConfirmContent>
-                </AlertDialog.Root>
-              </div>
-            </li>
-          ))}
+                    </AlertDialog.Trigger>
+                    <ConfirmContent
+                      title="Delete app"
+                      description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
+                    >
+                      <AlertDialog.Close className="btn">
+                        Cancel
+                      </AlertDialog.Close>
+                      <AlertDialog.Close
+                        className="btn btn-danger"
+                        onClick={() => remove.mutate({ id: app.id })}
+                      >
+                        <LuTrash2 aria-hidden className="size-4" />
+                        Delete
+                      </AlertDialog.Close>
+                    </ConfirmContent>
+                  </AlertDialog.Root>
+                </div>
+              </li>
+            )
+          })}
         </ul>
       )}
     </section>

@@ -6,6 +6,7 @@ export type SharedApp = {
   iconSlug: string
   status: string
   lastCheckedAt: Date | null
+  lastError: string | null
   createdAt: Date
   updatedAt: Date
 }
@@ -15,7 +16,7 @@ export type AppValues = Pick<
   "name" | "description" | "url" | "iconSlug"
 >
 export type AppUpdateValues = AppValues &
-  Partial<Pick<SharedApp, "status" | "lastCheckedAt">>
+  Partial<Pick<SharedApp, "status" | "lastCheckedAt" | "lastError">>
 
 export interface AppRepository {
   list(): Promise<SharedApp[]>
@@ -88,7 +89,12 @@ export function createSharedAppService(
           const values: AppUpdateValues =
             existing.url === input.url
               ? appValues
-              : { ...appValues, status: "unknown", lastCheckedAt: null }
+              : {
+                  ...appValues,
+                  status: "unknown",
+                  lastCheckedAt: null,
+                  lastError: null,
+                }
           updated = await repository.update(input.id, values)
         } catch (error) {
           if (newlyCached && (await repository.countIcon(input.iconSlug)) === 0)

@@ -58,6 +58,7 @@ type App = {
   url: string
   iconSlug: string
   status: string
+  lastError: string | null
   lastCheckedAt: string | null
   createdAt: string
   updatedAt: string
@@ -365,8 +366,21 @@ export function BoardsAdmin({
     category: Category,
     index: number,
   ) {
+    const available = apps.filter(
+      (app) => !board.apps.some((entry) => entry.appId === app.id),
+    )
     return (
       <div className="flex shrink-0 gap-1">
+        <BoardAppDialog
+          boardName={board.name}
+          apps={available}
+          categories={board.categories}
+          lockedCategoryId={category.id}
+          triggerAriaLabel={`Add app to ${category.title}`}
+          onAssign={(appId, categoryId) =>
+            assign.mutate({ boardId: board.id, appId, categoryId })
+          }
+        />
         <IconAction
           label={`Edit category ${category.title}`}
           tooltip="Edit"

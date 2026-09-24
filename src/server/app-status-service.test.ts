@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import {
   createAppStatusService,
+  describeProbeError,
   probeHttpsAgent,
   type AppStatusRepository,
 } from "./app-status-service"
@@ -20,7 +21,7 @@ function setup(
   const repository: AppStatusRepository = {
     listBoardApps: vi.fn(async () => [app]),
     isBoardAppAssigned: vi.fn(async () => true),
-    updateStatus: vi.fn(async (_id, status, lastCheckedAt) => {
+    updateStatus: vi.fn(async (_id, status, lastCheckedAt, _error) => {
       app.status = status
       app.lastCheckedAt = lastCheckedAt
     }),
@@ -43,6 +44,50 @@ describe("app status probe TLS", () => {
   })
 })
 
+describe("describeProbeError", () => {
+  it("describes a probe timeout", () => {
+    expect(
+      describeProbeError(new DOMException("timed out", "TimeoutError")),
+    ).toBe("Timed out after 3s")
+  })
+
+  it("describes a refused connection", () => {
+    expect(
+      describeProbeError(
+        Object.assign(new Error("connect ECONNREFUSED"), {
+          code: "ECONNREFUSED",
+        }),
+      ),
+    ).toBe("Connection refused")
+  })
+
+  it("describes an unresolvable host", () => {
+    expect(
+      describeProbeError(
+        Object.assign(new Error("getaddrinfo ENOTFOUND nas.home"), {
+          code: "ENOTFOUND",
+        }),
+      ),
+    ).toBe("Host not found")
+  })
+
+  it("describes a certificate error", () => {
+    expect(
+      describeProbeError(
+        Object.assign(new Error("self-signed certificate"), {
+          code: "DEPTH_ZERO_SELF_SIGNED_CERT",
+        }),
+      ),
+    ).toBe("TLS certificate error")
+  })
+
+  it("falls back for unrecognised errors", () => {
+    expect(describeProbeError(new Error("boom"))).toBe(
+      "Could not reach the app",
+    )
+  })
+})
+
 describe("app status service", () => {
   it("probes unknown apps and stores the result", async () => {
     const { service, app, repository } = setup()
@@ -57,6 +102,7 @@ describe("app status service", () => {
       "plex",
       "up",
       new Date("2026-09-24T00:00:00Z"),
+      null,
     )
     expect(app.status).toBe("up")
   })
@@ -94,11 +140,44 @@ describe("app status service", () => {
   })
 
   it("stores down when the connection fails", async () => {
-    const { service, fetcher } = setup()
+    const { service, fetcher, repository } = setup()
     fetcher.mockRejectedValueOnce(new Error("connection refused"))
     await expect(service.refreshBoard("board")).resolves.toMatchObject([
       { status: "down" },
     ])
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      "plex",
+      "down",
+      new Date("2026-09-24T00:00:00Z"),
+      "Could not reach the app",
+    )
+  })
+
+  it("records a friendly reason when a check fails", async () => {
+    const { service, fetcher, repository } = setup()
+    fetcher.mockRejectedValueOnce(
+      Object.assign(new Error("connect ECONNREFUSED"), {
+        code: "ECONNREFUSED",
+      }),
+    )
+    await service.refreshBoard("board")
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      "plex",
+      "down",
+      new Date("2026-09-24T00:00:00Z"),
+      "Connection refused",
+    )
+  })
+
+  it("clears the recorded reason after a check succeeds", async () => {
+    const { service, repository } = setup()
+    await service.refreshBoard("board")
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      "plex",
+      "up",
+      new Date("2026-09-24T00:00:00Z"),
+      null,
+    )
   })
 
   it("aborts probes after three seconds and stores down", async () => {

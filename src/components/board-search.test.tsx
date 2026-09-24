@@ -1,6 +1,10 @@
 import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it, vi } from "vitest"
-import { BoardSearch, descriptionTileHandlers } from "./board-search"
+import {
+  BoardSearch,
+  descriptionTileHandlers,
+  statusColor,
+} from "./board-search"
 
 vi.mock("@/components/trpc-provider", () => ({
   trpc: {
@@ -34,6 +38,21 @@ const apps = [
     lastCheckedAt: null,
   },
 ]
+
+describe("statusColor", () => {
+  it("keeps the last known state colour while a check is in progress", () => {
+    expect(statusColor("up", true)).toContain("bg-green-600")
+    expect(statusColor("down", true)).toContain("bg-danger")
+    expect(statusColor("unknown", true)).toContain("bg-muted")
+    expect(statusColor("up", true)).toContain("animate-pulse")
+  })
+
+  it("stops pulsing and shows the settled state colour", () => {
+    expect(statusColor("up", false)).not.toContain("animate-pulse")
+    expect(statusColor("down", false)).toContain("bg-danger")
+    expect(statusColor("unknown", false)).not.toContain("animate-pulse")
+  })
+})
 
 describe("BoardSearch", () => {
   it("renders a sticky header with the board name, search field, and anonymous sign-in link", () => {

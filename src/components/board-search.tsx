@@ -30,11 +30,14 @@ function statusLabel(status: AppStatus) {
   return "Status unknown"
 }
 
-function statusColor(status: AppStatus, checking: boolean) {
-  if (checking) return "bg-muted motion-safe:animate-pulse"
-  if (status === "up") return "bg-green-600 dark:bg-green-400"
-  if (status === "down") return "bg-danger"
-  return "bg-muted"
+export function statusColor(status: AppStatus, checking: boolean) {
+  const base =
+    status === "up"
+      ? "bg-green-600 dark:bg-green-400"
+      : status === "down"
+        ? "bg-danger"
+        : "bg-muted"
+  return checking ? `${base} motion-safe:animate-pulse` : base
 }
 
 export function descriptionTileHandlers(
@@ -189,12 +192,17 @@ export function BoardSearch({
 
   function renderTile(app: BoardApp) {
     const status = statuses[app.id] ?? app
-    const label = checking ? "Checking" : statusLabel(status.status)
-    const checked = checking
-      ? "status in progress"
-      : status.lastCheckedAt === null
-        ? "not checked yet"
-        : `last checked ${new Date(status.lastCheckedAt).toISOString()}`
+    const label = checking
+      ? status.status === "unknown"
+        ? "Checking"
+        : `${statusLabel(status.status)}, checking`
+      : statusLabel(status.status)
+    const checked =
+      status.lastCheckedAt === null
+        ? checking
+          ? "not checked yet; checking now"
+          : "not checked yet"
+        : `last checked ${new Date(status.lastCheckedAt).toISOString()}${checking ? "; checking now" : ""}`
     return (
       <BoardTile
         key={app.id}

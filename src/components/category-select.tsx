@@ -15,12 +15,14 @@ export function CategorySelect({
   onChange,
   label,
   className = "",
+  disabled = false,
 }: {
   value: string | null
   categories: CategoryOption[]
   onChange: (categoryId: string | null) => void
   label: string
   className?: string
+  disabled?: boolean
 }) {
   const items = [
     { value: "", label: "Uncategorized" },
@@ -39,7 +41,8 @@ export function CategorySelect({
       <Select.Trigger
         type="button"
         aria-label={label}
-        className={`inline-flex cursor-pointer select-none items-center justify-between gap-2 rounded-[2px] border border-line bg-surface px-2.5 py-2 text-sm text-foreground hover:border-foreground focus-visible:border-focus focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus data-[popup-open]:border-focus ${className}`}
+        disabled={disabled}
+        className={`inline-flex cursor-pointer select-none items-center justify-between gap-2 rounded-[2px] border border-line bg-surface px-2.5 py-2 text-sm text-foreground hover:border-foreground focus-visible:border-focus focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus data-[popup-open]:border-focus disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
       >
         <Select.Value />
         <Select.Icon>

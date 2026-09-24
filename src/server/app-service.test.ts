@@ -17,6 +17,7 @@ function setup() {
         id: String(++nextId),
         status: "unknown",
         lastCheckedAt: null,
+        lastError: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -157,6 +158,7 @@ describe("shared app service", () => {
       ...created,
       status: "up",
       lastCheckedAt: new Date("2026-09-24T00:00:00Z"),
+      lastError: "Connection refused",
     })
 
     const updated = await service.update({
@@ -167,5 +169,6 @@ describe("shared app service", () => {
 
     expect(updated.status).toBe("unknown")
     expect(updated.lastCheckedAt).toBeNull()
+    expect(updated.lastError).toBeNull()
   })
 })
