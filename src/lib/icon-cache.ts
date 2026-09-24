@@ -6,8 +6,9 @@ import { iconSlugSchema } from "./app-validation";
 const CDN = "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/png/";
 const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
 const MAX_ICON_BYTES = 5 * 1024 * 1024;
+export const iconDirectory = process.env.HOMETIME_ICON_DIR ?? "/data/icons";
 
-export function createIconCache(directory = "/data/icons", download: (slug: string) => Promise<Buffer> = downloadPng) {
+export function createIconCache(directory = iconDirectory, download: (slug: string) => Promise<Buffer> = downloadPng) {
   return {
     async ensure(slug: string): Promise<boolean> {
       iconSlugSchema.parse(slug);
