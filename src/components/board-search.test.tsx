@@ -72,7 +72,12 @@ describe("BoardSearch", () => {
     expect(html).toContain('src="/icons/plex"')
     expect(html).toContain("Plex")
     expect(html).toContain("aspect-square")
-    expect(html).toContain("repeat(auto-fit,8.5rem)")
+    expect(html).toContain("min-[360px]:grid-cols-2")
+    expect(html).toContain("sm:grid-cols-3")
+    expect(html).toContain("md:grid-cols-4")
+    expect(html).toContain("lg:grid-cols-5")
+    expect(html).toContain("xl:grid-cols-6")
+    expect(html).toContain("max-w-6xl")
     expect(html).toContain(
       'aria-label="Responding; last checked 2026-09-24T00:00:00.000Z"',
     )
@@ -108,6 +113,25 @@ describe("BoardSearch", () => {
     expect(html).toMatch(
       /<a[^>]*href="https:\/\/plex\.example"[^>]*>.*?<\/a><button/,
     )
+  })
+
+  it("shows the description info button only on touch, at the bottom left", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        categories={[]}
+        user={null}
+      />,
+    )
+    const button = html.match(/<button[^>]*aria-label="About Plex"[^>]*>/)?.[0]
+    expect(button).toBeDefined()
+    expect(button).toContain("bottom-1")
+    expect(button).toContain("left-1")
+    expect(button).toContain("any-pointer:coarse")
+    expect(button).not.toContain("right-1")
+    expect(button).not.toContain("top-1")
   })
 
   it("opens the description from tile hover and keyboard focus", () => {

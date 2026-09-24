@@ -137,7 +137,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
               <img
                 src={`/icons/${app.iconSlug}`}
                 alt=""
-                className="h-12 w-12 shrink-0 border border-line bg-background object-contain p-1"
+                className="h-12 w-12 shrink-0 object-contain"
               />
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-semibold">{app.name}</h3>

@@ -1,10 +1,33 @@
+import { cache } from "react"
+import type { Metadata } from "next"
+import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { BoardSearch } from "@/components/board-search"
 import { auth } from "@/lib/auth"
-import { headers } from "next/headers"
+import { APP_NAME, siteTitle } from "@/lib/page-title"
 
 export const dynamic = "force-dynamic"
+
+const findBoard = cache((nanoid: string) =>
+  prisma.board.findUnique({
+    where: { nanoid },
+    include: {
+      categories: { orderBy: { position: "asc" } },
+      apps: { include: { app: true }, orderBy: { position: "asc" } },
+    },
+  }),
+)
+
+export async function generateMetadata({
+  params,
+}: {
+  params: Promise<{ nanoid: string }>
+}): Promise<Metadata> {
+  const { nanoid } = await params
+  const board = await findBoard(nanoid)
+  return { title: board ? siteTitle(board.name) : APP_NAME }
+}
 
 export default async function BoardPage({
   params,
@@ -13,13 +36,7 @@ export default async function BoardPage({
 }) {
   const { nanoid } = await params
   const [board, session] = await Promise.all([
-    prisma.board.findUnique({
-      where: { nanoid },
-      include: {
-        categories: { orderBy: { position: "asc" } },
-        apps: { include: { app: true }, orderBy: { position: "asc" } },
-      },
-    }),
+    findBoard(nanoid),
     auth.api.getSession({ headers: await headers() }),
   ])
   if (!board) notFound()

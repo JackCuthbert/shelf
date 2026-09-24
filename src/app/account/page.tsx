@@ -1,10 +1,14 @@
 import { headers } from "next/headers"
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { AccountSettings } from "@/components/account-settings"
 import { AdminMenubar } from "@/components/admin-menubar"
 import { getOidcProviderConfig } from "@/lib/oidc"
 import { prisma } from "@/lib/prisma"
+import { appTitle } from "@/lib/page-title"
+
+export const metadata: Metadata = { title: appTitle("Account") }
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({ headers: await headers() })

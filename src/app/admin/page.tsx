@@ -1,9 +1,13 @@
 import { headers } from "next/headers"
+import type { Metadata } from "next"
 import { redirect } from "next/navigation"
 import { auth } from "@/lib/auth"
 import { AdminMenubar } from "@/components/admin-menubar"
 import { BoardsAdmin } from "@/components/boards-admin"
 import { prisma } from "@/lib/prisma"
+import { appTitle } from "@/lib/page-title"
+
+export const metadata: Metadata = { title: appTitle("Boards") }
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })

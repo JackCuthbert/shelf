@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useMemo, useRef, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
 import { LuInfo, LuLayoutDashboard } from "react-icons/lu"
@@ -46,6 +46,94 @@ export function descriptionTileHandlers(
     if (hasDescription) open(appId)
   }
   return { onMouseEnter: showDescription, onFocus: showDescription }
+}
+
+function BoardTile({
+  app,
+  status,
+  checking,
+  label,
+  checked,
+  open,
+  onOpenChange,
+}: {
+  app: BoardApp
+  status: AppStatus
+  checking: boolean
+  label: string
+  checked: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}) {
+  const anchorRef = useRef<HTMLDivElement>(null)
+  const hasDescription = Boolean(app.description)
+  return (
+    <li>
+      <Popover.Root open={open} onOpenChange={onOpenChange}>
+        <div ref={anchorRef} className="relative">
+          <a
+            href={app.url}
+            target="_blank"
+            rel="noreferrer"
+            title={app.name}
+            {...descriptionTileHandlers(app.id, hasDescription, () =>
+              onOpenChange(true),
+            )}
+            onMouseLeave={() => onOpenChange(false)}
+            onBlur={() => onOpenChange(false)}
+            className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
+          >
+            <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
+              {app.name}
+            </span>
+            <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
+              <img
+                src={`/icons/${app.iconSlug}`}
+                alt=""
+                className="h-full w-full object-contain"
+              />
+            </span>
+            <span
+              role="img"
+              aria-label={`${label}; ${checked}`}
+              title={checked}
+              className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status, checking)}`}
+            />
+          </a>
+          {hasDescription && (
+            <>
+              <Popover.Trigger
+                openOnHover
+                delay={0}
+                aria-label={`About ${app.name}`}
+                className="absolute bottom-1 left-1 hidden size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus [@media(any-pointer:coarse)]:flex"
+              >
+                <LuInfo aria-hidden className="size-4" />
+              </Popover.Trigger>
+              <Popover.Portal>
+                <Popover.Positioner
+                  anchor={anchorRef}
+                  side="top"
+                  align="center"
+                  sideOffset={8}
+                  collisionPadding={8}
+                  collisionAvoidance={{ side: "flip", align: "shift" }}
+                  className="z-50"
+                >
+                  <Popover.Popup
+                    className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
+                    aria-label={`${app.name} description`}
+                  >
+                    {app.description}
+                  </Popover.Popup>
+                </Popover.Positioner>
+              </Popover.Portal>
+            </>
+          )}
+        </div>
+      </Popover.Root>
+    </li>
+  )
 }
 
 export function BoardSearch({
@@ -108,73 +196,23 @@ export function BoardSearch({
         ? "not checked yet"
         : `last checked ${new Date(status.lastCheckedAt).toISOString()}`
     return (
-      <li key={app.id}>
-        <Popover.Root
-          open={openDescription === app.id}
-          onOpenChange={(open) => setOpenDescription(open ? app.id : null)}
-        >
-          <div className="relative">
-            <a
-              href={app.url}
-              target="_blank"
-              rel="noreferrer"
-              title={app.name}
-              {...descriptionTileHandlers(
-                app.id,
-                Boolean(app.description),
-                setOpenDescription,
-              )}
-              className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
-            >
-              <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
-                {app.name}
-              </span>
-              <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
-                <img
-                  src={`/icons/${app.iconSlug}`}
-                  alt=""
-                  className="h-full w-full object-contain"
-                />
-              </span>
-              <span
-                role="img"
-                aria-label={`${label}; ${checked}`}
-                title={checked}
-                className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status.status, checking)}`}
-              />
-            </a>
-            {app.description && (
-              <>
-                <Popover.Trigger
-                  openOnHover
-                  delay={0}
-                  aria-label={`About ${app.name}`}
-                  className="absolute right-1 top-1 flex size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-                >
-                  <LuInfo aria-hidden className="size-4" />
-                </Popover.Trigger>
-                <Popover.Portal>
-                  <Popover.Positioner side="top" sideOffset={8}>
-                    <Popover.Popup
-                      className="panel max-w-64 p-3 text-sm shadow-lg"
-                      aria-label={`${app.name} description`}
-                    >
-                      {app.description}
-                    </Popover.Popup>
-                  </Popover.Positioner>
-                </Popover.Portal>
-              </>
-            )}
-          </div>
-        </Popover.Root>
-      </li>
+      <BoardTile
+        key={app.id}
+        app={app}
+        status={status.status}
+        checking={checking}
+        label={label}
+        checked={checked}
+        open={openDescription === app.id}
+        onOpenChange={(open) => setOpenDescription(open ? app.id : null)}
+      />
     )
   }
 
   return (
     <main className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-line bg-background">
-        <div className="mx-auto grid max-w-5xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
+        <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
           <div className="order-1 flex min-w-0 items-center gap-2">
             <LuLayoutDashboard aria-hidden className="size-5 shrink-0" />
             <div className="min-w-0">
@@ -208,7 +246,7 @@ export function BoardSearch({
       </header>
       <div
         id="board-app-results"
-        className="mx-auto max-w-5xl px-4 py-6 sm:px-6"
+        className="mx-auto max-w-6xl px-4 py-6 sm:px-6"
       >
         {boardIsEmpty ? (
           <p className="panel px-6 py-12 text-center text-muted">
@@ -240,7 +278,7 @@ export function BoardSearch({
                 {group.apps.length === 0 ? (
                   <p className="text-sm text-muted">No apps assigned.</p>
                 ) : (
-                  <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
+                  <ul className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
                     {group.apps.map(renderTile)}
                   </ul>
                 )}

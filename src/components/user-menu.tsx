@@ -2,8 +2,14 @@
 
 import { Menu } from "@base-ui/react/menu"
 import { useEffect, useState } from "react"
-import { LuLogOut, LuUserRound } from "react-icons/lu"
+import { LuBox, LuLayoutDashboard, LuLogOut, LuUserRound } from "react-icons/lu"
 import { authClient } from "@/lib/auth-client"
+
+export const USER_MENU_ITEMS = [
+  { label: "Account", href: "/account", icon: LuUserRound },
+  { label: "Boards", href: "/admin", icon: LuLayoutDashboard },
+  { label: "Apps", href: "/admin/apps", icon: LuBox },
+] as const
 
 export function UserMenu({ user }: { user: { name: string } | null }) {
   const [displayName, setDisplayName] = useState(user?.name ?? "")
@@ -31,18 +37,16 @@ export function UserMenu({ user }: { user: { name: string } | null }) {
       <Menu.Portal keepMounted>
         <Menu.Positioner align="end" sideOffset={8} className="z-50">
           <Menu.Popup className="panel min-w-40 p-1 shadow-lg">
-            <Menu.Item
-              render={<a href="/account" />}
-              className="block cursor-pointer px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
-            >
-              Account
-            </Menu.Item>
-            <Menu.Item
-              render={<a href="/admin" />}
-              className="block cursor-pointer px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
-            >
-              Admin
-            </Menu.Item>
+            {USER_MENU_ITEMS.map(({ label, href, icon: ItemIcon }) => (
+              <Menu.Item
+                key={href}
+                render={<a href={href} />}
+                className="flex items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
+              >
+                <ItemIcon aria-hidden className="size-4" />
+                {label}
+              </Menu.Item>
+            ))}
             <Menu.Item
               closeOnClick={false}
               onClick={() =>

@@ -53,4 +53,8 @@ it("shows a filter and a single-column list when apps exist", () => {
   expect(html).toContain("Plex")
   expect(html).toContain("Movies and shows")
   expect(html).not.toContain("sm:grid-cols-2")
+  const icon = html.match(/<img[^>]*src="\/icons\/plex"[^>]*>/)?.[0]
+  expect(icon).toBeDefined()
+  expect(icon).not.toContain("border-line")
+  expect(icon).not.toContain("bg-background")
 })

@@ -1,9 +1,13 @@
 import { headers } from "next/headers"
 import { redirect } from "next/navigation"
+import type { Metadata } from "next"
 import { auth } from "@/lib/auth"
 import { AdminMenubar } from "@/components/admin-menubar"
 import { SharedApps } from "@/components/shared-apps"
 import { prisma } from "@/lib/prisma"
+import { appTitle } from "@/lib/page-title"
+
+export const metadata: Metadata = { title: appTitle("Apps") }
 
 export default async function AdminAppsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
