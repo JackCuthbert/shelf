@@ -1,5 +1,13 @@
 import { describe, expect, it } from "vitest";
-import { moveItem, orderedPositions } from "./board-service";
+import { createBoardNanoid, moveItem, orderedPositions } from "./board-service";
+
+describe("board public IDs", () => {
+  it("generates eight URL-safe characters with fresh random values", () => {
+    const ids = Array.from({ length: 100 }, createBoardNanoid);
+    expect(ids.every((id) => /^[A-Za-z0-9_-]{8}$/.test(id))).toBe(true);
+    expect(new Set(ids).size).toBe(ids.length);
+  });
+});
 
 describe("board ordering", () => {
   it("assigns a contiguous persisted sequence", () => {

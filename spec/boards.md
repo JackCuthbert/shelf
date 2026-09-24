@@ -2,7 +2,7 @@
 
 ## Ownership and management
 
-- Every board has exactly one owning user and an unguessable Nano ID. Its permanent public route is `/board/<nanoid>`; changing the board name does not change this URL.
+- Every board has exactly one owning user and an unguessable Nano ID. New IDs are eight characters from the URL-safe Base64 alphabet (`A-Z`, `a-z`, `0-9`, `_`, `-`). Existing longer IDs remain valid. Its permanent public route is `/board/<nanoid>`; changing the board name does not change this URL.
 - A user may create, rename, and delete their own boards. Only that user may edit board contents or order. Other users can view a board through its direct URL but cannot edit it.
 - The creator's first board automatically becomes their default. They can select another owned board as default later.
 - If the default board is deleted, the oldest remaining owned board becomes default. If none remain, the user's default is empty and `/` sends them to the board-creation empty state in `/admin`.

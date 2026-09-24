@@ -1,3 +1,9 @@
+import { nanoid } from "nanoid";
+
+export function createBoardNanoid(): string {
+  return nanoid(8);
+}
+
 export type BoardRecord = { id: string; nanoid: string; name: string; ownerId: string; createdAt: Date };
 export type AssignmentRecord = { boardId: string; appId: string; position: number };
 

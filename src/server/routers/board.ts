@@ -2,10 +2,9 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 import { prisma } from "@/lib/prisma";
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc";
-import { moveItem, orderedPositions } from "@/server/board-service";
+import { createBoardNanoid, moveItem, orderedPositions } from "@/server/board-service";
 
 const nameSchema = z.string().trim().min(1).max(80);
-const nanoid = () => crypto.randomUUID().replaceAll("-", "").slice(0, 21);
 
 async function ownedBoard(id: string, ownerId: string) {
   const board = await prisma.board.findFirst({ where: { id, ownerId } });
@@ -27,7 +26,7 @@ export const boardRouter = router({
     where: { ownerId: ctx.session.user.id }, include: { apps: { include: { app: true }, orderBy: { position: "asc" } } }, orderBy: { createdAt: "asc" },
   })),
   create: protectedProcedure.input(z.object({ name: nameSchema })).mutation(async ({ ctx, input }) => prisma.$transaction(async (tx) => {
-    const board = await tx.board.create({ data: { name: input.name, nanoid: nanoid(), ownerId: ctx.session.user.id } });
+    const board = await tx.board.create({ data: { name: input.name, nanoid: createBoardNanoid(), ownerId: ctx.session.user.id } });
     const user = await tx.user.findUniqueOrThrow({ where: { id: ctx.session.user.id }, select: { defaultBoardId: true } });
     if (!user.defaultBoardId) await tx.user.update({ where: { id: ctx.session.user.id }, data: { defaultBoardId: board.id } });
     return board;
@@ -87,7 +86,7 @@ export const boardRouter = router({
     });
     return { success: true };
   }),
-  publicByNanoid: publicProcedure.input(z.object({ nanoid: z.string().min(10).max(30) })).query(({ input }) => prisma.board.findUnique({
+  publicByNanoid: publicProcedure.input(z.object({ nanoid: z.string().min(8).max(30) })).query(({ input }) => prisma.board.findUnique({
     where: { nanoid: input.nanoid }, include: { apps: { include: { app: true }, orderBy: { position: "asc" } } },
   })),
 });
