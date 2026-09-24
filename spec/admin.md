@@ -1,6 +1,6 @@
 # Management interface
 
-`/admin` is an authenticated view for the signed-in user's boards; the shared app library lives in a separate authenticated view at `/admin/apps`. Both must work on narrow screens and with keyboard navigation. A shared sticky menubar, matching the board view, links the views and offers a sign-out control. Creating or editing a board or app opens an accessible modal dialog, and destructive actions ask for confirmation before proceeding. `/admin` is the destination after first-account setup.
+`/admin` is an authenticated view for the signed-in user's boards; the shared app library lives in a separate authenticated view at `/admin/apps`. Both must work on narrow screens and with keyboard navigation. A shared sticky menubar, matching the board view, links the views and includes the signed-in user menu. The menu trigger shows a person icon and the user's display name; it links to Account (`/account`) and Admin (`/admin`) and offers Sign out. It must remain usable when the display name is long or the screen is narrow. Creating or editing a board or app opens an accessible modal dialog, and destructive actions ask for confirmation before proceeding. `/admin` is the destination after first-account setup.
 
 ## Shared app library
 

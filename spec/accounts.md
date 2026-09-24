@@ -21,6 +21,14 @@
 - Self-sign-up after initial setup is controlled by the Docker administrator through `ENABLE_SIGNUP=true`. It is disabled when the variable is absent or false. The first-account flow works regardless of this setting.
 - Signed-in users can sign out. New users have no board until they create one in `/admin`.
 
+## Account settings
+
+- A signed-in user can open `/account` to edit their own display name, email address, and password. The page uses three separate forms so each change can be saved independently.
+- A display-name change takes effect immediately. Changing an email address or password requires the account's current password. A new email must be valid and unused, and takes effect immediately without an email verification message.
+- Changing a password requires a new password of at least eight characters and signs out the account's other sessions. The current session stays signed in.
+- Failed changes show a clear error and preserve the form entry for correction. Only the signed-in account can be changed.
+- The account page reserves a place for future connected identity providers. This release does not show OIDC controls or a nonfunctional connection entry.
+
 ## Recovery and future identity
 
 - The container provides a documented Docker administrator command to reset a local account password by email. It prompts for the new password without exposing it in shell arguments. There is no in-app email reset in v1.

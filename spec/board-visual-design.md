@@ -4,9 +4,9 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 ## Header
 
-- A single sticky header spans the board. It shows the board name on the left, a centered search field, and an Admin button on the right.
-- On narrow screens, the name and Admin button remain on the first row and the search field moves to a full-width second row. The header must not cause horizontal scrolling.
-- The Admin button is visible to every visitor. It links to `/admin`; visitors who are not signed in follow the existing sign-in flow.
+- A single sticky header spans the board. It shows the board name on the left, a centered search field, and an account control on the right.
+- On narrow screens, the name and account control remain on the first row and the search field moves to a full-width second row. The header must not cause horizontal scrolling.
+- Signed-in visitors see the shared user menu used in admin: a person icon and display name, with Account, Admin, and Sign out actions. Anonymous visitors see a Sign in button. The menu must work with keyboard, pointer, and touch input.
 - Search remains visible for empty boards and filters only apps on the viewed board. Filtering and ranking follow [search.md](search.md).
 
 ## App tiles
@@ -32,5 +32,5 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 - Desktop and phone layouts show the same apps in saved order; phone width shows two tiles per row, and neither layout scrolls horizontally.
 - Long names truncate visually without losing their accessible full names. Pointer, touch, and keyboard focus can operate every tile.
-- Header placement, sticky behavior, search filtering, Admin navigation for signed-in and anonymous visitors, and light/dark appearance work at both narrow and wide widths.
+- Header placement, sticky behavior, search filtering, signed-in menu and anonymous Sign in navigation, and light/dark appearance work at both narrow and wide widths.
 - Existing board ownership, public URLs, app URLs, and search ranking remain unchanged.
