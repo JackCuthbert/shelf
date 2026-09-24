@@ -6,9 +6,10 @@ import { trpc } from "@/components/trpc-provider";
 type Board = { id: string; name: string; nanoid: string; ownerId: string; createdAt: string; updatedAt: string; apps: Array<{ boardId: string; appId: string; position: number; app: App }> };
 type App = { id: string; name: string; url: string; iconSlug: string; createdAt: string; updatedAt: string };
 
-export function BoardsAdmin({ initialBoards, apps }: { initialBoards: Board[]; apps: Pick<App, "id" | "name">[] }) {
+export function BoardsAdmin({ initialBoards, initialApps }: { initialBoards: Board[]; initialApps: App[] }) {
   const utils = trpc.useUtils();
   const { data: boards = initialBoards } = trpc.boards.list.useQuery(undefined, { initialData: initialBoards });
+  const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, { initialData: initialApps });
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const refresh = () => { setError(""); void utils.boards.list.invalidate(); };

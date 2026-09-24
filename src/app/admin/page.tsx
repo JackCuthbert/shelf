@@ -19,7 +19,7 @@ export default async function AdminPage() {
       <SignOutButton />
     </header>
     <p className="mt-8 text-stone-600">Welcome, {session.user.name}. Manage the apps shared by your household below.</p>
-    <BoardsAdmin initialBoards={boards.map((board) => ({ ...board, createdAt: board.createdAt.toISOString(), updatedAt: board.updatedAt.toISOString(), apps: board.apps.map((entry) => ({ ...entry, app: { ...entry.app, createdAt: entry.app.createdAt.toISOString(), updatedAt: entry.app.updatedAt.toISOString() } })) }))} apps={apps.map(({ id, name }) => ({ id, name }))} />
+    <BoardsAdmin initialBoards={boards.map((board) => ({ ...board, createdAt: board.createdAt.toISOString(), updatedAt: board.updatedAt.toISOString(), apps: board.apps.map((entry) => ({ ...entry, app: { ...entry.app, createdAt: entry.app.createdAt.toISOString(), updatedAt: entry.app.updatedAt.toISOString() } })) }))} initialApps={apps.map((app) => ({ ...app, createdAt: app.createdAt.toISOString(), updatedAt: app.updatedAt.toISOString() }))} />
     <SharedApps initialApps={apps.map((app) => ({ ...app, createdAt: app.createdAt.toISOString(), updatedAt: app.updatedAt.toISOString() }))} />
   </main>;
 }
