@@ -1,4 +1,10 @@
+<div align="center">
+
 # Shelf
+
+<img src="screenshot.png">
+
+</div>
 
 Shelf is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards that are quick to search and easy to edit on any screen — no widgets, YAML, or per-device layouts.
 
