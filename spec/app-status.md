@@ -17,7 +17,7 @@ Show whether an app assigned to a viewed board recently responded to a server-si
 
 ## Board display
 
-- Each tile displays a small status marker with an accessible label: “Status unknown”, “Responding”, or “Not responding”. Unknown is used before the first completed check.
+- Each tile displays a small status marker: green for responding, red for not responding, and grey for unknown. While a board refresh is in progress, the marker pulses grey. Its accessible label says “Checking”, “Status unknown”, “Responding”, or “Not responding” as appropriate. Unknown is used before the first completed check.
 - Show the last check time in the accessible label or status detail. Do not change the tile link or app ordering.
 
 ## Persistence and security

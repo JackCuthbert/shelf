@@ -25,8 +25,9 @@ function statusLabel(status: AppStatus) {
   return "Status unknown"
 }
 
-function statusColor(status: AppStatus) {
-  if (status === "up") return "bg-accent"
+function statusColor(status: AppStatus, checking: boolean) {
+  if (checking) return "bg-muted motion-safe:animate-pulse"
+  if (status === "up") return "bg-green-600 dark:bg-green-400"
   if (status === "down") return "bg-danger"
   return "bg-muted"
 }
@@ -54,6 +55,7 @@ export function BoardSearch({
   user: { name: string } | null
 }) {
   const [query, setQuery] = useState("")
+  const [checking, setChecking] = useState(false)
   const [openDescription, setOpenDescription] = useState<string | null>(null)
   const [statuses, setStatuses] = useState(() =>
     Object.fromEntries(
@@ -69,6 +71,7 @@ export function BoardSearch({
   useEffect(() => {
     if (apps.length === 0) return
     let active = true
+    setChecking(true)
     refreshStatuses
       .mutateAsync({ nanoid: boardNanoid })
       .then((result) => {
@@ -76,6 +79,9 @@ export function BoardSearch({
         setStatuses(Object.fromEntries(result.map((app) => [app.id, app])))
       })
       .catch(() => {})
+      .finally(() => {
+        if (active) setChecking(false)
+      })
     return () => {
       active = false
     }
@@ -132,9 +138,10 @@ export function BoardSearch({
           <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
             {results.map((app) => {
               const status = statuses[app.id] ?? app
-              const label = statusLabel(status.status)
-              const checked =
-                status.lastCheckedAt === null
+              const label = checking ? "Checking" : statusLabel(status.status)
+              const checked = checking
+                ? "status in progress"
+                : status.lastCheckedAt === null
                   ? "not checked yet"
                   : `last checked ${new Date(status.lastCheckedAt).toISOString()}`
               return (
@@ -172,7 +179,7 @@ export function BoardSearch({
                           role="img"
                           aria-label={`${label}; ${checked}`}
                           title={checked}
-                          className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status.status)}`}
+                          className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status.status, checking)}`}
                         />
                       </a>
                       {app.description && (
