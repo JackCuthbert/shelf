@@ -35,6 +35,7 @@ type Board = {
 type App = {
   id: string
   name: string
+  description: string
   url: string
   iconSlug: string
   createdAt: string

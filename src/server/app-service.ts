@@ -1,13 +1,17 @@
 export type SharedApp = {
   id: string
   name: string
+  description: string
   url: string
   iconSlug: string
   createdAt: Date
   updatedAt: Date
 }
 
-export type AppValues = Pick<SharedApp, "name" | "url" | "iconSlug">
+export type AppValues = Pick<
+  SharedApp,
+  "name" | "description" | "url" | "iconSlug"
+>
 
 export interface AppRepository {
   list(): Promise<SharedApp[]>
@@ -73,6 +77,7 @@ export function createSharedAppService(
         try {
           updated = await repository.update(input.id, {
             name: input.name,
+            description: input.description,
             url: input.url,
             iconSlug: input.iconSlug,
           })

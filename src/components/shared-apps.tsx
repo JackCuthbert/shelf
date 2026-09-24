@@ -13,6 +13,7 @@ import { trpc } from "@/components/trpc-provider"
 type App = {
   id: string
   name: string
+  description: string
   url: string
   iconSlug: string
   createdAt: string
@@ -38,7 +39,9 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
   const needle = filter.trim().toLowerCase()
   const visible = needle
     ? apps.filter((app) =>
-        `${app.name} ${app.url}`.toLowerCase().includes(needle),
+        `${app.name} ${app.description} ${app.url}`
+          .toLowerCase()
+          .includes(needle),
       )
     : apps
 
@@ -113,6 +116,11 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
               />
               <div className="min-w-0 flex-1">
                 <h3 className="truncate font-semibold">{app.name}</h3>
+                {app.description && (
+                  <p className="line-clamp-2 text-sm text-muted">
+                    {app.description}
+                  </p>
+                )}
                 <a
                   href={app.url}
                   target="_blank"

@@ -46,7 +46,12 @@ function setup() {
   }
 }
 
-const input = { name: "Media", url: "https://media.home", iconSlug: "plex" }
+const input = {
+  name: "Media",
+  description: "Streaming",
+  url: "https://media.home",
+  iconSlug: "plex",
+}
 
 describe("shared app service", () => {
   it("does not create a record or remove a cached icon after a failed download", async () => {
@@ -96,5 +101,16 @@ describe("shared app service", () => {
     ).rejects.toThrow("offline")
     expect(records.get(created.id)?.name).toBe("Media")
     expect(records.get(created.id)?.iconSlug).toBe("plex")
+  })
+
+  it("persists description changes when an app is edited", async () => {
+    const { service } = setup()
+    const created = await service.create(input)
+    const updated = await service.update({
+      ...input,
+      id: created.id,
+      description: "Movies and shows",
+    })
+    expect(updated.description).toBe("Movies and shows")
   })
 })

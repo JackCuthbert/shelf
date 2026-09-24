@@ -3,10 +3,17 @@ import { describe, expect, it } from "vitest"
 import { BoardSearch } from "./board-search"
 
 const apps = [
-  { id: "plex", name: "Plex", url: "https://plex.example", iconSlug: "plex" },
+  {
+    id: "plex",
+    name: "Plex",
+    description: "Movies and shows",
+    url: "https://plex.example",
+    iconSlug: "plex",
+  },
   {
     id: "sonarr",
     name: "Sonarr",
+    description: "",
     url: "https://sonarr.example",
     iconSlug: "sonarr",
   },
@@ -45,6 +52,17 @@ describe("BoardSearch", () => {
     )
     expect(html).toContain('id="board-search"')
     expect(html).toContain("This board is empty")
+  })
+
+  it("shows description access outside the app link and omits it without a description", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch boardName="Home" apps={apps} />,
+    )
+    expect(html).toContain('aria-label="About Plex"')
+    expect(html).not.toContain('aria-label="About Sonarr"')
+    expect(html).toMatch(
+      /<a[^>]*href="https:\/\/plex\.example"[^>]*>.*?<\/a><button/,
+    )
   })
 
   it("does not advertise the removed custom keyboard shortcuts", () => {

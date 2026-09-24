@@ -21,6 +21,7 @@ export default async function BoardPage({
       apps={board.apps.map(({ app }) => ({
         id: app.id,
         name: app.name,
+        description: app.description,
         url: app.url,
         iconSlug: app.iconSlug,
       }))}

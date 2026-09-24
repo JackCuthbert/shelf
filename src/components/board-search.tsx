@@ -2,10 +2,17 @@
 
 import { useMemo, useState } from "react"
 import { Input } from "@base-ui/react/input"
-import { LuLayoutDashboard, LuSettings } from "react-icons/lu"
+import { Popover } from "@base-ui/react/popover"
+import { LuInfo, LuLayoutDashboard, LuSettings } from "react-icons/lu"
 import { rankApps } from "@/lib/board-search"
 
-type BoardApp = { id: string; name: string; url: string; iconSlug: string }
+type BoardApp = {
+  id: string
+  name: string
+  description: string
+  url: string
+  iconSlug: string
+}
 
 export function BoardSearch({
   boardName,
@@ -69,24 +76,50 @@ export function BoardSearch({
           <ul className="grid grid-cols-[repeat(auto-fit,8.5rem)] gap-3 sm:gap-4">
             {results.map((app) => (
               <li key={app.id}>
-                <a
-                  href={app.url}
-                  target="_blank"
-                  rel="noreferrer"
-                  title={app.name}
-                  className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
-                >
-                  <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
-                    {app.name}
-                  </span>
-                  <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
-                    <img
-                      src={`/icons/${app.iconSlug}`}
-                      alt=""
-                      className="h-full w-full object-contain"
-                    />
-                  </span>
-                </a>
+                <Popover.Root>
+                  <div className="relative">
+                    <a
+                      href={app.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      title={app.name}
+                      className="panel flex aspect-square w-full flex-col items-center gap-1.5 p-2 transition hover:border-accent hover:bg-surface-alt focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus active:bg-surface-alt"
+                    >
+                      <span className="w-full shrink-0 truncate text-center text-sm font-medium leading-5">
+                        {app.name}
+                      </span>
+                      <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
+                        <img
+                          src={`/icons/${app.iconSlug}`}
+                          alt=""
+                          className="h-full w-full object-contain"
+                        />
+                      </span>
+                    </a>
+                    {app.description && (
+                      <>
+                        <Popover.Trigger
+                          openOnHover
+                          delay={0}
+                          aria-label={`About ${app.name}`}
+                          className="absolute right-1 top-1 flex size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+                        >
+                          <LuInfo aria-hidden className="size-4" />
+                        </Popover.Trigger>
+                        <Popover.Portal>
+                          <Popover.Positioner side="top" sideOffset={8}>
+                            <Popover.Popup
+                              className="panel max-w-64 p-3 text-sm shadow-lg"
+                              aria-label={`${app.name} description`}
+                            >
+                              {app.description}
+                            </Popover.Popup>
+                          </Popover.Positioner>
+                        </Popover.Portal>
+                      </>
+                    )}
+                  </div>
+                </Popover.Root>
               </li>
             ))}
           </ul>

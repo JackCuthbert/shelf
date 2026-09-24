@@ -11,9 +11,29 @@ describe("app input validation", () => {
       }),
     ).toEqual({
       name: "Router",
+      description: "",
       url: "http://192.168.1.1/",
       iconSlug: "home-assistant",
     })
+  })
+
+  it("accepts a description up to 280 characters and trims it", () => {
+    expect(
+      appInputSchema.parse({
+        name: "App",
+        description: ` ${"a".repeat(280)} `,
+        url: "https://example.com",
+        iconSlug: "app",
+      }).description,
+    ).toBe("a".repeat(280))
+    expect(
+      appInputSchema.safeParse({
+        name: "App",
+        description: "a".repeat(281),
+        url: "https://example.com",
+        iconSlug: "app",
+      }).success,
+    ).toBe(false)
   })
 
   it.each(["javascript:alert(1)", "ftp://example.com", "not a url"])(

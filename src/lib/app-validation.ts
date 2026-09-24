@@ -6,6 +6,11 @@ export const iconSlugSchema = z
 
 export const appInputSchema = z.object({
   name: z.string().trim().min(1, "Enter an app name.").max(120),
+  description: z
+    .string()
+    .trim()
+    .max(280, "Description must be 280 characters or fewer.")
+    .default(""),
   url: z
     .string()
     .trim()
@@ -34,3 +39,5 @@ export const appInputSchema = z.object({
 })
 
 export const appIdInputSchema = z.object({ id: z.string().min(1) })
+
+export type AppInput = z.infer<typeof appInputSchema>

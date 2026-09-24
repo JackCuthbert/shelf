@@ -35,6 +35,7 @@ it("shows a filter and a single-column list when apps exist", () => {
         {
           id: "a1",
           name: "Plex",
+          description: "Movies and shows",
           url: "https://plex.example",
           iconSlug: "plex",
           createdAt: "",
@@ -45,5 +46,6 @@ it("shows a filter and a single-column list when apps exist", () => {
   )
   expect(html).toContain('id="app-filter"')
   expect(html).toContain("Plex")
+  expect(html).toContain("Movies and shows")
   expect(html).not.toContain("sm:grid-cols-2")
 })

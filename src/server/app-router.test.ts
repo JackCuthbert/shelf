@@ -11,6 +11,7 @@ describe("app router authentication", () => {
       () =>
         caller.apps.create({
           name: "Media",
+          description: "Media server",
           url: "https://media.home",
           iconSlug: "plex",
         }),
@@ -21,6 +22,7 @@ describe("app router authentication", () => {
         caller.apps.update({
           id: "1",
           name: "Media",
+          description: "Media server",
           url: "https://media.home",
           iconSlug: "plex",
         }),

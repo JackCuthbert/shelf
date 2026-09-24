@@ -14,11 +14,17 @@ import { trpc } from "@/components/trpc-provider"
 export type AppRecord = {
   id: string
   name: string
+  description: string
   url: string
   iconSlug: string
 }
-type Draft = { name: string; url: string; iconSlug: string }
-const emptyDraft: Draft = { name: "", url: "", iconSlug: "" }
+type Draft = {
+  name: string
+  description: string
+  url: string
+  iconSlug: string
+}
+const emptyDraft: Draft = { name: "", description: "", url: "", iconSlug: "" }
 
 export function AppFormDialog({
   open,
@@ -50,7 +56,12 @@ export function AppFormDialog({
     if (!open) return
     setDraft(
       app
-        ? { name: app.name, url: app.url, iconSlug: app.iconSlug }
+        ? {
+            name: app.name,
+            description: app.description,
+            url: app.url,
+            iconSlug: app.iconSlug,
+          }
         : emptyDraft,
     )
     setError("")
@@ -112,6 +123,20 @@ export function AppFormDialog({
               <Field.Error className="text-xs text-danger" />
             </Field.Root>
           </div>
+          <Field.Root name="description" className="mt-4 space-y-2">
+            <Field.Label className="text-xs text-muted">
+              Description (optional)
+            </Field.Label>
+            <textarea
+              className="field min-h-20 resize-y"
+              maxLength={280}
+              value={draft.description}
+              onChange={(event) =>
+                setDraft({ ...draft, description: event.target.value })
+              }
+            />
+            <p className="text-xs text-muted">{draft.description.length}/280</p>
+          </Field.Root>
           <IconPicker
             value={draft.iconSlug}
             cachedValue={app?.iconSlug}

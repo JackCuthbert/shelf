@@ -109,6 +109,7 @@ it("renders icon-only move controls with accessible labels", () => {
               app: {
                 id: "plex",
                 name: "Plex",
+                description: "",
                 url: "https://plex.example",
                 iconSlug: "plex",
                 createdAt: "",
