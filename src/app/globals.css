@@ -54,14 +54,14 @@
   }
 
   .btn {
-    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-[2px] border border-line bg-surface px-3 py-2 text-xs leading-none text-foreground hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex cursor-pointer items-center justify-center gap-1.5 rounded-[2px] border border-line bg-surface px-3 py-2 text-xs leading-none text-foreground not-disabled:hover:border-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50;
   }
 
   .btn-primary {
-    @apply border-accent bg-accent text-accent-foreground hover:border-accent hover:brightness-105;
+    @apply border-accent bg-accent text-accent-foreground not-disabled:hover:border-accent not-disabled:hover:brightness-105;
   }
 
   .btn-danger {
-    @apply text-danger hover:border-danger;
+    @apply text-danger not-disabled:hover:border-danger;
   }
 }
