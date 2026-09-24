@@ -15,6 +15,8 @@ Hometime is a small, self-hosted dashboard for one household. It provides a shar
 
 ## Running with Docker Compose
 
+> **Note:** The container image is not published yet. Until it is, build it yourself from this repository — replace the `image:` line below with `build: .` and run `docker compose up -d --build`.
+
 Create a `compose.yaml`:
 
 ```yaml
