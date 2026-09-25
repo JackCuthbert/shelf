@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
-import { LuInfo, LuLayoutDashboard } from "react-icons/lu"
+import { LuInfo } from "react-icons/lu"
 import {
   filterAppGroups,
   groupBoardApps,
@@ -221,8 +221,7 @@ export function BoardSearch({
     <main className="min-h-screen">
       <header className="sticky top-0 z-20 border-b border-line bg-background">
         <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
-          <div className="order-1 flex min-w-0 items-center gap-2">
-            <LuLayoutDashboard aria-hidden className="size-5 shrink-0" />
+          <div className="order-1 min-w-0">
             <div className="min-w-0">
               <p className="text-xs leading-none text-muted">Shelf</p>
               <h1
