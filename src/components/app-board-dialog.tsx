@@ -48,6 +48,7 @@ export function AppBoardDialog({
     >
       <Dialog.Trigger
         render={triggerRender}
+        nativeButton={triggerRender ? false : undefined}
         className={triggerClassName}
         aria-label={`Add ${appName} to a board`}
       >

@@ -32,6 +32,7 @@ export function BoardAppDialog({
   categories,
   lockedCategoryId,
   triggerAriaLabel,
+  triggerClassName = "btn text-xs",
   onAssign,
 }: {
   boardName: string
@@ -39,6 +40,7 @@ export function BoardAppDialog({
   categories: Category[]
   lockedCategoryId?: string | null
   triggerAriaLabel?: string
+  triggerClassName?: string
   onAssign: (appId: string, categoryId: string | null) => void
 }) {
   const locked = lockedCategoryId !== undefined
@@ -61,7 +63,10 @@ export function BoardAppDialog({
         }
       }}
     >
-      <Dialog.Trigger className="btn text-xs" aria-label={triggerAriaLabel}>
+      <Dialog.Trigger
+        className={triggerClassName}
+        aria-label={triggerAriaLabel}
+      >
         <LuPlus aria-hidden className="size-4" />
         Add app
       </Dialog.Trigger>

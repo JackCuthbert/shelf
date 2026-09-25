@@ -189,8 +189,35 @@ it("shows assigned app icons without a surrounding box", () => {
   expect(icon).toBeDefined()
   expect(icon).not.toContain("border")
   expect(icon).not.toContain("bg-surface")
-  expect(html).toContain("Add app")
+  expect(html).toContain('aria-label="Uncategorised"')
+  expect(html).toContain('aria-label="Add app to Uncategorised"')
+  expect(html.match(/>Add app</g)).toHaveLength(1)
   expect(html).not.toContain("Add board")
+})
+
+it("shows an add-app Uncategorised section when a board has no categories or apps", () => {
+  const html = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "public-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [],
+          apps: [],
+        },
+      ]}
+      initialApps={[]}
+    />,
+  )
+
+  expect(html).toContain('aria-label="Uncategorised"')
+  expect(html).toContain('aria-label="Add app to Uncategorised"')
+  expect(html).toContain("No apps assigned.")
+  expect(html.match(/>Add app</g)).toHaveLength(1)
 })
 
 it("separates admin app rows with spacing and a hover state instead of borders", () => {
@@ -446,4 +473,6 @@ it("keeps each category's controls and apps together in one section", () => {
   expect(section).toContain('aria-label="Add app to Movies"')
   expect(section).toContain("Plex")
   expect(section).toContain('aria-label="Move Plex up"')
+  expect(html).toContain('aria-label="Uncategorised"')
+  expect(html).toContain('aria-label="Add app to Uncategorised"')
 })

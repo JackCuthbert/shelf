@@ -606,14 +606,6 @@ export function BoardsAdmin({
                     </a>
                   </div>
                   <div className="flex flex-wrap gap-2">
-                    <BoardAppDialog
-                      boardName={board.name}
-                      apps={available}
-                      categories={board.categories}
-                      onAssign={(appId, categoryId) =>
-                        assign.mutate({ boardId: board.id, appId, categoryId })
-                      }
-                    />
                     <Button
                       className="btn text-xs"
                       onClick={() =>
@@ -692,71 +684,76 @@ export function BoardsAdmin({
                   </Button>
                 </div>
 
-                {board.apps.length === 0 && board.categories.length === 0 ? (
-                  <p className="mt-3 text-sm text-muted">
-                    No apps assigned yet.
-                  </p>
-                ) : board.categories.length === 0 ? (
-                  <ol className="mt-3 space-y-1">
-                    {board.apps.map((entry, index) =>
-                      renderAssignment(board, entry, index, board.apps.length),
-                    )}
-                  </ol>
-                ) : (
-                  <div className="mt-3 space-y-6">
-                    {groups.map((group) => {
-                      const category = group.category
-                      const categoryIndex = category
-                        ? board.categories.findIndex(
-                            (item) => item.id === category.id,
-                          )
-                        : -1
-                      return (
-                        <section
-                          key={category?.id ?? "uncategorized"}
-                          aria-label={category?.title ?? "Uncategorized"}
-                        >
-                          <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
-                            <div className="min-w-0">
-                              <h5 className="truncate text-sm font-semibold">
-                                {category?.title ?? "Uncategorized"}
-                              </h5>
-                              {category?.description && (
-                                <p className="text-xs text-muted">
-                                  {category.description}
-                                </p>
-                              )}
-                            </div>
-                            {category &&
-                              renderCategoryControls(
-                                board,
-                                category,
-                                categoryIndex,
-                              )}
-                          </header>
-                          <div className="pt-1">
-                            {group.apps.length === 0 ? (
-                              <p className="px-3 py-2 text-sm text-muted">
-                                No apps assigned.
+                <div className="mt-3 space-y-6">
+                  {groups.map((group) => {
+                    const category = group.category
+                    const categoryIndex = category
+                      ? board.categories.findIndex(
+                          (item) => item.id === category.id,
+                        )
+                      : -1
+                    return (
+                      <section
+                        key={category?.id ?? "uncategorized"}
+                        aria-label={category?.title ?? "Uncategorised"}
+                      >
+                        <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
+                          <div className="min-w-0">
+                            <h5 className="truncate text-sm font-semibold">
+                              {category?.title ?? "Uncategorised"}
+                            </h5>
+                            {category?.description && (
+                              <p className="text-xs text-muted">
+                                {category.description}
                               </p>
-                            ) : (
-                              <ol className="space-y-1">
-                                {group.apps.map((entry, index) =>
-                                  renderAssignment(
-                                    board,
-                                    entry,
-                                    index,
-                                    group.apps.length,
-                                  ),
-                                )}
-                              </ol>
                             )}
                           </div>
-                        </section>
-                      )
-                    })}
-                  </div>
-                )}
+                          {category ? (
+                            renderCategoryControls(
+                              board,
+                              category,
+                              categoryIndex,
+                            )
+                          ) : (
+                            <BoardAppDialog
+                              boardName={board.name}
+                              apps={available}
+                              categories={board.categories}
+                              lockedCategoryId={null}
+                              triggerAriaLabel="Add app to Uncategorised"
+                              triggerClassName="btn text-xs"
+                              onAssign={(appId, categoryId) =>
+                                assign.mutate({
+                                  boardId: board.id,
+                                  appId,
+                                  categoryId,
+                                })
+                              }
+                            />
+                          )}
+                        </header>
+                        <div className="pt-1">
+                          {group.apps.length === 0 ? (
+                            <p className="px-3 py-2 text-sm text-muted">
+                              No apps assigned.
+                            </p>
+                          ) : (
+                            <ol className="space-y-1">
+                              {group.apps.map((entry, index) =>
+                                renderAssignment(
+                                  board,
+                                  entry,
+                                  index,
+                                  group.apps.length,
+                                ),
+                              )}
+                            </ol>
+                          )}
+                        </div>
+                      </section>
+                    )
+                  })}
+                </div>
               </li>
             )
           })}
