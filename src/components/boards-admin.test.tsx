@@ -95,6 +95,9 @@ it("marks the default board and disables its set-default control", () => {
   expect(html).toContain("Default")
   expect(html).not.toContain("Set as default")
   expect(html).toContain("disabled")
+  expect(html).toContain(
+    "mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4",
+  )
 })
 
 it("renders icon-only move controls with accessible labels", () => {

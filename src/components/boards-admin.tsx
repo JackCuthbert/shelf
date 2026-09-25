@@ -669,7 +669,7 @@ export function BoardsAdmin({
                   </div>
                 </div>
 
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2">
+                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
                   <h4 className="text-xs font-semibold text-muted uppercase">
                     Apps
                   </h4>
