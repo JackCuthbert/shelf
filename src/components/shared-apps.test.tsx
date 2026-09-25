@@ -139,7 +139,10 @@ it("renders a compact responsive row with status on the icon and a menu trigger"
   expect(html).toContain("panel flex min-w-0 items-center gap-3 p-3")
   expect(html).toContain("text-xs text-muted underline")
   expect(html).toContain("absolute -right-0.5 -top-0.5")
+  expect(html).toContain('role="img"')
   expect(html).toContain("Responding")
+  expect(html).toContain('<span class="truncate">https://plex.example</span>')
+  expect(html).toContain("size-3 shrink-0")
 })
 
 it("wires Check now to the app mutation and invalidates the app list on success", () => {

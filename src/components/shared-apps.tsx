@@ -217,6 +217,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                     className="size-full object-contain"
                   />
                   <span
+                    role="img"
                     title={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}`}
                     aria-label={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}${checking ? "; Checking" : ""}`}
                     className={`absolute -right-0.5 -top-0.5 size-3 rounded-full border-2 border-[var(--color-background)] ${appStatusColor(app.status)} ${checking ? "animate-pulse" : ""}`}
@@ -233,12 +234,12 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                     href={app.url}
                     target="_blank"
                     rel="noreferrer"
-                    className="block truncate text-xs text-muted underline underline-offset-2"
+                    className="flex min-w-0 items-center text-xs text-muted underline underline-offset-2"
                   >
-                    {app.url}
+                    <span className="truncate">{app.url}</span>
                     <LuExternalLink
                       aria-hidden
-                      className="ml-1 inline size-3 align-[-1px]"
+                      className="ml-1 size-3 shrink-0"
                     />
                   </a>
                 </div>
@@ -279,6 +280,9 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                         <AppBoardDialog
                           appName={app.name}
                           boards={boardsMissingApp}
+                          triggerRender={
+                            <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt" />
+                          }
                           triggerClassName="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
                           onAssign={(boardId, categoryId) =>
                             assign.mutate({

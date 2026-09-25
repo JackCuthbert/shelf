@@ -1,6 +1,7 @@
 "use client"
 
 import { useId, useState } from "react"
+import type { ReactElement } from "react"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
 import { LuPlus } from "react-icons/lu"
@@ -18,11 +19,13 @@ export function AppBoardDialog({
   boards,
   onAssign,
   triggerClassName = "btn text-xs",
+  triggerRender,
 }: {
   appName: string
   boards: Board[]
   onAssign: (boardId: string, categoryId: string | null) => void
   triggerClassName?: string
+  triggerRender?: ReactElement
 }) {
   const [filter, setFilter] = useState("")
   const [categoryByBoard, setCategoryByBoard] = useState<
@@ -44,6 +47,7 @@ export function AppBoardDialog({
       }}
     >
       <Dialog.Trigger
+        render={triggerRender}
         className={triggerClassName}
         aria-label={`Add ${appName} to a board`}
       >
