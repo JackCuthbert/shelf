@@ -1,19 +1,34 @@
 import { renderToStaticMarkup } from "react-dom/server"
 import { expect, it, vi } from "vitest"
 
+const trpcMocks = vi.hoisted(() => ({
+  recheckOptions: null as null | {
+    onSuccess: (result: unknown, variables: { id: string }) => void
+    onError: (cause: Error, variables: { id: string }) => void
+  },
+  recheckMutate: vi.fn(),
+  invalidateApps: vi.fn(),
+  pending: false,
+}))
+
 vi.mock("@/components/trpc-provider", () => {
   const useMutation = () => ({})
+  const useRecheckMutation = (options: typeof trpcMocks.recheckOptions) => {
+    trpcMocks.recheckOptions = options
+    return { mutate: trpcMocks.recheckMutate, isPending: trpcMocks.pending }
+  }
   const useQuery = (_input: unknown, options?: { initialData: unknown }) => ({
     data: options?.initialData ?? [],
   })
   return {
     trpc: {
       useUtils: () => ({
-        apps: { list: { invalidate: () => {} } },
+        apps: { list: { invalidate: trpcMocks.invalidateApps } },
         boards: { list: { invalidate: () => {} } },
       }),
       apps: {
         list: { useQuery },
+        recheckStatus: { useMutation: useRecheckMutation },
         create: { useMutation },
         update: { useMutation },
         delete: { useMutation },
@@ -84,7 +99,7 @@ it("shows the last recorded state and failure reason without re-checking", () =>
           iconHash: null,
           status: "down",
           lastError: "Connection refused",
-          lastCheckedAt: null,
+          lastCheckedAt: "2026-09-24T00:00:00.000Z",
           createdAt: "",
           updatedAt: "",
         },
@@ -93,6 +108,89 @@ it("shows the last recorded state and failure reason without re-checking", () =>
   )
   expect(html).toContain("Not responding")
   expect(html).toContain("Connection refused")
+  expect(html).toContain("Check now")
+  expect(html).toContain("Last checked")
+  expect(html).toContain("2026-09-24")
+})
+
+it("uses a wrapping footer for status and actions", () => {
+  const html = renderToStaticMarkup(
+    <SharedApps
+      initialApps={[
+        {
+          id: "a1",
+          name: "Plex",
+          description: "",
+          url: "https://plex.example",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          customIconUrl: null,
+          iconHash: null,
+          status: "up",
+          lastError: null,
+          lastCheckedAt: "2026-09-24T00:00:00.000Z",
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(html).toContain('aria-label="Check Plex now"')
+  expect(html).toContain("flex flex-wrap items-center justify-between gap-3")
+  expect(html).toContain("Responding")
+  expect(html).toContain("flex flex-wrap gap-1")
+})
+
+it("wires Check now to the app mutation and invalidates the app list on success", () => {
+  renderToStaticMarkup(
+    <SharedApps
+      initialApps={[
+        {
+          id: "a1",
+          name: "Plex",
+          description: "",
+          url: "https://plex.example",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          customIconUrl: null,
+          iconHash: null,
+          status: "up",
+          lastError: null,
+          lastCheckedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(trpcMocks.recheckOptions).toBeTruthy()
+  trpcMocks.recheckOptions?.onSuccess({}, { id: "a1" })
+  expect(trpcMocks.invalidateApps).toHaveBeenCalledOnce()
+})
+
+it("configures a row-scoped request error handler", () => {
+  renderToStaticMarkup(
+    <SharedApps
+      initialApps={[
+        {
+          id: "a1",
+          name: "Plex",
+          description: "",
+          url: "https://plex.example",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          customIconUrl: null,
+          iconHash: null,
+          status: "unknown",
+          lastError: null,
+          lastCheckedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(trpcMocks.recheckOptions?.onError).toBeTypeOf("function")
 })
 
 it("offers an add-to-board control on each app", () => {

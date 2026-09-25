@@ -5,7 +5,13 @@ import { AlertDialog } from "@base-ui/react/alert-dialog"
 import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
-import { LuDownload, LuPencil, LuPlus, LuTrash2 } from "react-icons/lu"
+import {
+  LuDownload,
+  LuPencil,
+  LuPlus,
+  LuRefreshCw,
+  LuTrash2,
+} from "react-icons/lu"
 import { AppBoardDialog } from "@/components/app-board-dialog"
 import { AppFormDialog } from "@/components/app-form-dialog"
 import { HomarrImportDialog } from "@/components/homarr-import-dialog"
@@ -55,6 +61,22 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
   const [importedCount, setImportedCount] = useState<number | null>(null)
   const [filter, setFilter] = useState("")
   const [error, setError] = useState("")
+  const [checkErrors, setCheckErrors] = useState<Record<string, string>>({})
+  const [checkingIds, setCheckingIds] = useState<Record<string, boolean>>({})
+  const recheck = trpc.apps.recheckStatus.useMutation({
+    onSuccess: (_result, variables) => {
+      setCheckErrors((current) => ({ ...current, [variables.id]: "" }))
+      setCheckingIds((current) => ({ ...current, [variables.id]: false }))
+      void utils.apps.list.invalidate()
+    },
+    onError: (cause, variables) => {
+      setCheckErrors((current) => ({
+        ...current,
+        [variables.id]: cause.message,
+      }))
+      setCheckingIds((current) => ({ ...current, [variables.id]: false }))
+    },
+  })
   const remove = trpc.apps.delete.useMutation({
     onSuccess: () => {
       setError("")
@@ -159,82 +181,120 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
       ) : (
         <ul className="mt-5 space-y-2">
           {visible.map((app) => {
+            const checking = Boolean(checkingIds[app.id])
             const boardsMissingApp = boards.filter(
               (board) => !board.apps.some((entry) => entry.appId === app.id),
             )
             return (
               <li
                 key={app.id}
-                className="panel flex min-w-0 items-center gap-3 p-3"
+                className="panel flex min-w-0 flex-col gap-3 p-3"
               >
-                <img
-                  src={`/icons/${iconKey(app)}`}
-                  alt=""
-                  className="h-12 w-12 shrink-0 object-contain"
-                />
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate font-semibold">{app.name}</h3>
-                  {app.description && (
-                    <p className="line-clamp-2 text-sm text-muted">
-                      {app.description}
-                    </p>
-                  )}
-                  <a
-                    href={app.url}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="block truncate text-sm text-accent underline underline-offset-2"
-                  >
-                    {app.url}
-                  </a>
-                  <p className="mt-1 flex items-center gap-2 text-xs text-muted">
-                    <span
-                      aria-hidden
-                      className={`size-2 shrink-0 rounded-full ${appStatusColor(app.status)}`}
-                    />
-                    <span>{appStatusText(app)}</span>
-                  </p>
-                </div>
-                <div className="flex shrink-0 gap-1">
-                  <AppBoardDialog
-                    appName={app.name}
-                    boards={boardsMissingApp}
-                    onAssign={(boardId, categoryId) =>
-                      assign.mutate({ boardId, appId: app.id, categoryId })
-                    }
+                <div className="flex min-w-0 items-start gap-3">
+                  <img
+                    src={`/icons/${iconKey(app)}`}
+                    alt=""
+                    className="h-12 w-12 shrink-0 object-contain"
                   />
-                  <Button
-                    className="btn text-xs"
-                    onClick={() => setEditing(app)}
-                    aria-label={`Edit ${app.name}`}
-                  >
-                    <LuPencil aria-hidden className="size-4" />
-                    Edit
-                  </Button>
-                  <AlertDialog.Root>
-                    <AlertDialog.Trigger
-                      className="btn btn-danger text-xs"
-                      aria-label={`Delete ${app.name}`}
+                  <div className="min-w-0 flex-1">
+                    <h3 className="truncate font-semibold">{app.name}</h3>
+                    {app.description && (
+                      <p className="line-clamp-2 text-sm text-muted">
+                        {app.description}
+                      </p>
+                    )}
+                    <a
+                      href={app.url}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="block truncate text-sm text-accent underline underline-offset-2"
                     >
-                      <LuTrash2 aria-hidden className="size-4" />
-                      Delete
-                    </AlertDialog.Trigger>
-                    <ConfirmContent
-                      title="Delete app"
-                      description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
+                      {app.url}
+                    </a>
+                  </div>
+                </div>
+                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
+                      <span
+                        aria-hidden
+                        className={`size-2 shrink-0 rounded-full ${appStatusColor(app.status)}`}
+                      />
+                      <span>{appStatusText(app)}</span>
+                      {app.lastCheckedAt && (
+                        <time dateTime={app.lastCheckedAt}>
+                          Last checked{" "}
+                          {new Date(app.lastCheckedAt).toLocaleString()}
+                        </time>
+                      )}
+                      {checking && <span role="status">Checking…</span>}
+                    </p>
+                    {checkErrors[app.id] && (
+                      <p role="alert" className="mt-1 text-xs text-danger">
+                        Check failed: {checkErrors[app.id]}. Try again.
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    <Button
+                      className="btn text-xs"
+                      aria-label={`Check ${app.name} now`}
+                      disabled={checking}
+                      onClick={() => {
+                        setCheckErrors((current) => ({
+                          ...current,
+                          [app.id]: "",
+                        }))
+                        setCheckingIds((current) => ({
+                          ...current,
+                          [app.id]: true,
+                        }))
+                        recheck.mutate({ id: app.id })
+                      }}
                     >
-                      <AlertDialog.Close className="btn">
-                        Cancel
-                      </AlertDialog.Close>
-                      <AlertDialog.Close
-                        className="btn btn-danger"
-                        onClick={() => remove.mutate({ id: app.id })}
+                      <LuRefreshCw aria-hidden className="size-4" />
+                      {checking ? "Checking…" : "Check now"}
+                    </Button>
+                    <AppBoardDialog
+                      appName={app.name}
+                      boards={boardsMissingApp}
+                      onAssign={(boardId, categoryId) =>
+                        assign.mutate({ boardId, appId: app.id, categoryId })
+                      }
+                    />
+                    <Button
+                      className="btn text-xs"
+                      onClick={() => setEditing(app)}
+                      aria-label={`Edit ${app.name}`}
+                    >
+                      <LuPencil aria-hidden className="size-4" />
+                      Edit
+                    </Button>
+                    <AlertDialog.Root>
+                      <AlertDialog.Trigger
+                        className="btn btn-danger text-xs"
+                        aria-label={`Delete ${app.name}`}
                       >
                         <LuTrash2 aria-hidden className="size-4" />
                         Delete
-                      </AlertDialog.Close>
-                    </ConfirmContent>
-                  </AlertDialog.Root>
+                      </AlertDialog.Trigger>
+                      <ConfirmContent
+                        title="Delete app"
+                        description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
+                      >
+                        <AlertDialog.Close className="btn">
+                          Cancel
+                        </AlertDialog.Close>
+                        <AlertDialog.Close
+                          className="btn btn-danger"
+                          onClick={() => remove.mutate({ id: app.id })}
+                        >
+                          <LuTrash2 aria-hidden className="size-4" />
+                          Delete
+                        </AlertDialog.Close>
+                      </ConfirmContent>
+                    </AlertDialog.Root>
+                  </div>
                 </div>
               </li>
             )
