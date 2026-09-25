@@ -108,12 +108,12 @@ it("shows the last recorded state and failure reason without re-checking", () =>
   )
   expect(html).toContain("Not responding")
   expect(html).toContain("Connection refused")
-  expect(html).toContain("Check now")
-  expect(html).toContain("Last checked")
+  expect(html).toContain('aria-label="Actions for Proxmox"')
+  expect(html).toContain("last checked")
   expect(html).toContain("2026-09-24T00:00:00.000Z UTC")
 })
 
-it("uses a wrapping footer for status and actions", () => {
+it("renders a compact responsive row with status on the icon and a menu trigger", () => {
   const html = renderToStaticMarkup(
     <SharedApps
       initialApps={[
@@ -135,10 +135,11 @@ it("uses a wrapping footer for status and actions", () => {
       ]}
     />,
   )
-  expect(html).toContain('aria-label="Check Plex now"')
-  expect(html).toContain("flex flex-wrap items-center justify-between gap-3")
+  expect(html).toContain('aria-label="Actions for Plex"')
+  expect(html).toContain("panel flex min-w-0 items-center gap-3 p-3")
+  expect(html).toContain("text-xs text-muted underline")
+  expect(html).toContain("absolute -right-0.5 -top-0.5")
   expect(html).toContain("Responding")
-  expect(html).toContain("flex flex-wrap gap-1")
 })
 
 it("wires Check now to the app mutation and invalidates the app list on success", () => {
@@ -193,7 +194,7 @@ it("configures a row-scoped request error handler", () => {
   expect(trpcMocks.recheckOptions?.onError).toBeTypeOf("function")
 })
 
-it("offers an add-to-board control on each app", () => {
+it("shows an accessible per-app menu trigger for app actions", () => {
   const html = renderToStaticMarkup(
     <SharedApps
       initialApps={[
@@ -215,5 +216,5 @@ it("offers an add-to-board control on each app", () => {
       ]}
     />,
   )
-  expect(html).toContain("Add to board")
+  expect(html).toContain('aria-label="Actions for Plex"')
 })

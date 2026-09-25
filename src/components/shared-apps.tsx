@@ -2,15 +2,17 @@
 
 import { useState } from "react"
 import { AlertDialog } from "@base-ui/react/alert-dialog"
-import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
+import { Menu } from "@base-ui/react/menu"
 import {
   LuDownload,
   LuPencil,
   LuPlus,
-  LuRefreshCw,
   LuTrash2,
+  LuEllipsis,
+  LuRefreshCw,
+  LuExternalLink,
 } from "react-icons/lu"
 import { AppBoardDialog } from "@/components/app-board-dialog"
 import { AppFormDialog } from "@/components/app-form-dialog"
@@ -164,6 +166,24 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
           {error}
         </p>
       )}
+      {Object.entries(checkErrors).filter(([, message]) => message).length >
+        0 && (
+        <div
+          role="alert"
+          className="mt-4 border border-danger p-3 text-sm text-danger"
+        >
+          {Object.entries(checkErrors)
+            .filter(([, message]) => message)
+            .map(([id, message]) => {
+              const app = apps.find((item) => item.id === id)
+              return (
+                <p key={id}>
+                  Could not check {app?.name ?? "app"}: {message}. Try again.
+                </p>
+              )
+            })}
+        </div>
+      )}
       {apps.length === 0 ? (
         <div className="panel mt-5 border-dashed px-6 py-12 text-center">
           <p className="font-medium">No shared apps yet</p>
@@ -188,114 +208,122 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
             return (
               <li
                 key={app.id}
-                className="panel flex min-w-0 flex-col gap-3 p-3"
+                className="panel flex min-w-0 items-center gap-3 p-3"
               >
-                <div className="flex min-w-0 items-start gap-3">
+                <div className="relative size-10 shrink-0">
                   <img
                     src={`/icons/${iconKey(app)}`}
                     alt=""
-                    className="h-12 w-12 shrink-0 object-contain"
+                    className="size-full object-contain"
                   />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="truncate font-semibold">{app.name}</h3>
-                    {app.description && (
-                      <p className="line-clamp-2 text-sm text-muted">
-                        {app.description}
-                      </p>
-                    )}
-                    <a
-                      href={app.url}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="block truncate text-sm text-accent underline underline-offset-2"
-                    >
-                      {app.url}
-                    </a>
-                  </div>
+                  <span
+                    title={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}`}
+                    aria-label={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}${checking ? "; Checking" : ""}`}
+                    className={`absolute -right-0.5 -top-0.5 size-3 rounded-full border-2 border-[var(--color-background)] ${appStatusColor(app.status)} ${checking ? "animate-pulse" : ""}`}
+                  />
                 </div>
-                <div className="flex flex-wrap items-center justify-between gap-3 border-t border-line pt-3">
-                  <div className="min-w-0 flex-1">
-                    <p className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted">
-                      <span
-                        aria-hidden
-                        className={`size-2 shrink-0 rounded-full ${appStatusColor(app.status)}`}
-                      />
-                      <span>{appStatusText(app)}</span>
-                      {app.lastCheckedAt && (
-                        <time dateTime={app.lastCheckedAt}>
-                          Last checked{" "}
-                          {new Date(app.lastCheckedAt).toISOString()} UTC
-                        </time>
-                      )}
-                      {checking && <span role="status">Checking…</span>}
+                <div className="min-w-0 flex-1">
+                  <h3 className="truncate font-semibold">{app.name}</h3>
+                  {app.description && (
+                    <p className="truncate text-sm text-muted">
+                      {app.description}
                     </p>
-                    {checkErrors[app.id] && (
-                      <p role="alert" className="mt-1 text-xs text-danger">
-                        Check failed: {checkErrors[app.id]}. Try again.
-                      </p>
-                    )}
-                  </div>
-                  <div className="flex flex-wrap gap-1">
-                    <Button
-                      className="btn text-xs"
-                      aria-label={`Check ${app.name} now`}
-                      disabled={checking}
-                      onClick={() => {
-                        setCheckErrors((current) => ({
-                          ...current,
-                          [app.id]: "",
-                        }))
-                        setCheckingIds((current) => ({
-                          ...current,
-                          [app.id]: true,
-                        }))
-                        recheck.mutate({ id: app.id })
-                      }}
-                    >
-                      <LuRefreshCw aria-hidden className="size-4" />
-                      {checking ? "Checking…" : "Check now"}
-                    </Button>
-                    <AppBoardDialog
-                      appName={app.name}
-                      boards={boardsMissingApp}
-                      onAssign={(boardId, categoryId) =>
-                        assign.mutate({ boardId, appId: app.id, categoryId })
-                      }
+                  )}
+                  <a
+                    href={app.url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="block truncate text-xs text-muted underline underline-offset-2"
+                  >
+                    {app.url}
+                    <LuExternalLink
+                      aria-hidden
+                      className="ml-1 inline size-3 align-[-1px]"
                     />
-                    <Button
-                      className="btn text-xs"
-                      onClick={() => setEditing(app)}
-                      aria-label={`Edit ${app.name}`}
-                    >
-                      <LuPencil aria-hidden className="size-4" />
-                      Edit
-                    </Button>
-                    <AlertDialog.Root>
-                      <AlertDialog.Trigger
-                        className="btn btn-danger text-xs"
-                        aria-label={`Delete ${app.name}`}
-                      >
-                        <LuTrash2 aria-hidden className="size-4" />
-                        Delete
-                      </AlertDialog.Trigger>
-                      <ConfirmContent
-                        title="Delete app"
-                        description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
-                      >
-                        <AlertDialog.Close className="btn">
-                          Cancel
-                        </AlertDialog.Close>
-                        <AlertDialog.Close
-                          className="btn btn-danger"
-                          onClick={() => remove.mutate({ id: app.id })}
-                        >
-                          <LuTrash2 aria-hidden className="size-4" />
-                          Delete
-                        </AlertDialog.Close>
-                      </ConfirmContent>
-                    </AlertDialog.Root>
-                  </div>
+                  </a>
                 </div>
+                <Menu.Root>
+                  <Menu.Trigger
+                    className="btn size-9 shrink-0 p-0"
+                    aria-label={`Actions for ${app.name}`}
+                    title={`Actions for ${app.name}`}
+                  >
+                    <LuEllipsis aria-hidden className="size-5" />
+                  </Menu.Trigger>
+                  <Menu.Portal keepMounted>
+                    <Menu.Positioner
+                      align="end"
+                      sideOffset={4}
+                      className="z-50"
+                    >
+                      <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
+                        <Menu.Item
+                          closeOnClick={false}
+                          disabled={checking}
+                          onClick={() => {
+                            setCheckErrors((current) => ({
+                              ...current,
+                              [app.id]: "",
+                            }))
+                            setCheckingIds((current) => ({
+                              ...current,
+                              [app.id]: true,
+                            }))
+                            recheck.mutate({ id: app.id })
+                          }}
+                          className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
+                        >
+                          <LuRefreshCw aria-hidden className="size-4" />
+                          {checking ? "Checking…" : "Check now"}
+                        </Menu.Item>
+                        <AppBoardDialog
+                          appName={app.name}
+                          boards={boardsMissingApp}
+                          triggerClassName="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
+                          onAssign={(boardId, categoryId) =>
+                            assign.mutate({
+                              boardId,
+                              appId: app.id,
+                              categoryId,
+                            })
+                          }
+                        />
+                        <Menu.Item
+                          onClick={() => setEditing(app)}
+                          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
+                        >
+                          <LuPencil aria-hidden className="size-4" />
+                          Edit
+                        </Menu.Item>
+                        <AlertDialog.Root>
+                          <AlertDialog.Trigger
+                            render={
+                              <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-danger hover:bg-surface-alt focus:bg-surface-alt" />
+                            }
+                          >
+                            <LuTrash2 aria-hidden className="size-4" />
+                            Delete
+                          </AlertDialog.Trigger>
+                          <ConfirmContent
+                            title="Delete app"
+                            description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
+                          >
+                            <AlertDialog.Close className="btn">
+                              Cancel
+                            </AlertDialog.Close>
+                            <AlertDialog.Close
+                              className="btn btn-danger"
+                              onClick={() => remove.mutate({ id: app.id })}
+                            >
+                              <LuTrash2 aria-hidden className="size-4" />
+                              Delete
+                            </AlertDialog.Close>
+                          </ConfirmContent>
+                        </AlertDialog.Root>
+                      </Menu.Popup>
+                    </Menu.Positioner>
+                  </Menu.Portal>
+                </Menu.Root>
               </li>
             )
           })}

@@ -17,10 +17,12 @@ export function AppBoardDialog({
   appName,
   boards,
   onAssign,
+  triggerClassName = "btn text-xs",
 }: {
   appName: string
   boards: Board[]
   onAssign: (boardId: string, categoryId: string | null) => void
+  triggerClassName?: string
 }) {
   const [filter, setFilter] = useState("")
   const [categoryByBoard, setCategoryByBoard] = useState<
@@ -42,7 +44,7 @@ export function AppBoardDialog({
       }}
     >
       <Dialog.Trigger
-        className="btn text-xs"
+        className={triggerClassName}
         aria-label={`Add ${appName} to a board`}
       >
         <LuPlus aria-hidden className="size-4" />
