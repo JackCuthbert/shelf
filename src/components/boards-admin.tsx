@@ -68,14 +68,6 @@ type App = {
   updatedAt: string
 }
 
-function hostname(url: string) {
-  try {
-    return new URL(url).hostname
-  } catch {
-    return url
-  }
-}
-
 function boardGroups(board: Board) {
   return [
     { category: null, apps: board.apps.filter((entry) => !entry.categoryId) },
@@ -252,13 +244,10 @@ export function BoardsAdmin({
               href={entry.app.url}
               target="_blank"
               rel="noreferrer"
-              className="block truncate text-xs text-muted underline underline-offset-2"
+              className="flex min-w-0 items-center text-xs text-muted underline underline-offset-2"
             >
-              {hostname(entry.app.url)}
-              <LuExternalLink
-                aria-hidden
-                className="ml-1 inline size-3 align-[-1px]"
-              />
+              <span className="truncate">{entry.app.url}</span>
+              <LuExternalLink aria-hidden className="ml-1 size-3 shrink-0" />
             </a>
           </span>
         </div>
@@ -604,13 +593,16 @@ export function BoardsAdmin({
                   <div>
                     <h3 className="text-lg font-semibold">{board.name}</h3>
                     <a
-                      className="inline-flex items-center gap-1 text-sm text-accent underline underline-offset-2"
+                      className="flex max-w-full items-center text-xs text-muted underline underline-offset-2"
                       href={`/board/${board.nanoid}`}
                       target="_blank"
                       rel="noreferrer"
                     >
-                      <LuExternalLink aria-hidden className="size-3.5" />
-                      {`/board/${board.nanoid}`}
+                      <span className="truncate">/board/{board.nanoid}</span>
+                      <LuExternalLink
+                        aria-hidden
+                        className="ml-1 size-3 shrink-0"
+                      />
                     </a>
                   </div>
                   <div className="flex flex-wrap gap-2">
