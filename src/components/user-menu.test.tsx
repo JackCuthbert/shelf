@@ -7,7 +7,7 @@ describe("UserMenu", () => {
     const html = renderToStaticMarkup(<UserMenu user={null} />)
     expect(html).toContain('href="/"')
     expect(html).toContain("Sign in")
-    expect(html).not.toContain('href="/account"')
+    expect(html).not.toContain('href="/admin/account"')
   })
 
   it("shows the signed-in user's name and menu trigger", () => {
@@ -18,16 +18,14 @@ describe("UserMenu", () => {
     expect(html.match(/<svg/g)?.length ?? 0).toBeGreaterThanOrEqual(1)
   })
 
-  it("lists Account, Boards, and Apps, each with an icon", () => {
+  it("lists Account and Manage, each with an icon", () => {
     expect(USER_MENU_ITEMS.map((item) => item.label)).toEqual([
       "Account",
-      "Boards",
-      "Apps",
+      "Manage",
     ])
     expect(USER_MENU_ITEMS.map((item) => item.href)).toEqual([
-      "/account",
-      "/admin",
-      "/admin/apps",
+      "/admin/account",
+      "/admin/boards",
     ])
     for (const item of USER_MENU_ITEMS) {
       expect(typeof item.icon).toBe("function")

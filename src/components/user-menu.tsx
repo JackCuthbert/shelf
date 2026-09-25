@@ -2,13 +2,12 @@
 
 import { Menu } from "@base-ui/react/menu"
 import { useEffect, useState } from "react"
-import { LuBox, LuLayoutDashboard, LuLogOut, LuUserRound } from "react-icons/lu"
+import { LuLogOut, LuSettings2, LuUserRound } from "react-icons/lu"
 import { authClient } from "@/lib/auth-client"
 
 export const USER_MENU_ITEMS = [
-  { label: "Account", href: "/account", icon: LuUserRound },
-  { label: "Boards", href: "/admin", icon: LuLayoutDashboard },
-  { label: "Apps", href: "/admin/apps", icon: LuBox },
+  { label: "Account", href: "/admin/account", icon: LuUserRound },
+  { label: "Manage", href: "/admin/boards", icon: LuSettings2 },
 ] as const
 
 export function UserMenu({ user }: { user: { name: string } | null }) {

@@ -8,4 +8,10 @@ it("does not mark admin sections current on account settings", () => {
   )
   expect(html).not.toContain('aria-current="page"')
   expect(html).toContain("Alex")
+  expect(html).toMatch(
+    /<a href="\/admin\/boards"[^>]*><svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg>Boards<\/a>/,
+  )
+  expect(html).toMatch(
+    /<a href="\/admin\/apps"[^>]*><svg[^>]*aria-hidden="true"[^>]*>.*?<\/svg>Apps<\/a>/,
+  )
 })

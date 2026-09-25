@@ -27,7 +27,7 @@ export function AccountForm({
     try {
       const result = await authClient.signIn.social({
         provider: "oidc",
-        callbackURL: "/admin",
+        callbackURL: "/admin/boards",
         requestSignUp: signup && signingUp,
       })
       if (result.error || !result.data?.url) {
@@ -82,7 +82,7 @@ export function AccountForm({
         return
       }
     }
-    location.assign("/admin")
+    location.assign("/admin/boards")
   }
   return (
     <Form onFormSubmit={submit} className="panel space-y-4 p-6">

@@ -22,7 +22,7 @@ export default async function HomePage() {
         })
       : null
     if (board) redirect(`/board/${board.nanoid}`)
-    redirect("/admin")
+    redirect("/admin/boards")
   }
   const [userCount, instance] = await Promise.all([
     prisma.user.count(),

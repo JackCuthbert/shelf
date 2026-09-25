@@ -65,8 +65,8 @@ export function AccountSettings({
     try {
       const result = await authClient.linkSocial({
         provider: "oidc",
-        callbackURL: "/account",
-        errorCallbackURL: "/account",
+        callbackURL: "/admin/account",
+        errorCallbackURL: "/admin/account",
       })
       if (result.error || !result.data?.url) {
         setOidcState({
