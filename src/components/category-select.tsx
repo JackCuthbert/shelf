@@ -1,7 +1,8 @@
 "use client"
 
 import { Select } from "@base-ui/react/select"
-import { LuCheck, LuChevronDown } from "react-icons/lu"
+import { Tooltip } from "@base-ui/react/tooltip"
+import { LuCheck, LuFolder, LuFolderOpen } from "react-icons/lu"
 
 export type CategoryOption = { id: string; title: string }
 
@@ -16,6 +17,7 @@ export function CategorySelect({
   label,
   className = "",
   disabled = false,
+  iconOnly = false,
 }: {
   value: string | null
   categories: CategoryOption[]
@@ -23,6 +25,7 @@ export function CategorySelect({
   label: string
   className?: string
   disabled?: boolean
+  iconOnly?: boolean
 }) {
   const items = [
     { value: "", label: "Uncategorized" },
@@ -38,21 +41,50 @@ export function CategorySelect({
       value={value ?? ""}
       onValueChange={(next) => onChange(next ? String(next) : null)}
     >
-      <Select.Trigger
-        type="button"
-        aria-label={label}
-        disabled={disabled}
-        className={`inline-flex cursor-pointer select-none items-center justify-between gap-2 rounded-[2px] border border-line bg-surface px-2.5 py-2 text-sm text-foreground hover:border-foreground focus-visible:border-focus focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus data-[popup-open]:border-focus disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
-      >
-        <Select.Value />
-        <Select.Icon>
-          <LuChevronDown aria-hidden className="size-4 shrink-0 text-muted" />
-        </Select.Icon>
-      </Select.Trigger>
+      {iconOnly ? (
+        <Tooltip.Root>
+          <Tooltip.Trigger
+            render={
+              <Select.Trigger
+                type="button"
+                aria-label={label}
+                disabled={disabled}
+                className={`btn text-xs ${className}`}
+              />
+            }
+          >
+            {value ? (
+              <LuFolderOpen aria-hidden className="size-4" />
+            ) : (
+              <LuFolder aria-hidden className="size-4" />
+            )}
+          </Tooltip.Trigger>
+          <Tooltip.Portal>
+            <Tooltip.Positioner sideOffset={6}>
+              <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                Category
+              </Tooltip.Popup>
+            </Tooltip.Positioner>
+          </Tooltip.Portal>
+        </Tooltip.Root>
+      ) : (
+        <Select.Trigger
+          type="button"
+          aria-label={label}
+          disabled={disabled}
+          className={`inline-flex cursor-pointer select-none items-center justify-between gap-2 rounded-[2px] border border-line bg-surface px-2.5 py-2 text-sm text-foreground hover:border-foreground focus-visible:border-focus focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-focus data-[popup-open]:border-focus disabled:cursor-not-allowed disabled:opacity-60 ${className}`}
+        >
+          <Select.Value />
+          <Select.Icon>
+            <LuFolder aria-hidden className="size-4 shrink-0 text-muted" />
+          </Select.Icon>
+        </Select.Trigger>
+      )}
       <Select.Portal>
         <Select.Positioner
           side="bottom"
           sideOffset={4}
+          align="end"
           alignItemWithTrigger={false}
           className="z-[60]"
         >
