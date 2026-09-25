@@ -100,6 +100,8 @@ it("marks the default board and disables its set-default control", () => {
   expect(html).toContain("disabled")
   expect(html).not.toContain("border-t border-line pt-4")
   expect(html).toContain("Add category")
+  expect(html).toContain("btn btn-primary text-xs")
+  expect(html).toContain(">Rename board</button>")
   expect(html).not.toContain(">Apps</h4>")
   expect(html).not.toContain('class="panel p-4"')
 })

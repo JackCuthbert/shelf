@@ -509,10 +509,10 @@ export function BoardsAdmin({
                 }
               >
                 <LuPencil aria-hidden className="size-4" />
-                Rename
+                Rename board
               </button>
               <Button
-                className="btn text-xs"
+                className="btn btn-primary text-xs"
                 onClick={() =>
                   setCategoryDraft({
                     mode: "create",
