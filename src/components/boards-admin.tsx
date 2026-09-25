@@ -460,7 +460,7 @@ export function BoardsAdmin({
                   render={
                     <button
                       type="button"
-                      className={`relative z-30 inline-flex size-8 shrink-0 items-center justify-center rounded-[2px] text-muted hover:bg-surface-alt hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 ${activeBoard.id === defaultId ? "text-accent hover:text-accent" : ""}`}
+                      className={`relative z-30 inline-flex size-8 shrink-0 items-center justify-center rounded-[2px] text-muted hover:bg-surface-alt hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 ${activeBoard.id === defaultId ? "text-yellow-500 hover:text-yellow-500 dark:text-yellow-400 dark:hover:text-yellow-400" : ""}`}
                       disabled={activeBoard.id === defaultId}
                       onClick={() =>
                         setDefault.mutate(

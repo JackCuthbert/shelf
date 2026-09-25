@@ -5,8 +5,10 @@ import { AlertDialog } from "@base-ui/react/alert-dialog"
 import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
 import { Menu } from "@base-ui/react/menu"
+import { Popover } from "@base-ui/react/popover"
 import {
   LuDownload,
+  LuInfo,
   LuPencil,
   LuPlus,
   LuTrash2,
@@ -110,9 +112,33 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
   return (
     <section>
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-muted">
-          Apps are available to everyone in your household.
-        </p>
+        <div className="flex items-center gap-1">
+          <h1 className="text-xl font-semibold">Apps</h1>
+          <Popover.Root>
+            <Popover.Trigger
+              aria-label="About shared apps"
+              className="inline-flex size-6 shrink-0 items-center justify-center text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+            >
+              <LuInfo aria-hidden className="size-4" />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner
+                side="top"
+                align="start"
+                sideOffset={8}
+                collisionPadding={8}
+                className="z-50"
+              >
+                <Popover.Popup
+                  className="panel w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
+                  aria-label="Shared apps information"
+                >
+                  Apps are available to everyone in your household.
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        </div>
         <div className="flex flex-wrap items-center gap-2">
           <HomarrImportDialog
             open={importing}

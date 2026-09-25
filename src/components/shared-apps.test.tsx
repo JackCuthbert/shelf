@@ -46,8 +46,14 @@ import { appCheckActionLabel, SharedApps } from "./shared-apps"
 
 it("opens app creation from a modal trigger instead of an inline form", () => {
   const html = renderToStaticMarkup(<SharedApps initialApps={[]} />)
+  expect(html).toContain("<h1")
+  expect(html).toContain(">Apps</h1>")
+  expect(html).toContain('aria-label="About shared apps"')
   expect(html).toContain("Create app")
   expect(html).toContain("Import from Homarr")
+  expect(html).not.toContain(
+    "Apps are available to everyone in your household.",
+  )
   expect(html).not.toContain("Add app")
   expect(html).not.toContain('placeholder="https://example.home"')
 })

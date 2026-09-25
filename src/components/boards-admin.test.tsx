@@ -434,6 +434,11 @@ it("offers board creation on the index and keeps app creation in the menubar", (
     />,
   )
   expect(indexHtml).toContain("Create board")
+  expect(indexHtml).toContain(">Boards</h1>")
+  expect(indexHtml).toContain('aria-label="About boards"')
+  expect(indexHtml).not.toContain(
+    "Boards belong to you and are reachable by anyone with the link.",
+  )
   expect(indexHtml).not.toContain("Create app")
   expect(detailHtml).not.toContain("Create app")
   expect(detailHtml).not.toContain("Create board")
@@ -479,6 +484,39 @@ it("links the edit action with the board's short id", () => {
   expect(html).not.toContain('href="/admin/boards/internal-cuid-value"')
   expect(html).toContain('href="/board/short-id" target="_blank"')
   expect(html).not.toContain(">/board/short-id</a>")
+})
+
+it("shows each board's default state with an icon-only control before its title", () => {
+  const html = renderToStaticMarkup(
+    <BoardsListAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "first",
+          name: "First",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+        },
+        {
+          id: "board-2",
+          nanoid: "second",
+          name: "Second",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+      initialDefaultBoardId="board-1"
+    />,
+  )
+  expect(html.match(/aria-label="Set as default"/g)).toHaveLength(2)
+  expect(html.match(/disabled=""/g)).toHaveLength(1)
+  expect(html).not.toContain(">Default</button>")
+  expect(html).not.toContain(">Set as default</button>")
+  expect(html.indexOf('aria-label="Set as default"')).toBeLessThan(
+    html.indexOf('href="/board/first"'),
+  )
 })
 
 it("keeps each category's controls and apps together in one section", () => {

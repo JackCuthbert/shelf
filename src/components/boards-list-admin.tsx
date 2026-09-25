@@ -7,9 +7,12 @@ import { Dialog } from "@base-ui/react/dialog"
 import { Field } from "@base-ui/react/field"
 import { Form } from "@base-ui/react/form"
 import { Input } from "@base-ui/react/input"
+import { Popover } from "@base-ui/react/popover"
+import { Tooltip } from "@base-ui/react/tooltip"
 import Link from "next/link"
 import {
   LuExternalLink,
+  LuInfo,
   LuPencil,
   LuPlus,
   LuStar,
@@ -75,9 +78,34 @@ export function BoardsListAdmin({
         </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-muted">
-          Boards belong to you and are reachable by anyone with the link.
-        </p>
+        <div className="flex items-center gap-1">
+          <h1 className="text-xl font-semibold">Boards</h1>
+          <Popover.Root>
+            <Popover.Trigger
+              aria-label="About boards"
+              className="inline-flex size-6 shrink-0 items-center justify-center text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+            >
+              <LuInfo aria-hidden className="size-4" />
+            </Popover.Trigger>
+            <Popover.Portal>
+              <Popover.Positioner
+                side="top"
+                align="start"
+                sideOffset={8}
+                collisionPadding={8}
+                className="z-50"
+              >
+                <Popover.Popup
+                  className="panel w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
+                  aria-label="Boards information"
+                >
+                  Boards belong to you and are reachable by anyone with the
+                  link.
+                </Popover.Popup>
+              </Popover.Positioner>
+            </Popover.Portal>
+          </Popover.Root>
+        </div>
         <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
           <Dialog.Trigger className="btn btn-primary">
             <LuPlus aria-hidden className="size-4" />
@@ -128,8 +156,38 @@ export function BoardsListAdmin({
               key={board.id}
               className="panel flex flex-wrap items-center justify-between gap-3 p-4"
             >
-              <div className="min-w-0">
-                <h2 className="truncate text-lg font-semibold">
+              <div className="flex min-w-0 items-center gap-2">
+                <Tooltip.Root>
+                  <Tooltip.Trigger
+                    render={
+                      <button
+                        type="button"
+                        className={`relative z-30 inline-flex size-8 shrink-0 items-center justify-center rounded-[2px] text-muted hover:bg-surface-alt hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 ${board.id === defaultId ? "text-yellow-500 hover:text-yellow-500 dark:text-yellow-400 dark:hover:text-yellow-400" : ""}`}
+                        disabled={board.id === defaultId}
+                        onClick={() =>
+                          setDefault.mutate(
+                            { id: board.id },
+                            { onSuccess: () => setDefaultId(board.id) },
+                          )
+                        }
+                        aria-label="Set as default"
+                      />
+                    }
+                  >
+                    <LuStar
+                      aria-hidden
+                      className={`size-4 ${board.id === defaultId ? "fill-current" : ""}`}
+                    />
+                  </Tooltip.Trigger>
+                  <Tooltip.Portal>
+                    <Tooltip.Positioner sideOffset={6} className="z-50">
+                      <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                        Set as default
+                      </Tooltip.Popup>
+                    </Tooltip.Positioner>
+                  </Tooltip.Portal>
+                </Tooltip.Root>
+                <h2 className="min-w-0 truncate text-lg font-semibold">
                   <a
                     className="inline-flex max-w-full items-center gap-1 hover:underline"
                     href={`/board/${board.nanoid}`}
@@ -144,7 +202,7 @@ export function BoardsListAdmin({
                   </a>
                 </h2>
               </div>
-              <div className="flex flex-wrap gap-2">
+              <div className="flex shrink-0 flex-wrap gap-2">
                 <Link
                   className="btn text-xs"
                   href={`/admin/boards/${board.nanoid}`}
@@ -152,22 +210,6 @@ export function BoardsListAdmin({
                   <LuPencil aria-hidden className="size-4" />
                   Edit
                 </Link>
-                <Button
-                  className={`btn text-xs ${board.id === defaultId ? "text-accent disabled:opacity-100" : ""}`}
-                  disabled={board.id === defaultId}
-                  onClick={() =>
-                    setDefault.mutate(
-                      { id: board.id },
-                      { onSuccess: () => setDefaultId(board.id) },
-                    )
-                  }
-                >
-                  <LuStar
-                    aria-hidden
-                    className={`size-4 ${board.id === defaultId ? "fill-current" : ""}`}
-                  />
-                  {board.id === defaultId ? "Default" : "Set as default"}
-                </Button>
                 <AlertDialog.Root>
                   <AlertDialog.Trigger className="btn btn-danger text-xs">
                     <LuTrash2 aria-hidden className="size-4" />
