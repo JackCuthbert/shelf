@@ -5,7 +5,7 @@
 ## Shared app library
 
 - List app names, descriptions when present, URLs, and saved icons in a single-column list with a filter, plus each app's last recorded liveness state, check time, and failure reason when present.
-- Keep each app in one compact row with its icon, name, description and URL, and a trailing action-menu trigger on the same line. Show the URL below the title in smaller text as secondary information. Overlay the status dot on the icon's top-right corner. The menu contains “Check now” for that app, Add to board, Edit, and Delete; it must work with touch and keyboard input without crowding narrow screens. Keep the previous status visible while a check runs, show progress and any request error without adding a second row to the app card, and update the status when the check completes. See [app-status.md](app-status.md) for probe and cache behavior.
+- Keep each app in one compact row with its icon, name, description and URL, and a trailing action-menu trigger on the same line. Show the URL below the title in smaller secondary text with an external-link icon; it opens in a new tab. Overlay the status dot on the icon's top-right corner. The menu contains “Check now” for that app, Add to board, Edit, and Delete; it must work with touch and keyboard input without crowding narrow screens. Keep the previous status visible while a check runs, show progress and any request error without adding a second row to the app card, and update the status when the check completes. See [app-status.md](app-status.md) for probe and cache behavior.
 - Add an app to a board directly from the library: choose a board that does not already have the app, optionally a category on that board, and confirm. The board must be one the signed-in user owns.
 - Create an app with name, optional plain-text description of up to 280 characters, URL, and explicit icon search/selection.
 - Edit name, description, URL, or icon. Deleting prompts for confirmation that the app disappears from every board.
@@ -14,9 +14,9 @@
 
 ## My boards
 
-- List only boards owned by the signed-in user for editing, identifying the default board and offering each board's shareable route (`/board/<id>`), which opens in a new tab.
+- List only boards owned by the signed-in user for editing, identifying the default board and offering each board's shareable path (`/board/<id>`) below its title. Display it as a smaller secondary link with an external-link icon that opens in a new tab.
 - Create, rename, delete, and choose a default board. The current default board is marked and its set-default control is disabled.
-- For each board, add apps from the shared library through a filterable add-app dialog, remove assignments, and reorder them with Move up / Move down controls. Each assigned app row shows its name and domain. These controls work by touch, pointer, and keyboard; drag and drop is not part of v1.
+- For each board, add apps from the shared library through a filterable add-app dialog, remove assignments, and reorder them with Move up / Move down controls. Each assigned app row shows its name and full app URL, including protocol; the URL is a smaller secondary link with an external-link icon and opens the app in a new tab. These controls work by touch, pointer, and keyboard; drag and drop is not part of v1.
 - For each board, create, edit, reorder, and delete categories. Assign apps to one category or leave them uncategorized; Move up / Move down controls reorder categories and apps within each group. The add-app dialog offers an optional category choice, and each category header offers an add-app control that preselects and locks that category. Deleting a category moves its apps to the end of the uncategorized group; see [categories.md](categories.md).
 - Creation of a user's first board sets it as default. When a user owns no board, show a clear create-board empty state.
 - Changes persist immediately and the affected board view reflects them on its next load. Failed operations show an actionable error without falsely displaying success.
