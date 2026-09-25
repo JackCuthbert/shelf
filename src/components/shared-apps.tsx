@@ -306,6 +306,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                         </Menu.Item>
                         <AlertDialog.Root>
                           <AlertDialog.Trigger
+                            nativeButton={false}
                             render={
                               <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-danger hover:bg-surface-alt focus:bg-surface-alt" />
                             }
