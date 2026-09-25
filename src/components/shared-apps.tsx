@@ -52,6 +52,10 @@ function appStatusText(app: App) {
   return "Not checked yet"
 }
 
+export function appCheckActionLabel(appName: string) {
+  return `Check ${appName} now`
+}
+
 export function SharedApps({ initialApps }: { initialApps: App[] }) {
   const utils = trpc.useUtils()
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
@@ -261,6 +265,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                         <Menu.Item
                           closeOnClick={false}
                           disabled={checking}
+                          aria-label={appCheckActionLabel(app.name)}
                           onClick={() => {
                             setCheckErrors((current) => ({
                               ...current,

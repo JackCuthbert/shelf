@@ -42,7 +42,7 @@ vi.mock("@/components/trpc-provider", () => {
   }
 })
 
-import { SharedApps } from "./shared-apps"
+import { appCheckActionLabel, SharedApps } from "./shared-apps"
 
 it("opens app creation from a modal trigger instead of an inline form", () => {
   const html = renderToStaticMarkup(<SharedApps initialApps={[]} />)
@@ -220,4 +220,5 @@ it("shows an accessible per-app menu trigger for app actions", () => {
     />,
   )
   expect(html).toContain('aria-label="Actions for Plex"')
+  expect(appCheckActionLabel("Plex")).toBe("Check Plex now")
 })
