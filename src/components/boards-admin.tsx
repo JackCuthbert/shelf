@@ -7,11 +7,13 @@ import { Dialog } from "@base-ui/react/dialog"
 import { Field } from "@base-ui/react/field"
 import { Form } from "@base-ui/react/form"
 import { Input } from "@base-ui/react/input"
+import { Popover } from "@base-ui/react/popover"
 import { Tooltip } from "@base-ui/react/tooltip"
 import {
   LuArrowDown,
   LuArrowUp,
   LuExternalLink,
+  LuInfo,
   LuPencil,
   LuPlus,
   LuStar,
@@ -698,10 +700,37 @@ export function BoardsAdmin({
                         aria-label={category?.title ?? "Uncategorised"}
                       >
                         <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
-                          <div className="min-w-0">
+                          <div className="flex min-w-0 items-center gap-1">
                             <h5 className="truncate text-sm font-semibold">
                               {category?.title ?? "Uncategorised"}
                             </h5>
+                            {!category && (
+                              <Popover.Root>
+                                <Popover.Trigger
+                                  aria-label="About Uncategorised"
+                                  className="inline-flex size-6 shrink-0 items-center justify-center text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
+                                >
+                                  <LuInfo aria-hidden className="size-4" />
+                                </Popover.Trigger>
+                                <Popover.Portal>
+                                  <Popover.Positioner
+                                    side="top"
+                                    align="start"
+                                    sideOffset={8}
+                                    collisionPadding={8}
+                                    className="z-50"
+                                  >
+                                    <Popover.Popup
+                                      className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
+                                      aria-label="Uncategorised information"
+                                    >
+                                      Apps here appear first on the public board
+                                      without a category.
+                                    </Popover.Popup>
+                                  </Popover.Positioner>
+                                </Popover.Portal>
+                              </Popover.Root>
+                            )}
                             {category?.description && (
                               <p className="text-xs text-muted">
                                 {category.description}

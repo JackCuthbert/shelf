@@ -219,6 +219,7 @@ it("shows an add-app Uncategorised section when a board has no categories or app
 
   expect(html).toContain('aria-label="Uncategorised"')
   expect(html).toContain('aria-label="Add app to Uncategorised"')
+  expect(html).toContain('aria-label="About Uncategorised"')
   expect(html).toContain("No apps assigned.")
   expect(html.match(/>Add app</g)).toHaveLength(1)
 })
