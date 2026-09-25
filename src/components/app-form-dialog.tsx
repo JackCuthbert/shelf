@@ -113,7 +113,7 @@ export function AppFormDialog({
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
       {trigger}
       <ModalContent
-        title={app ? "Edit app" : "Add an app"}
+        title={app ? "Edit app" : "Create app"}
         description={
           app
             ? undefined

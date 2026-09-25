@@ -466,7 +466,7 @@ export function BoardsAdmin({
               Create board
             </Dialog.Trigger>
             <ModalContent
-              title="Add board"
+              title="Create board"
               description="Boards are reachable by anyone with the public link."
             >
               <Form
