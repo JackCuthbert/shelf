@@ -253,7 +253,7 @@ export function BoardsAdmin({
             </a>
           </span>
         </div>
-        <div className="flex items-center justify-between gap-2 sm:justify-start">
+        <div className="flex items-center justify-between gap-1 sm:justify-start">
           <div className="flex items-center gap-1">
             {board.categories.length > 0 && (
               <CategorySelect
