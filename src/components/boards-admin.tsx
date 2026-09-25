@@ -248,9 +248,18 @@ export function BoardsAdmin({
           />
           <span className="min-w-0 flex-1">
             <span className="block truncate font-medium">{entry.app.name}</span>
-            <span className="block truncate text-xs text-muted">
+            <a
+              href={entry.app.url}
+              target="_blank"
+              rel="noreferrer"
+              className="block truncate text-xs text-muted underline underline-offset-2"
+            >
               {hostname(entry.app.url)}
-            </span>
+              <LuExternalLink
+                aria-hidden
+                className="ml-1 inline size-3 align-[-1px]"
+              />
+            </a>
           </span>
         </div>
         {board.categories.length > 0 && (
