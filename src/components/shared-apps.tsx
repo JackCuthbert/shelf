@@ -224,7 +224,7 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                       {app.lastCheckedAt && (
                         <time dateTime={app.lastCheckedAt}>
                           Last checked{" "}
-                          {new Date(app.lastCheckedAt).toLocaleString()}
+                          {new Date(app.lastCheckedAt).toISOString()} UTC
                         </time>
                       )}
                       {checking && <span role="status">Checking…</span>}

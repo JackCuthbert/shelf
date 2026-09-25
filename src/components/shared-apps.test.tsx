@@ -110,7 +110,7 @@ it("shows the last recorded state and failure reason without re-checking", () =>
   expect(html).toContain("Connection refused")
   expect(html).toContain("Check now")
   expect(html).toContain("Last checked")
-  expect(html).toContain("2026-09-24")
+  expect(html).toContain("2026-09-24T00:00:00.000Z UTC")
 })
 
 it("uses a wrapping footer for status and actions", () => {
