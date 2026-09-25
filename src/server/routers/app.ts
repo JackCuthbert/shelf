@@ -7,6 +7,7 @@ import {
 import { iconCache } from "@/lib/icon-cache"
 import { prisma } from "@/lib/prisma"
 import { AppNotFoundError, createSharedAppService } from "@/server/app-service"
+import { appStatusService } from "@/server/app-status"
 import { protectedProcedure, router } from "@/server/trpc"
 
 const appService = createSharedAppService(
@@ -27,6 +28,13 @@ const appService = createSharedAppService(
 
 export const appRouter = router({
   list: protectedProcedure.query(() => appService.list()),
+  recheckStatus: protectedProcedure
+    .input(appIdInputSchema)
+    .mutation(async ({ input }) => {
+      if (!(await appStatusService.refreshApp(input.id)))
+        throw new TRPCError({ code: "NOT_FOUND", message: "App not found." })
+      return { checked: true }
+    }),
   create: protectedProcedure
     .input(appInputSchema)
     .mutation(({ input }) => appService.create(input)),

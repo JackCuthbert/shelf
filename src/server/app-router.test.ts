@@ -30,6 +30,7 @@ describe("app router authentication", () => {
         }),
     ],
     ["delete", () => caller.apps.delete({ id: "1" })],
+    ["recheckStatus", () => caller.apps.recheckStatus({ id: "1" })],
   ])("rejects anonymous %s calls", async (_name, request) => {
     await expect(request()).rejects.toMatchObject({ code: "UNAUTHORIZED" })
   })

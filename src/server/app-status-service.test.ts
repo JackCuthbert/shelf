@@ -20,10 +20,13 @@ function setup(
   }
   const repository: AppStatusRepository = {
     listBoardApps: vi.fn(async () => [app]),
+    getApp: vi.fn(async (id) => (id === app.id ? { ...app } : null)),
     isBoardAppAssigned: vi.fn(async () => true),
-    updateStatus: vi.fn(async (_id, status, lastCheckedAt, _error) => {
+    updateStatus: vi.fn(async (_id, status, lastCheckedAt, _error, url) => {
+      if (app.url !== url) return false
       app.status = status
       app.lastCheckedAt = lastCheckedAt
+      return true
     }),
   }
   const fetcher = vi.fn(
@@ -48,7 +51,7 @@ describe("describeProbeError", () => {
   it("describes a probe timeout", () => {
     expect(
       describeProbeError(new DOMException("timed out", "TimeoutError")),
-    ).toBe("Timed out after 3s")
+    ).toBe("Timed out after 15s")
   })
 
   it("describes a refused connection", () => {
@@ -103,18 +106,47 @@ describe("app status service", () => {
       "up",
       new Date("2026-09-24T00:00:00Z"),
       null,
+      "https://plex.home",
     )
     expect(app.status).toBe("up")
   })
 
-  it("reuses a check completed within 60 seconds", async () => {
+  it("reuses a down check completed within 10 minutes", async () => {
     const { service, fetcher, repository } = setup({
       status: "down",
-      lastCheckedAt: new Date("2026-09-23T23:59:30Z"),
+      lastCheckedAt: new Date("2026-09-23T23:51:00Z"),
     })
     await service.refreshBoard("board")
     expect(fetcher).not.toHaveBeenCalled()
     expect(repository.updateStatus).not.toHaveBeenCalled()
+  })
+
+  it("probes again when a check is 10 minutes old", async () => {
+    const { service, fetcher } = setup({
+      status: "up",
+      lastCheckedAt: new Date("2026-09-23T23:50:00Z"),
+    })
+    await service.refreshBoard("board")
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it("manually checks only the requested app despite a fresh cached result", async () => {
+    const { service, fetcher, repository } = setup({
+      status: "up",
+      lastCheckedAt: new Date("2026-09-23T23:59:00Z"),
+    })
+    vi.mocked(repository.isBoardAppAssigned).mockResolvedValue(false)
+    await expect(service.refreshApp("plex")).resolves.toBe(true)
+    expect(fetcher).toHaveBeenCalledTimes(1)
+    expect(repository.isBoardAppAssigned).not.toHaveBeenCalled()
+    await service.refreshBoard("board")
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it("does not probe a missing app on manual check", async () => {
+    const { service, fetcher } = setup()
+    await expect(service.refreshApp("missing")).resolves.toBe(false)
+    expect(fetcher).not.toHaveBeenCalled()
   })
 
   it("skips a stale app assignment removed before the probe starts", async () => {
@@ -150,6 +182,7 @@ describe("app status service", () => {
       "down",
       new Date("2026-09-24T00:00:00Z"),
       "Could not reach the app",
+      "https://plex.home",
     )
   })
 
@@ -166,6 +199,7 @@ describe("app status service", () => {
       "down",
       new Date("2026-09-24T00:00:00Z"),
       "Connection refused",
+      "https://plex.home",
     )
   })
 
@@ -177,16 +211,17 @@ describe("app status service", () => {
       "up",
       new Date("2026-09-24T00:00:00Z"),
       null,
+      "https://plex.home",
     )
   })
 
-  it("aborts probes after three seconds and stores down", async () => {
+  it("aborts probes after fifteen seconds and stores down", async () => {
     const { service, fetcher } = setup()
     const controller = new AbortController()
     const timeout = vi
       .spyOn(AbortSignal, "timeout")
       .mockImplementation((milliseconds) => {
-        expect(milliseconds).toBe(3_000)
+        expect(milliseconds).toBe(15_000)
         controller.abort(new DOMException("timed out", "TimeoutError"))
         return controller.signal
       })
@@ -198,7 +233,7 @@ describe("app status service", () => {
       await expect(service.refreshBoard("board")).resolves.toMatchObject([
         { status: "down" },
       ])
-      expect(timeout).toHaveBeenCalledWith(3_000)
+      expect(timeout).toHaveBeenCalledWith(15_000)
     } finally {
       timeout.mockRestore()
     }
@@ -230,5 +265,52 @@ describe("app status service", () => {
         },
       ],
     ])
+  })
+
+  it("shares an in-flight probe between manual and board checks", async () => {
+    const { service, fetcher } = setup()
+    let finish!: (response: Response) => void
+    fetcher.mockImplementationOnce(
+      () => new Promise<Response>((resolve) => (finish = resolve)),
+    )
+    const manual = service.refreshApp("plex")
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
+    const board = service.refreshBoard("board")
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
+    finish(new Response(null, { status: 200 }))
+    await expect(manual).resolves.toBe(true)
+    await expect(board).resolves.toMatchObject([{ status: "up" }])
+    expect(fetcher).toHaveBeenCalledTimes(1)
+  })
+
+  it("discards an old URL result without blocking a check of the new URL", async () => {
+    const { app, service, fetcher, repository } = setup()
+    let finishOld!: (response: Response) => void
+    let finishNew!: (response: Response) => void
+    fetcher
+      .mockImplementationOnce(
+        () => new Promise<Response>((resolve) => (finishOld = resolve)),
+      )
+      .mockImplementationOnce(
+        () => new Promise<Response>((resolve) => (finishNew = resolve)),
+      )
+    const oldCheck = service.refreshApp("plex")
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(1))
+    app.url = "https://new-plex.home"
+    const newCheck = service.refreshApp("plex")
+    await vi.waitFor(() => expect(fetcher).toHaveBeenCalledTimes(2))
+    finishOld(new Response(null, { status: 200 }))
+    await expect(oldCheck).resolves.toBe(true)
+    expect(app.status).toBe("unknown")
+    finishNew(new Response(null, { status: 200 }))
+    await expect(newCheck).resolves.toBe(true)
+    expect(app.status).toBe("up")
+    expect(repository.updateStatus).toHaveBeenCalledWith(
+      "plex",
+      "up",
+      expect.any(Date),
+      null,
+      "https://plex.home",
+    )
   })
 })

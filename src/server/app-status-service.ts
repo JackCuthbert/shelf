@@ -12,19 +12,21 @@ export type AppStatusRecord = {
 
 export interface AppStatusRepository {
   listBoardApps(nanoid: string): Promise<AppStatusRecord[] | null>
+  getApp(id: string): Promise<AppStatusRecord | null>
   isBoardAppAssigned(nanoid: string, appId: string): Promise<boolean>
   updateStatus(
     id: string,
     status: Exclude<AppStatus, "unknown">,
     at: Date,
     error: string | null,
-  ): Promise<void>
+    url: string,
+  ): Promise<boolean>
 }
 
 type Fetcher = (url: string, options: RequestInit) => Promise<Response>
 
-const CACHE_MS = 60_000
-const PROBE_TIMEOUT_MS = 3_000
+const CACHE_MS = 10 * 60_000
+const PROBE_TIMEOUT_MS = 15_000
 
 // Self-hosted apps commonly serve HTTPS with a self-signed certificate. A
 // liveness probe only needs an HTTP response, so certificate verification is
@@ -56,7 +58,7 @@ export function describeProbeError(error: unknown): string {
   const code = (error as { code?: string } | null | undefined)?.code ?? ""
   const message = error instanceof Error ? error.message : ""
   if (name === "TimeoutError" || name === "AbortError")
-    return "Timed out after 3s"
+    return "Timed out after 15s"
   if (code === "ECONNREFUSED") return "Connection refused"
   if (code === "ENOTFOUND" || code === "EAI_AGAIN") return "Host not found"
   if (code.includes("CERT") || /certificate/i.test(message))
@@ -71,19 +73,20 @@ export function createAppStatusService(
 ) {
   const inFlight = new Map<
     string,
-    Promise<{ status: "up" | "down"; lastCheckedAt: Date }>
+    Promise<{ status: "up" | "down"; lastCheckedAt: Date } | null>
   >()
 
-  async function probe(nanoid: string, app: AppStatusRecord) {
-    if (!(await repository.isBoardAppAssigned(nanoid, app.id))) return null
-    const existing = inFlight.get(app.id)
+  async function probe(app: AppStatusRecord) {
+    const url = app.url
+    const key = JSON.stringify([app.id, url])
+    const existing = inFlight.get(key)
     if (existing) return existing
 
     const check = (async () => {
       let status: "up" | "down"
       let error: string | null = null
       try {
-        const response = await fetcher(app.url, {
+        const response = await fetcher(url, {
           method: "GET",
           redirect: "manual",
           signal: AbortSignal.timeout(PROBE_TIMEOUT_MS),
@@ -95,19 +98,31 @@ export function createAppStatusService(
         error = describeProbeError(cause)
       }
       const lastCheckedAt = now()
-      await repository.updateStatus(app.id, status, lastCheckedAt, error)
-      return { status, lastCheckedAt }
+      const stored = await repository.updateStatus(
+        app.id,
+        status,
+        lastCheckedAt,
+        error,
+        url,
+      )
+      return stored ? { status, lastCheckedAt } : null
     })()
 
-    inFlight.set(app.id, check)
+    inFlight.set(key, check)
     try {
       return await check
     } finally {
-      inFlight.delete(app.id)
+      inFlight.delete(key)
     }
   }
 
   return {
+    async refreshApp(id: string) {
+      const app = await repository.getApp(id)
+      if (!app) return false
+      await probe(app)
+      return true
+    },
     async refreshBoard(nanoid: string) {
       const apps = await repository.listBoardApps(nanoid)
       if (!apps) return null
@@ -122,7 +137,9 @@ export function createAppStatusService(
               status: app.status,
               lastCheckedAt: app.lastCheckedAt,
             }
-          const result = await probe(nanoid, app)
+          if (!(await repository.isBoardAppAssigned(nanoid, app.id)))
+            return null
+          const result = await probe(app)
           return result ? { id: app.id, ...result } : null
         }),
       )
