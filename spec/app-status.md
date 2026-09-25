@@ -24,7 +24,7 @@ Show whether an app assigned to a viewed board recently responded to a server-si
 ## Apps view
 
 - The shared app library shows each app's last recorded state, last check time, and failure reason when present. Opening the library reads persisted status only; it never triggers a probe.
-- Each app row has a visible “Check now” button with an accessible name identifying the app. While its check is in progress, keep the previous result visible, show a checking state, and disable that row's button. On completion, update only that app's displayed status, time, and failure reason. If the check request itself fails, show an actionable error without presenting it as a probe result.
+- Each app row has a “Check now” action in its trailing menu, with an accessible name identifying the app. The status dot overlays the top-right corner of the app icon; its accessible status detail includes the last result, check time, and failure reason when present. While a check is in progress, keep the previous result visible, show a checking state, and disable that app's check action. On completion, update only that app's displayed status detail. If the check request itself fails, show an actionable error without presenting it as a probe result or adding a second row to the app card.
 
 ## Persistence and security
 
