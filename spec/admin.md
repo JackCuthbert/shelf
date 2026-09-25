@@ -4,7 +4,8 @@
 
 ## Shared app library
 
-- List app names, descriptions when present, URLs, and saved icons in a single-column list with a filter, plus each app's last recorded liveness state and failure reason when present.
+- List app names, descriptions when present, URLs, and saved icons in a single-column list with a filter, plus each app's last recorded liveness state, check time, and failure reason when present.
+- Use two-part app rows: icon and app details above, with status and actions in a wrapping footer that remains usable on narrow screens. Each row has a visible “Check now” action for that app alone, alongside the existing board-assignment, edit, and delete actions. Keep the previous status visible while a check runs, show progress and any request error for that row, and update the row when the check completes. See [app-status.md](app-status.md) for probe and cache behavior.
 - Add an app to a board directly from the library: choose a board that does not already have the app, optionally a category on that board, and confirm. The board must be one the signed-in user owns.
 - Create an app with name, optional plain-text description of up to 280 characters, URL, and explicit icon search/selection.
 - Edit name, description, URL, or icon. Deleting prompts for confirmation that the app disappears from every board.
