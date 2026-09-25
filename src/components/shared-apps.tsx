@@ -263,7 +263,6 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                     >
                       <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
                         <Menu.Item
-                          closeOnClick={false}
                           disabled={checking}
                           aria-label={appCheckActionLabel(app.name)}
                           onClick={() => {

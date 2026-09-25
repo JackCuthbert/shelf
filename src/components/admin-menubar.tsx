@@ -1,4 +1,5 @@
 import { LuBox, LuLayoutDashboard } from "react-icons/lu"
+import { CreateAppMenubarAction } from "@/components/create-app-menubar-action"
 import { UserMenu } from "@/components/user-menu"
 
 export function AdminMenubar({
@@ -39,7 +40,10 @@ export function AdminMenubar({
             </a>
           </nav>
         </div>
-        <UserMenu user={user} />
+        <div className="flex shrink-0 items-center gap-2">
+          <CreateAppMenubarAction />
+          <UserMenu user={user} />
+        </div>
       </div>
     </header>
   )

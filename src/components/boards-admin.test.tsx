@@ -39,6 +39,9 @@ vi.mock("@/components/trpc-provider", () => {
 })
 
 import { BoardsAdmin } from "./boards-admin"
+import { BoardsListAdmin } from "./boards-list-admin"
+import { CreateAppMenubarAction } from "./create-app-menubar-action"
+import { AdminMenubar } from "./admin-menubar"
 
 afterEach(() => vi.unstubAllGlobals())
 
@@ -58,10 +61,9 @@ it("renders the same board link during server and browser initial renders", () =
     ],
     initialApps: [],
   }
+  const markup = () => renderToStaticMarkup(<BoardsAdmin {...props} />)
   const link = () =>
-    renderToStaticMarkup(<BoardsAdmin {...props} />).match(
-      /<a[^>]*href="\/board\/public-id"[^>]*>.*?<\/a>/,
-    )?.[0]
+    markup().match(/<a[^>]*href="\/board\/public-id"[^>]*>.*?<\/a>/)?.[0]
 
   const serverLink = link()
   vi.stubGlobal("window", { location: { origin: "http://localhost:3000" } })
@@ -71,6 +73,8 @@ it("renders the same board link during server and browser initial renders", () =
   expect(serverLink).toContain('target="_blank"')
   expect(serverLink).toContain('rel="noreferrer"')
   expect(browserLink).toBe(serverLink)
+  expect(markup()).toContain('<h1 class="truncate text-xl font-semibold"><a')
+  expect(markup()).toContain('target="_blank"')
 })
 
 it("marks the default board and disables its set-default control", () => {
@@ -92,12 +96,12 @@ it("marks the default board and disables its set-default control", () => {
       initialDefaultBoardId="board-1"
     />,
   )
-  expect(html).toContain("Default")
-  expect(html).not.toContain("Set as default")
+  expect(html).toContain('aria-label="Set as default"')
   expect(html).toContain("disabled")
-  expect(html).toContain(
-    "mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4",
-  )
+  expect(html).not.toContain("border-t border-line pt-4")
+  expect(html).toContain("Add category")
+  expect(html).not.toContain(">Apps</h4>")
+  expect(html).not.toContain('class="panel p-4"')
 })
 
 it("renders icon-only move controls with accessible labels", () => {
@@ -265,10 +269,11 @@ it("separates admin app rows with spacing and a hover state instead of borders",
     />,
   )
   expect(html).not.toContain("border border-line")
-  const row = html.match(/<li class="[^"]*hover:bg-surface-alt[^"]*"/)?.[0]
+  const row = html.match(/<li class="[^"]*hover:bg-surface-alt\/50[^"]*"/)?.[0]
   expect(row).toBeDefined()
   expect(row).not.toContain("border")
-  expect(row).toContain("hover:bg-surface-alt")
+  expect(row).toContain("hover:bg-surface-alt/50")
+  expect(html).not.toContain('class="space-y-1"')
 })
 
 it("stacks admin app rows on phones and lays them out inline from sm up", () => {
@@ -328,8 +333,8 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
   const select = html.match(
     /<button[^>]*aria-label="Category for Plex"[^>]*>/,
   )?.[0]
-  expect(select).toContain("w-full")
-  expect(select).toContain("sm:w-auto")
+  expect(select).toContain('role="combobox"')
+  expect(select).toContain('aria-label="Category for Plex"')
 })
 
 it("uses a custom select to move an app between categories", () => {
@@ -397,22 +402,81 @@ it("uses a custom select to move an app between categories", () => {
   )?.[0]
   expect(plex).toBeDefined()
   expect(plex).toContain('role="combobox"')
-  expect(plex).toContain("Movies")
+  expect(plex).toContain('aria-label="Category for Plex"')
   const sonarr = html.match(
     /<button[^>]*aria-label="Category for Sonarr"[^>]*>[\s\S]*?<\/button>/,
   )?.[0]
-  expect(sonarr).toContain("Uncategorized")
+  expect(sonarr).toContain('aria-label="Category for Sonarr"')
 })
 
-it("offers board and app creation from modal triggers instead of inline forms", () => {
-  const html = renderToStaticMarkup(
-    <BoardsAdmin initialBoards={[]} initialApps={[]} />,
+it("offers board creation on the index and keeps app creation in the menubar", () => {
+  const indexHtml = renderToStaticMarkup(
+    <BoardsListAdmin initialBoards={[]} initialDefaultBoardId={null} />,
   )
-  expect(html).toContain("Create board")
-  expect(html).toContain("Create app")
-  expect(html).not.toContain("Add board")
-  expect(html).not.toContain("Add app")
-  expect(html).not.toContain("New board name")
+  const detailHtml = renderToStaticMarkup(
+    <BoardsAdmin
+      initialBoards={[
+        {
+          id: "board-1",
+          nanoid: "short-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+          categories: [],
+          apps: [],
+        },
+      ]}
+      initialApps={[]}
+      boardNanoid="short-id"
+    />,
+  )
+  expect(indexHtml).toContain("Create board")
+  expect(indexHtml).not.toContain("Create app")
+  expect(detailHtml).not.toContain("Create app")
+  expect(detailHtml).not.toContain("Create board")
+  expect(indexHtml).not.toContain("Add board")
+  expect(detailHtml).toContain("Add app to Uncategorised")
+  expect(indexHtml).not.toContain("New board name")
+})
+
+it("shows a plus action with a Create app tooltip", () => {
+  const html = renderToStaticMarkup(<CreateAppMenubarAction />)
+  expect(html).toContain('aria-label="Create app"')
+  expect(html).toContain('title="Create app"')
+  expect(html).toContain("<svg")
+})
+
+it("includes Create app before the user menu in the shared admin menubar", () => {
+  const html = renderToStaticMarkup(
+    <AdminMenubar active="account" user={{ name: "Alex" }} />,
+  )
+  expect(html.indexOf('aria-label="Create app"')).toBeGreaterThanOrEqual(0)
+  expect(html.indexOf('aria-label="Create app"')).toBeLessThan(
+    html.indexOf("Alex"),
+  )
+})
+
+it("links the edit action with the board's short id", () => {
+  const html = renderToStaticMarkup(
+    <BoardsListAdmin
+      initialBoards={[
+        {
+          id: "internal-cuid-value",
+          nanoid: "short-id",
+          name: "Home",
+          ownerId: "user-1",
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+      initialDefaultBoardId={null}
+    />,
+  )
+  expect(html).toContain('href="/admin/boards/short-id"')
+  expect(html).not.toContain('href="/admin/boards/internal-cuid-value"')
+  expect(html).toContain('href="/board/short-id" target="_blank"')
+  expect(html).not.toContain(">/board/short-id</a>")
 })
 
 it("keeps each category's controls and apps together in one section", () => {
@@ -470,6 +534,8 @@ it("keeps each category's controls and apps together in one section", () => {
     /<section[^>]*aria-label="Movies"[\s\S]*?<\/section>/,
   )?.[0]
   expect(section).toBeDefined()
+  expect(section).toContain('class="panel"')
+  expect(html).not.toContain('class="panel bg-transparent"')
   expect(section).toContain("Films we watch")
   expect(section).toContain('aria-label="Edit category Movies"')
   expect(section).toContain('aria-label="Move category Movies up"')

@@ -125,10 +125,12 @@ export function BoardsAdmin({
   initialBoards,
   initialApps,
   initialDefaultBoardId = null,
+  boardNanoid,
 }: {
   initialBoards: Board[]
   initialApps: App[]
   initialDefaultBoardId?: string | null
+  boardNanoid?: string
 }) {
   const utils = trpc.useUtils()
   const { data: boards = initialBoards } = trpc.boards.list.useQuery(
@@ -138,12 +140,13 @@ export function BoardsAdmin({
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
     initialData: initialApps,
   })
-  const [name, setName] = useState("")
+  const visibleBoards = boardNanoid
+    ? boards.filter((board) => board.nanoid === boardNanoid)
+    : boards
+  const activeBoard = visibleBoards[0]
   const [defaultId, setDefaultId] = useState<string | null>(
     initialDefaultBoardId,
   )
-  const [addOpen, setAddOpen] = useState(false)
-  const [addAppOpen, setAddAppOpen] = useState(false)
   const [renaming, setRenaming] = useState<{ id: string; name: string } | null>(
     null,
   )
@@ -159,15 +162,7 @@ export function BoardsAdmin({
     void utils.boards.list.invalidate()
   }
   const fail = (cause: { message: string }) => setError(cause.message)
-  const create = trpc.boards.create.useMutation({
-    onSuccess: refresh,
-    onError: fail,
-  })
   const rename = trpc.boards.rename.useMutation({
-    onSuccess: refresh,
-    onError: fail,
-  })
-  const remove = trpc.boards.delete.useMutation({
     onSuccess: refresh,
     onError: fail,
   })
@@ -232,7 +227,7 @@ export function BoardsAdmin({
     return (
       <li
         key={entry.appId}
-        className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt sm:flex-row sm:flex-wrap sm:items-center"
+        className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt/50 sm:flex-row sm:flex-wrap sm:items-center"
       >
         <div className="flex min-w-0 items-center gap-2 sm:flex-1">
           <img
@@ -457,69 +452,84 @@ export function BoardsAdmin({
         </p>
       )}
       <div className="flex flex-wrap items-center justify-between gap-4">
-        <p className="text-muted">
-          Boards belong to you and are reachable by anyone with the link.
-        </p>
-        <div className="flex flex-wrap gap-2">
-          <Dialog.Root open={addOpen} onOpenChange={setAddOpen}>
-            <Dialog.Trigger className="btn btn-primary">
-              <LuPlus aria-hidden className="size-4" />
-              Create board
-            </Dialog.Trigger>
-            <ModalContent
-              title="Create board"
-              description="Boards are reachable by anyone with the public link."
-            >
-              <Form
-                onFormSubmit={(values) =>
-                  create.mutate(
-                    { name: String(values.name ?? "") },
-                    {
-                      onSuccess: (created) => {
-                        setName("")
-                        setAddOpen(false)
-                        if (!defaultId) setDefaultId(created.id)
-                      },
-                    },
-                  )
+        {activeBoard ? (
+          <div className="flex min-w-0 flex-1 flex-wrap items-center justify-between gap-4">
+            <div className="flex min-w-0 items-center gap-2">
+              <Tooltip.Root>
+                <Tooltip.Trigger
+                  render={
+                    <button
+                      type="button"
+                      className={`relative z-30 inline-flex size-8 shrink-0 items-center justify-center rounded-[2px] text-muted hover:bg-surface-alt hover:text-foreground focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus disabled:cursor-not-allowed disabled:opacity-50 ${activeBoard.id === defaultId ? "text-accent hover:text-accent" : ""}`}
+                      disabled={activeBoard.id === defaultId}
+                      onClick={() =>
+                        setDefault.mutate(
+                          { id: activeBoard.id },
+                          { onSuccess: () => setDefaultId(activeBoard.id) },
+                        )
+                      }
+                      aria-label="Set as default"
+                    />
+                  }
+                >
+                  <LuStar
+                    aria-hidden
+                    className={`size-4 ${activeBoard.id === defaultId ? "fill-current" : ""}`}
+                  />
+                </Tooltip.Trigger>
+                <Tooltip.Portal>
+                  <Tooltip.Positioner sideOffset={6} className="z-50">
+                    <Tooltip.Popup className="panel px-2 py-1 text-xs">
+                      Set as default
+                    </Tooltip.Popup>
+                  </Tooltip.Positioner>
+                </Tooltip.Portal>
+              </Tooltip.Root>
+              <h1 className="truncate text-xl font-semibold">
+                <a
+                  className="inline-flex max-w-full items-center gap-1.5 hover:underline"
+                  href={`/board/${activeBoard.nanoid}`}
+                  target="_blank"
+                  rel="noreferrer"
+                >
+                  <span className="truncate">{activeBoard.name}</span>
+                  <LuExternalLink
+                    aria-hidden
+                    className="size-3.5 shrink-0 text-muted"
+                  />
+                </a>
+              </h1>
+            </div>
+            <div className="flex flex-wrap items-center gap-2">
+              <button
+                type="button"
+                className="btn text-xs"
+                onClick={() =>
+                  setRenaming({ id: activeBoard.id, name: activeBoard.name })
                 }
               >
-                <Field.Root name="name" className="space-y-2">
-                  <Field.Label className="text-xs text-muted">
-                    Board name
-                  </Field.Label>
-                  <Input
-                    className="field"
-                    required
-                    maxLength={80}
-                    value={name}
-                    onChange={(event) => setName(event.target.value)}
-                    placeholder="New board name"
-                  />
-                  <Field.Error className="text-xs text-danger" />
-                </Field.Root>
-                <div className="mt-4 flex justify-end gap-2">
-                  <Dialog.Close className="btn">Cancel</Dialog.Close>
-                  <Button type="submit" className="btn btn-primary">
-                    <LuPlus aria-hidden className="size-4" />
-                    Create board
-                  </Button>
-                </div>
-              </Form>
-            </ModalContent>
-          </Dialog.Root>
-          <AppFormDialog
-            open={addAppOpen}
-            onOpenChange={setAddAppOpen}
-            app={null}
-            trigger={
-              <Dialog.Trigger className="btn">
+                <LuPencil aria-hidden className="size-4" />
+                Rename
+              </button>
+              <Button
+                className="btn text-xs"
+                onClick={() =>
+                  setCategoryDraft({
+                    mode: "create",
+                    boardId: activeBoard.id,
+                  })
+                }
+              >
                 <LuPlus aria-hidden className="size-4" />
-                Create app
-              </Dialog.Trigger>
-            }
-          />
-        </div>
+                Add category
+              </Button>
+            </div>
+          </div>
+        ) : (
+          <p className="text-muted">
+            Boards belong to you and are reachable by anyone with the link.
+          </p>
+        )}
       </div>
       <Dialog.Root
         open={renaming !== null}
@@ -579,115 +589,20 @@ export function BoardsAdmin({
         }}
         onSaved={() => void utils.boards.list.invalidate()}
       />
-      {boards.length === 0 ? (
+      {visibleBoards.length === 0 ? (
         <p className="panel mt-4 border-dashed p-8 text-center text-muted">
           Create your first board to start sharing apps.
         </p>
       ) : (
         <ul className="mt-4 space-y-3">
-          {boards.map((board) => {
+          {visibleBoards.map((board) => {
             const available = apps.filter(
               (app) => !board.apps.some((entry) => entry.appId === app.id),
             )
             const groups = boardGroups(board)
             return (
-              <li key={board.id} className="panel p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div>
-                    <h3 className="text-lg font-semibold">{board.name}</h3>
-                    <a
-                      className="flex max-w-full items-center text-xs text-muted underline underline-offset-2"
-                      href={`/board/${board.nanoid}`}
-                      target="_blank"
-                      rel="noreferrer"
-                    >
-                      <span className="truncate">/board/{board.nanoid}</span>
-                      <LuExternalLink
-                        aria-hidden
-                        className="ml-1 size-3 shrink-0"
-                      />
-                    </a>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    <Button
-                      className="btn text-xs"
-                      onClick={() =>
-                        setRenaming({ id: board.id, name: board.name })
-                      }
-                    >
-                      <LuPencil aria-hidden className="size-4" />
-                      Rename
-                    </Button>
-                    <Button
-                      className={`btn text-xs ${board.id === defaultId ? "text-accent disabled:opacity-100" : ""}`}
-                      disabled={board.id === defaultId}
-                      onClick={() =>
-                        setDefault.mutate(
-                          { id: board.id },
-                          { onSuccess: () => setDefaultId(board.id) },
-                        )
-                      }
-                    >
-                      <LuStar
-                        aria-hidden
-                        className={`size-4 ${board.id === defaultId ? "fill-current" : ""}`}
-                      />
-                      {board.id === defaultId ? "Default" : "Set as default"}
-                    </Button>
-                    <AlertDialog.Root>
-                      <AlertDialog.Trigger className="btn btn-danger text-xs">
-                        <LuTrash2 aria-hidden className="size-4" />
-                        Delete
-                      </AlertDialog.Trigger>
-                      <ConfirmContent
-                        title="Delete board"
-                        description={`Delete “${board.name}”? This removes the board, its categories, and its assignments.`}
-                      >
-                        <AlertDialog.Close className="btn">
-                          Cancel
-                        </AlertDialog.Close>
-                        <AlertDialog.Close
-                          className="btn btn-danger"
-                          onClick={() =>
-                            remove.mutate(
-                              { id: board.id },
-                              {
-                                onSuccess: () => {
-                                  if (defaultId === board.id) {
-                                    const next = boards.find(
-                                      (item) => item.id !== board.id,
-                                    )
-                                    setDefaultId(next?.id ?? null)
-                                  }
-                                },
-                              },
-                            )
-                          }
-                        >
-                          <LuTrash2 aria-hidden className="size-4" />
-                          Delete
-                        </AlertDialog.Close>
-                      </ConfirmContent>
-                    </AlertDialog.Root>
-                  </div>
-                </div>
-
-                <div className="mt-4 flex flex-wrap items-center justify-between gap-2 border-t border-line pt-4">
-                  <h4 className="text-xs font-semibold text-muted uppercase">
-                    Apps
-                  </h4>
-                  <Button
-                    className="btn text-xs"
-                    onClick={() =>
-                      setCategoryDraft({ mode: "create", boardId: board.id })
-                    }
-                  >
-                    <LuPlus aria-hidden className="size-4" />
-                    Add category
-                  </Button>
-                </div>
-
-                <div className="mt-3 space-y-6">
+              <li key={board.id}>
+                <div className="space-y-4">
                   {groups.map((group) => {
                     const category = group.category
                     const categoryIndex = category
@@ -698,6 +613,7 @@ export function BoardsAdmin({
                     return (
                       <section
                         key={category?.id ?? "uncategorized"}
+                        className="panel"
                         aria-label={category?.title ?? "Uncategorised"}
                       >
                         <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
@@ -764,13 +680,13 @@ export function BoardsAdmin({
                             />
                           )}
                         </header>
-                        <div className="pt-1">
+                        <div>
                           {group.apps.length === 0 ? (
                             <p className="px-3 py-2 text-sm text-muted">
                               No apps assigned.
                             </p>
                           ) : (
-                            <ol className="space-y-1">
+                            <ol>
                               {group.apps.map((entry, index) =>
                                 renderAssignment(
                                   board,

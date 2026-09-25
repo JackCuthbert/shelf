@@ -1,5 +1,15 @@
 import { renderToStaticMarkup } from "react-dom/server"
-import { expect, it } from "vitest"
+import { expect, it, vi } from "vitest"
+
+vi.mock("@/components/trpc-provider", () => {
+  const useMutation = () => ({ isPending: false, mutate: () => {} })
+  return {
+    trpc: {
+      useUtils: () => ({ apps: { list: { invalidate: () => {} } } }),
+      apps: { create: { useMutation }, update: { useMutation } },
+    },
+  }
+})
 import { AdminMenubar } from "./admin-menubar"
 
 it("does not mark admin sections current on account settings", () => {
