@@ -7,6 +7,7 @@ import { appTitle } from "@/lib/page-title"
 import { AnonymousPageNav } from "@/components/anonymous-page-nav"
 
 export const metadata: Metadata = { title: appTitle("Sign in") }
+export const dynamic = "force-dynamic"
 
 export default async function LoginPage() {
   const [userCount, instance] = await Promise.all([
