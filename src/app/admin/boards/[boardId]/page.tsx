@@ -15,7 +15,7 @@ export default async function AdminBoardPage({
   params: Promise<{ boardId: string }>
 }) {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const { boardId: boardNanoid } = await params
   const [board, apps, user] = await Promise.all([
     prisma.board.findFirst({

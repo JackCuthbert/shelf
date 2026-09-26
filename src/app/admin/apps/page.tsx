@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: appTitle("Apps") }
 
 export default async function AdminAppsPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const apps = await prisma.app.findMany({
     orderBy: [{ name: "asc" }, { id: "asc" }],
   })
