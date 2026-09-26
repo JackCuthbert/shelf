@@ -7,7 +7,7 @@ import { Field } from "@base-ui/react/field"
 import { Form } from "@base-ui/react/form"
 import { Input } from "@base-ui/react/input"
 import { LuCheck, LuLoader, LuX } from "react-icons/lu"
-import { ModalContent } from "@/components/modal"
+import { ModalContent, ModalFooter } from "@/components/modal"
 
 export type CategoryRecord = {
   id: string
@@ -43,7 +43,7 @@ export function BoardCategoryDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <ModalContent title={category ? "Edit category" : "Add category"}>
+      <ModalContent withFooter title={category ? "Edit category" : "Add category"}>
         <Form
           onFormSubmit={() =>
             onSave({
@@ -79,7 +79,7 @@ export function BoardCategoryDialog({
             />
             <p className="text-xs text-muted">{draft.description.length}/280</p>
           </Field.Root>
-          <div className="mt-5 flex justify-end gap-2">
+          <ModalFooter>
             <Dialog.Close className="btn">
               <LuX aria-hidden className="size-4" />
               Cancel
@@ -96,7 +96,7 @@ export function BoardCategoryDialog({
               )}
               <span>{pending ? "Saving…" : "Save category"}</span>
             </Button>
-          </div>
+          </ModalFooter>
         </Form>
       </ModalContent>
     </Dialog.Root>

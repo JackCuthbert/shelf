@@ -7,7 +7,6 @@ const trpcMocks = vi.hoisted(() => ({
     onError: (cause: Error, variables: { id: string }) => void
   },
   recheckMutate: vi.fn(),
-  invalidateApps: vi.fn(),
   pending: false,
 }))
 
@@ -22,10 +21,6 @@ vi.mock("@/components/trpc-provider", () => {
   })
   return {
     trpc: {
-      useUtils: () => ({
-        apps: { list: { invalidate: trpcMocks.invalidateApps } },
-        boards: { list: { invalidate: () => {} } },
-      }),
       apps: {
         list: { useQuery },
         recheckStatus: { useMutation: useRecheckMutation },
@@ -151,7 +146,7 @@ it("renders a compact responsive row with status on the icon and a menu trigger"
   expect(html).toContain("size-3 shrink-0")
 })
 
-it("wires Check now to the app mutation and invalidates the app list on success", () => {
+it("wires Check now to the app mutation", () => {
   renderToStaticMarkup(
     <SharedApps
       initialApps={[
@@ -175,7 +170,6 @@ it("wires Check now to the app mutation and invalidates the app list on success"
   )
   expect(trpcMocks.recheckOptions).toBeTruthy()
   trpcMocks.recheckOptions?.onSuccess({}, { id: "a1" })
-  expect(trpcMocks.invalidateApps).toHaveBeenCalledOnce()
 })
 
 it("configures a row-scoped request error handler", () => {

@@ -5,6 +5,7 @@ import { Field } from "@base-ui/react/field"
 import { Form } from "@base-ui/react/form"
 import { Input } from "@base-ui/react/input"
 import { LuLoader, LuPlug } from "react-icons/lu"
+import { ModalFooter } from "@/components/modal"
 
 export function HomarrImportConnect({
   baseUrl,
@@ -61,7 +62,7 @@ export function HomarrImportConnect({
           {error}
         </p>
       )}
-      <div className="mt-5 flex justify-end gap-2">
+      <ModalFooter>
         <Button type="submit" disabled={pending} className="btn btn-primary">
           {pending ? (
             <LuLoader aria-hidden className="size-4 animate-spin" />
@@ -70,7 +71,7 @@ export function HomarrImportConnect({
           )}
           <span>{pending ? "Connecting…" : "Connect"}</span>
         </Button>
-      </div>
+      </ModalFooter>
     </Form>
   )
 }

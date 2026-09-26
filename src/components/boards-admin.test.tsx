@@ -8,8 +8,8 @@ vi.mock("@/components/trpc-provider", () => {
       useUtils: () => ({ boards: { list: { invalidate: () => {} } } }),
       boards: {
         list: {
-          useQuery: (_input: unknown, options: { initialData: unknown }) => ({
-            data: options.initialData,
+          useQuery: (_input: unknown, options?: { initialData: unknown }) => ({
+            data: options?.initialData ?? [],
           }),
         },
         create: { useMutation },

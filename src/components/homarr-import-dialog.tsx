@@ -23,7 +23,6 @@ export function HomarrImportBody({
   onClose: () => void
   onImported?: (count: number) => void
 }) {
-  const utils = trpc.useUtils()
   const preview = trpc.imports.previewHomarr.useMutation()
   const create = trpc.apps.create.useMutation()
   const [step, setStep] = useState<"connect" | "review">("connect")
@@ -63,7 +62,6 @@ export function HomarrImportBody({
     setPending(true)
     setFailures([])
     const result = await runImport(rows, (input) => create.mutateAsync(input))
-    void utils.apps.list.invalidate()
     setPending(false)
     if (result.failures.length === 0) {
       onImported?.(result.importedKeys.size)
@@ -138,6 +136,7 @@ export function HomarrImportDialog({
       {trigger}
       <ModalContent
         wide
+        withFooter
         title="Import from Homarr"
         description="Bring your Homarr apps into the shared library."
       >

@@ -3,6 +3,7 @@
 import { Button } from "@base-ui/react/button"
 import { Input } from "@base-ui/react/input"
 import { LuArrowLeft, LuCheck, LuImage, LuLoader } from "react-icons/lu"
+import { ModalFooter } from "@/components/modal"
 import {
   type Catalogue,
   IconCatalogueSearch,
@@ -167,7 +168,7 @@ export function HomarrImportReview({
           </li>
         ))}
       </ul>
-      <div className="mt-5 flex justify-end gap-2">
+      <ModalFooter>
         <Button type="button" className="btn" onClick={onBack}>
           <LuArrowLeft aria-hidden className="size-4" />
           Back
@@ -189,7 +190,7 @@ export function HomarrImportReview({
               : `Import ${selected.length} app${selected.length === 1 ? "" : "s"}`}
           </span>
         </Button>
-      </div>
+      </ModalFooter>
     </div>
   )
 }

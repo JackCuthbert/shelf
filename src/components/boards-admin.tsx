@@ -27,7 +27,7 @@ import {
 } from "@/components/board-category-dialog"
 import { BoardAppDialog } from "@/components/board-app-dialog"
 import { CategorySelect } from "@/components/category-select"
-import { ConfirmContent, ModalContent } from "@/components/modal"
+import { ConfirmContent, ModalContent, ModalFooter } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 import { iconKey } from "@/lib/app-icon"
 
@@ -132,7 +132,6 @@ export function BoardsAdmin({
   initialDefaultBoardId?: string | null
   boardNanoid?: string
 }) {
-  const utils = trpc.useUtils()
   const { data: boards = initialBoards } = trpc.boards.list.useQuery(
     undefined,
     { initialData: initialBoards },
@@ -159,7 +158,6 @@ export function BoardsAdmin({
   const [error, setError] = useState("")
   const refresh = () => {
     setError("")
-    void utils.boards.list.invalidate()
   }
   const fail = (cause: { message: string }) => setError(cause.message)
   const rename = trpc.boards.rename.useMutation({
@@ -537,7 +535,7 @@ export function BoardsAdmin({
           if (!open) setRenaming(null)
         }}
       >
-        <ModalContent title="Rename board">
+        <ModalContent withFooter title="Rename board">
           <Form
             onFormSubmit={(values) => {
               if (renaming)
@@ -560,13 +558,13 @@ export function BoardsAdmin({
               />
               <Field.Error className="text-xs text-danger" />
             </Field.Root>
-            <div className="mt-4 flex justify-end gap-2">
+            <ModalFooter>
               <Dialog.Close className="btn">Cancel</Dialog.Close>
               <Button type="submit" className="btn btn-primary">
                 <LuPencil aria-hidden className="size-4" />
                 Save
               </Button>
-            </div>
+            </ModalFooter>
           </Form>
         </ModalContent>
       </Dialog.Root>
@@ -587,7 +585,6 @@ export function BoardsAdmin({
         onOpenChange={(open) => {
           if (!open) setEditingApp(null)
         }}
-        onSaved={() => void utils.boards.list.invalidate()}
       />
       {visibleBoards.length === 0 ? (
         <p className="panel mt-4 border-dashed p-8 text-center text-muted">

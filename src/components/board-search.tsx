@@ -3,7 +3,9 @@
 import { useEffect, useMemo, useRef, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
+import { useRouter } from "next/navigation"
 import { LuInfo } from "react-icons/lu"
+import { CreateAppMenubarAction } from "@/components/create-app-menubar-action"
 import {
   filterAppGroups,
   groupBoardApps,
@@ -152,6 +154,7 @@ export function BoardSearch({
   categories: CategorySummary[]
   user: { name: string } | null
 }) {
+  const router = useRouter()
   const [query, setQuery] = useState("")
   const [checking, setChecking] = useState(false)
   const [openDescription, setOpenDescription] = useState<string | null>(null)
@@ -170,6 +173,18 @@ export function BoardSearch({
   )
   const hasMatches = groups.some((group) => group.apps.length > 0)
   const boardIsEmpty = apps.length === 0 && categories.length === 0
+  const { data: ownedBoards = [] } = trpc.boards.list.useQuery(undefined, {
+    enabled: Boolean(user),
+  })
+  const ownedBoard = ownedBoards.find((board) => board.nanoid === boardNanoid)
+  const { data: libraryApps = [], isPending: libraryPending } =
+    trpc.apps.list.useQuery(undefined, {
+      enabled: Boolean(ownedBoard),
+    })
+  const availableApps = libraryApps.filter(
+    (app) => !apps.some((assigned) => assigned.id === app.id),
+  )
+  const assign = trpc.boards.assign.useMutation()
 
   useEffect(() => {
     if (apps.length === 0) return
@@ -246,7 +261,44 @@ export function BoardSearch({
               className="field"
             />
           </div>
-          <div className="order-2 min-w-0 justify-self-end sm:order-3">
+          <div className="order-2 flex min-w-0 items-center gap-2 justify-self-end sm:order-3">
+            {user && (
+              <CreateAppMenubarAction
+                boards={ownedBoards.map((board) => ({
+                  id: board.id,
+                  name: board.name,
+                  categories: board.categories,
+                }))}
+                initialBoardId={ownedBoard?.id ?? ""}
+                context={ownedBoard ? "public-board" : "none"}
+                existingApps={
+                  ownedBoard
+                    ? availableApps.map((app) => ({
+                        id: app.id,
+                        name: app.name,
+                        url: app.url,
+                        iconSource: app.iconSource,
+                        iconSlug: app.iconSlug,
+                        iconHash: app.iconHash,
+                      }))
+                    : undefined
+                }
+                existingAppsLoading={Boolean(ownedBoard && libraryPending)}
+                onAssignExisting={
+                  ownedBoard
+                    ? async (appId, categoryId) => {
+                        await assign.mutateAsync({
+                          boardId: ownedBoard.id,
+                          appId,
+                          categoryId,
+                        })
+                        router.refresh()
+                      }
+                    : undefined
+                }
+                onSaved={() => router.refresh()}
+              />
+            )}
             <UserMenu user={user} />
           </div>
         </div>
@@ -256,8 +308,10 @@ export function BoardSearch({
         className="mx-auto max-w-6xl px-4 py-6 sm:px-6"
       >
         {boardIsEmpty ? (
-          <p className="panel px-6 py-12 text-center text-muted">
-            This board is empty. The board owner can add apps from admin.
+          <p className="py-4 text-center text-sm text-muted">
+            {ownedBoard
+              ? "This board is empty. Create an app to get started."
+              : "This board is empty and is read-only for you."}
           </p>
         ) : query.trim() && !hasMatches ? (
           <p role="status" className="panel px-6 py-12 text-center text-muted">

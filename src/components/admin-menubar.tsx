@@ -5,9 +5,15 @@ import { UserMenu } from "@/components/user-menu"
 export function AdminMenubar({
   active,
   user,
+  board,
 }: {
   active: "boards" | "apps" | "account"
   user: { name: string }
+  board?: {
+    id: string
+    name: string
+    categories: Array<{ id: string; title: string }>
+  }
 }) {
   const linkClass = (value: "boards" | "apps") =>
     `inline-flex items-center gap-1.5 border px-2 py-1 transition ${active === value ? "border-accent bg-accent font-semibold text-accent-foreground" : "border-transparent text-muted hover:text-foreground"}`
@@ -41,7 +47,11 @@ export function AdminMenubar({
           </nav>
         </div>
         <div className="flex shrink-0 items-center gap-2">
-          <CreateAppMenubarAction />
+          <CreateAppMenubarAction
+            boards={board ? [board] : undefined}
+            initialBoardId={board?.id}
+            context={board ? "managed-board" : "none"}
+          />
           <UserMenu user={user} />
         </div>
       </div>

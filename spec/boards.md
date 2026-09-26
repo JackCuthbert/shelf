@@ -15,7 +15,7 @@
 - `/` resolves the signed-in user's default board. `/board/<nanoid>` resolves that board for any visitor with the link.
 - V1 renders app icons and names in one responsive list using the board's persisted top-to-bottom order. The next visual-design stage replaces the list with responsive tiles, specified in [board-visual-design.md](board-visual-design.md).
 - Selecting an app by pointer, touch, or keyboard opens its URL in a new tab.
-- Empty boards show an understandable empty state. Owners can navigate to `/admin/boards` to add apps; visitors see a read-only empty state.
+- Empty boards show owners subtle text directing them to create an app, without a large empty-state tile; other viewers see a read-only empty state. Signed-in board visitors see the green app action. On an owned public board view, this action opens one modal with edge-to-edge Create app and Add existing app tabs. Create app places a checked-by-default board assignment checkbox labelled with the board name immediately before Save and has no category control. Add existing app lets the owner select an app and optionally a category, labelled “Add to category (optional)”, then saves it directly to the board. Other viewers cannot assign apps to the board.
 - The search control and filtering behavior are defined in [search.md](search.md).
 - Category sections span the board width, and apps within them use the same tiles as uncategorized apps; see [categories.md](categories.md).
 

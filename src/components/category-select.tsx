@@ -2,7 +2,7 @@
 
 import { Select } from "@base-ui/react/select"
 import { Tooltip } from "@base-ui/react/tooltip"
-import { LuCheck, LuFolder, LuFolderOpen } from "react-icons/lu"
+import { LuCheck, LuChevronDown, LuFolder, LuFolderOpen } from "react-icons/lu"
 
 export type CategoryOption = { id: string; title: string }
 
@@ -76,7 +76,7 @@ export function CategorySelect({
         >
           <Select.Value />
           <Select.Icon>
-            <LuFolder aria-hidden className="size-4 shrink-0 text-muted" />
+            <LuChevronDown aria-hidden className="size-4 shrink-0 text-muted" />
           </Select.Icon>
         </Select.Trigger>
       )}

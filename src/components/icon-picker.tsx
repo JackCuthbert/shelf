@@ -1,9 +1,9 @@
 "use client"
 
-import { useId, useState } from "react"
+import { useEffect, useId, useState } from "react"
 import { Button } from "@base-ui/react/button"
 import { Input } from "@base-ui/react/input"
-import { LuImage, LuImageOff, LuX } from "react-icons/lu"
+import { LuImage, LuImageOff } from "react-icons/lu"
 import {
   IconCatalogueSearch,
   iconPreviewUrl,
@@ -25,9 +25,13 @@ export function IconPicker({
   cachedSlug?: string | null
   onChange: (value: IconSelection) => void
 }) {
-  const [open, setOpen] = useState(false)
-  const { catalogue, error, retry } = useIconCatalogue(open)
+  const [expanded, setExpanded] = useState(!value.slug)
+  const { catalogue, error, retry } = useIconCatalogue(
+    value.source === "dashboard",
+  )
   const urlId = useId()
+
+  useEffect(() => setExpanded(!value.slug), [value.slug])
 
   const selectedEntry =
     value.slug && value.slug !== cachedSlug
@@ -64,50 +68,47 @@ export function IconPicker({
 
       {value.source === "dashboard" ? (
         <>
-          <div className="mt-3 flex items-center gap-3 border border-line bg-background p-3">
-            {dashboardPreview ? (
-              <img
-                className="h-10 w-10 border border-line bg-surface object-contain p-1"
-                src={dashboardPreview}
-                alt=""
-              />
-            ) : (
-              <span className="grid h-10 w-10 place-items-center border border-line bg-surface text-muted">
-                <LuImageOff aria-hidden className="size-5" />
-              </span>
-            )}
-            <div className="min-w-0 flex-1">
-              <p className="text-xs text-muted">Selected icon</p>
-              <p className="mt-1 truncate">{value.slug || "Choose an icon"}</p>
-            </div>
-            <Button
-              type="button"
-              onClick={() => {
-                setOpen(!open)
-                retry()
-              }}
-              className="btn text-xs"
-            >
-              {open ? (
-                <LuX aria-hidden className="size-4" />
+          <div className="mt-3 border border-line bg-background">
+            <div className="flex items-center gap-3 p-3">
+              {dashboardPreview ? (
+                <img
+                  className="h-10 w-10 border border-line bg-surface object-contain p-1"
+                  src={dashboardPreview}
+                  alt=""
+                />
               ) : (
-                <LuImage aria-hidden className="size-4" />
+                <span className="grid h-10 w-10 place-items-center border border-line bg-surface text-muted">
+                  <LuImageOff aria-hidden className="size-5" />
+                </span>
               )}
-              <span>{open ? "Close" : "Choose icon"}</span>
-            </Button>
+              <div className="min-w-0 flex-1">
+                <p className="text-xs text-muted">Selected icon</p>
+                <p className="mt-1 truncate">{value.slug || "Select icon"}</p>
+              </div>
+              {value.slug && !expanded && (
+                <Button
+                  type="button"
+                  onClick={() => setExpanded(true)}
+                  className="btn text-xs"
+                >
+                  Change icon
+                </Button>
+              )}
+            </div>
+            {expanded && (
+              <IconCatalogueSearch
+                embedded
+                catalogue={catalogue}
+                error={error}
+                onRetry={retry}
+                value={value.slug}
+                onSelect={(slug) => {
+                  onChange({ ...value, slug })
+                  setExpanded(false)
+                }}
+              />
+            )}
           </div>
-          {open && (
-            <IconCatalogueSearch
-              catalogue={catalogue}
-              error={error}
-              onRetry={retry}
-              value={value.slug}
-              onSelect={(slug) => {
-                onChange({ ...value, slug })
-                setOpen(false)
-              }}
-            />
-          )}
         </>
       ) : (
         <div className="mt-3 border border-line bg-background p-3">
@@ -127,12 +128,12 @@ export function IconPicker({
           <div className="mt-3 flex items-center gap-3">
             {value.url ? (
               <img
-                className="h-10 w-10 border border-line bg-surface object-contain p-1"
+                className="h-10 w-10 shrink-0 border border-line bg-surface object-contain p-1"
                 src={value.url}
                 alt=""
               />
             ) : (
-              <span className="grid h-10 w-10 place-items-center border border-line bg-surface text-muted">
+              <span className="grid h-10 w-10 shrink-0 place-items-center border border-line bg-surface text-muted">
                 <LuImageOff aria-hidden className="size-5" />
               </span>
             )}

@@ -59,7 +59,6 @@ export function appCheckActionLabel(appName: string) {
 }
 
 export function SharedApps({ initialApps }: { initialApps: App[] }) {
-  const utils = trpc.useUtils()
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
     initialData: initialApps,
   })
@@ -75,7 +74,6 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
     onSuccess: (_result, variables) => {
       setCheckErrors((current) => ({ ...current, [variables.id]: "" }))
       setCheckingIds((current) => ({ ...current, [variables.id]: false }))
-      void utils.apps.list.invalidate()
     },
     onError: (cause, variables) => {
       setCheckErrors((current) => ({
@@ -88,14 +86,12 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
   const remove = trpc.apps.delete.useMutation({
     onSuccess: () => {
       setError("")
-      void utils.apps.list.invalidate()
     },
     onError: (cause) => setError(cause.message),
   })
   const assign = trpc.boards.assign.useMutation({
     onSuccess: () => {
       setError("")
-      void utils.boards.list.invalidate()
     },
     onError: (cause) => setError(cause.message),
   })
