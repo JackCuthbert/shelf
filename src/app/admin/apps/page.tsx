@@ -20,6 +20,7 @@ export default async function AdminAppsPage() {
       <AdminMenubar active="apps" user={{ name: session.user.name }} />
       <main className="mx-auto w-full flex-1 max-w-5xl px-4 pt-5 pb-8 sm:px-6">
         <SharedApps
+          currentUserId={session.user.id}
           initialApps={apps.map((app) => ({
             ...app,
             lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,

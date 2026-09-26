@@ -15,7 +15,7 @@
 ## Core records
 
 - **User:** an account with a nullable default board reference. Authentication tables are managed through Better Auth's Prisma schema generation, with migrations applied by Prisma.
-- **App:** one shared household record with a name, optional plain-text description, HTTP(S) URL, and exactly one icon source: a Dashboard Icons slug or a downloaded custom image. A custom image stores the SHA-256 hash of its PNG bytes and its source URL; see [apps-and-icons.md](apps-and-icons.md). Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name.
+- **App:** one public, shared record with an owning creator, a name, optional plain-text description, HTTP(S) URL, and exactly one icon source: a Dashboard Icons slug or a downloaded custom image. A custom image stores the SHA-256 hash of its PNG bytes and its source URL; see [apps-and-icons.md](apps-and-icons.md). Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name. New and updated apps cannot reuse another app's URL; older duplicates are preserved.
 - App liveness status is stored on the shared App record and refreshed for apps assigned to a viewed board; see [app-status.md](app-status.md). The record keeps a nullable failure reason alongside the status.
 - **Board:** a name, an unguessable Nano ID used in its public URL, and one owning user.
 - **Board category:** a board-owned title, optional description, and persisted position among that board's categories. Titles are unique per board without regard to case.
@@ -25,8 +25,8 @@ Keep category positions in one ordered sequence per board and board app position
 
 ## Authorization boundary
 
-- Anonymous visitors may read a board only through its direct `/board/<nanoid>` URL. There is no public board directory.
-- Every signed-in user may read, create, update, and delete records in the shared app library.
+- Anonymous visitors may browse every board at `/` or open a board through its direct `/board/<nanoid>` URL.
+- Everyone may read the shared app library. Signed-in users may create apps, and only an app's owner may update or delete it. Existing apps are assigned to an owner during migration, preferring the owner of a board containing the app.
 - Only the board owner may create or change that board's categories, assignments, order, name, or default status, or delete the board.
 - Authorization is enforced in the server-side tRPC procedures and in protected page loading; hiding controls in the UI is insufficient.
 - Deleting a shared app removes its assignments from all boards. Deleting a board removes its assignments.

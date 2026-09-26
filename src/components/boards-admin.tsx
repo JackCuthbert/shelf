@@ -56,6 +56,7 @@ type Board = {
 }
 type App = {
   id: string
+  ownerId: string
   name: string
   description: string
   url: string

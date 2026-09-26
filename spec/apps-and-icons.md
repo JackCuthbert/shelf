@@ -2,13 +2,14 @@
 
 ## App records
 
-- Every signed-in user can create, edit, and delete apps in the shared household library.
+- Every signed-in user can create apps in the public, shared library. The creator owns each new app, and only its owner can edit or delete it. Creating or changing an app to a URL already used by another app is rejected; users can add the existing app to their boards instead.
 - App creation is available from signed-in navigation. Outside a board, the creator may optionally select an owned board and one of its categories (or leave it uncategorized). On an owned board view, creation defaults to adding the new shared app to that board; the creator can turn this off, and managed board views also allow category selection. On an owned public board view, the action offers Create app and Add existing app forms in one tabbed modal. Both place a checkbox labelled with the board name as the final option before Save. The Create app tab has no category selector. Category selectors are labelled “Add to category (optional)”. Assignment to the current board is available only to its owner. If creation succeeds but assignment fails, report that the shared app was created and the assignment failed; retrying must only retry assignment for the saved app and must not create a duplicate.
 - An app requires a nonempty name, an HTTP or HTTPS URL, and one explicitly selected icon. URLs may point to private household hosts or IP addresses. Other URL schemes are rejected.
 - An app has exactly one icon source: a Dashboard Icons slug or a downloaded custom image. The two are mutually exclusive and the form presents them as separate choices.
 - An app may have a plain-text description of up to 280 characters. Empty descriptions are allowed. Existing apps have an empty description after migration.
 - App names are not unique. The admin list shows the URL alongside the name to distinguish duplicates.
 - A saved app can be assigned to one or more boards by each board's owner. Editing an app updates it everywhere it is assigned.
+- `/apps/<id>` is a public app detail page with its icon, web address, owner, status, and creation date. Anyone can copy the app URL from the website row. Owners can open the existing edit dialog there. Signed-in users can manually refresh its status. The copy and check icon buttons have tooltips. The shared app list has a visible View action linking to this page.
 - Deleting an app requires confirmation and removes it from every board.
 
 ## Icon selection and persistence
@@ -40,5 +41,6 @@
 - Editing an unchanged custom image URL does not re-download the image; changing the URL downloads and caches the new image.
 - A non-PNG or oversized custom image is rejected and the form keeps its entries.
 - Searching or previewing icons without saving an app leaves `/data/icons/` unchanged.
-- Editing a shared app changes it on all assigned boards; deleting it removes all assignments.
+- Only the app owner can edit or delete it. Editing a shared app changes it on all assigned boards; deleting it removes all assignments.
+- Creating or changing an app to a URL already used by another app is rejected.
 - A saved description appears in the shared app library and in the app edit form. Board tiles expose it through an immediately opened popover on hover or keyboard focus. A separate info button opens it on touch screens without changing the tile's app link. Apps without descriptions have no popover or info button.

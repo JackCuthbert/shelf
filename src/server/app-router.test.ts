@@ -1,11 +1,18 @@
-import { describe, expect, it } from "vitest"
+import { describe, expect, it, vi } from "vitest"
 import { appRouterRoot } from "./root"
+
+vi.mock("@/lib/prisma", () => ({
+  prisma: { app: { findMany: vi.fn(async () => []) } },
+}))
 
 describe("app router authentication", () => {
   const caller = appRouterRoot.createCaller({ session: null })
 
+  it("allows anonymous app listing", async () => {
+    await expect(caller.apps.list()).resolves.toEqual([])
+  })
+
   it.each([
-    ["list", () => caller.apps.list()],
     [
       "create",
       () =>

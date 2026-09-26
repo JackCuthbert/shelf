@@ -76,10 +76,14 @@ export default async function BoardPage({
       }))}
       apps={board.apps.map(({ app, categoryId }) => ({
         id: app.id,
+        ownerId: app.ownerId,
         name: app.name,
         description: app.description,
         url: app.url,
         iconKey: iconKey(app),
+        iconSource: app.iconSource,
+        iconSlug: app.iconSlug,
+        customIconUrl: app.customIconUrl,
         categoryId,
         status:
           app.status === "up" || app.status === "down" ? app.status : "unknown",

@@ -18,27 +18,40 @@ vi.mock("@/components/trpc-provider", () => ({
         useMutation: () => ({ mutateAsync: async () => [] }),
       },
     },
-    apps: { list: { useQuery: () => ({ data: [] }) } },
+    apps: {
+      list: { useQuery: () => ({ data: [] }) },
+      delete: {
+        useMutation: () => ({ mutateAsync: async () => {}, isPending: false }),
+      },
+    },
   },
 }))
 
 const apps = [
   {
     id: "plex",
+    ownerId: "user-1",
     name: "Plex",
     description: "Movies and shows",
     url: "https://plex.example",
     iconKey: "plex",
+    iconSource: "dashboard",
+    iconSlug: "plex",
+    customIconUrl: null,
     categoryId: null,
     status: "up" as const,
     lastCheckedAt: Date.parse("2026-09-24T00:00:00Z"),
   },
   {
     id: "sonarr",
+    ownerId: "user-2",
     name: "Sonarr",
     description: "",
     url: "https://sonarr.example",
     iconKey: "sonarr",
+    iconSource: "dashboard",
+    iconSlug: "sonarr",
+    customIconUrl: null,
     categoryId: null,
     status: "unknown" as const,
     lastCheckedAt: null,
@@ -172,6 +185,18 @@ describe("BoardSearch", () => {
     emptyHandlers.onMouseEnter()
     emptyHandlers.onFocus()
     expect(open).toHaveBeenCalledTimes(2)
+  })
+
+  it("keeps descriptions closed while a tile action is open", () => {
+    const open = vi.fn()
+    let allowed = false
+    const handlers = descriptionTileHandlers("plex", true, open, () => allowed)
+    handlers.onMouseEnter()
+    handlers.onFocus()
+    expect(open).not.toHaveBeenCalled()
+    allowed = true
+    handlers.onFocus()
+    expect(open).toHaveBeenCalledWith("plex")
   })
 
   it("does not advertise the removed custom keyboard shortcuts", () => {

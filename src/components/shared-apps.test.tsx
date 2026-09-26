@@ -40,7 +40,9 @@ vi.mock("@/components/trpc-provider", () => {
 import { appCheckActionLabel, SharedApps } from "./shared-apps"
 
 it("opens app creation from a modal trigger instead of an inline form", () => {
-  const html = renderToStaticMarkup(<SharedApps initialApps={[]} />)
+  const html = renderToStaticMarkup(
+    <SharedApps currentUserId="u1" initialApps={[]} />,
+  )
   expect(html).toContain("<h1")
   expect(html).toContain(">Apps</h1>")
   expect(html).toContain('aria-label="About shared apps"')
@@ -56,9 +58,11 @@ it("opens app creation from a modal trigger instead of an inline form", () => {
 it("shows a filter and a single-column list when apps exist", () => {
   const html = renderToStaticMarkup(
     <SharedApps
+      currentUserId="u1"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
           name: "Plex",
           description: "Movies and shows",
           url: "https://plex.example",
@@ -77,6 +81,8 @@ it("shows a filter and a single-column list when apps exist", () => {
   )
   expect(html).toContain('id="app-filter"')
   expect(html).toContain("Plex")
+  expect(html).toContain('href="/apps/a1"')
+  expect(html).toContain(">View</a>")
   expect(html).toContain("Movies and shows")
   expect(html).not.toContain("sm:grid-cols-2")
   const icon = html.match(/<img[^>]*src="\/icons\/plex"[^>]*>/)?.[0]
@@ -85,12 +91,42 @@ it("shows a filter and a single-column list when apps exist", () => {
   expect(icon).not.toContain("bg-background")
 })
 
-it("shows the last recorded state and failure reason without re-checking", () => {
+it("hides edit and delete actions for apps owned by another user", () => {
   const html = renderToStaticMarkup(
     <SharedApps
+      currentUserId="u2"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
+          name: "Plex",
+          description: "",
+          url: "https://plex.example",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          customIconUrl: null,
+          iconHash: null,
+          status: "unknown",
+          lastError: null,
+          lastCheckedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(html).not.toContain(">Edit<")
+  expect(html).not.toContain(">Delete<")
+})
+
+it("shows the last recorded state and failure reason without re-checking", () => {
+  const html = renderToStaticMarkup(
+    <SharedApps
+      currentUserId="u1"
+      initialApps={[
+        {
+          id: "a1",
+          ownerId: "u1",
           name: "Proxmox",
           description: "",
           url: "https://pve.example",
@@ -117,9 +153,11 @@ it("shows the last recorded state and failure reason without re-checking", () =>
 it("renders a compact responsive row with status on the icon and a menu trigger", () => {
   const html = renderToStaticMarkup(
     <SharedApps
+      currentUserId="u1"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
           name: "Plex",
           description: "",
           url: "https://plex.example",
@@ -149,9 +187,11 @@ it("renders a compact responsive row with status on the icon and a menu trigger"
 it("wires Check now to the app mutation", () => {
   renderToStaticMarkup(
     <SharedApps
+      currentUserId="u1"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
           name: "Plex",
           description: "",
           url: "https://plex.example",
@@ -175,9 +215,11 @@ it("wires Check now to the app mutation", () => {
 it("configures a row-scoped request error handler", () => {
   renderToStaticMarkup(
     <SharedApps
+      currentUserId="u1"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
           name: "Plex",
           description: "",
           url: "https://plex.example",
@@ -200,9 +242,11 @@ it("configures a row-scoped request error handler", () => {
 it("shows an accessible per-app menu trigger for app actions", () => {
   const html = renderToStaticMarkup(
     <SharedApps
+      currentUserId="u1"
       initialApps={[
         {
           id: "a1",
+          ownerId: "u1",
           name: "Plex",
           description: "",
           url: "https://plex.example",

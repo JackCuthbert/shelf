@@ -2,6 +2,7 @@ import type { AppInput } from "@/lib/app-validation"
 
 export type SharedApp = {
   id: string
+  ownerId: string
   name: string
   description: string
   url: string
@@ -28,11 +29,13 @@ export type AppValues = Pick<
 >
 export type AppUpdateValues = AppValues &
   Partial<Pick<SharedApp, "status" | "lastCheckedAt" | "lastError">>
+export type AppCreateValues = AppValues & Pick<SharedApp, "ownerId">
 
 export interface AppRepository {
   list(): Promise<SharedApp[]>
   find(id: string): Promise<SharedApp | null>
-  create(input: AppValues): Promise<SharedApp>
+  findByUrl(url: string): Promise<SharedApp | null>
+  create(input: AppCreateValues): Promise<SharedApp>
   update(id: string, input: AppUpdateValues): Promise<SharedApp>
   delete(id: string): Promise<SharedApp>
   countIcon(key: string): Promise<number>
@@ -47,6 +50,20 @@ export interface AppIconCache {
 export class AppNotFoundError extends Error {
   constructor() {
     super("App not found.")
+  }
+}
+
+export class AppForbiddenError extends Error {
+  constructor() {
+    super("Only the app owner can make this change.")
+  }
+}
+
+export class AppUrlConflictError extends Error {
+  constructor() {
+    super(
+      "An app with this URL already exists. Add the existing app to your board instead.",
+    )
   }
 }
 
@@ -111,21 +128,29 @@ export function createSharedAppService(
 
   return {
     list: () => repository.list(),
-    create: (input: AppInput) =>
+    create: (input: AppInput, ownerId: string) =>
       serialize(async () => {
+        if (await repository.findByUrl(input.url))
+          throw new AppUrlConflictError()
         const { values, created } = await createValues(input)
         try {
-          return await repository.create(values)
+          return await repository.create({ ...values, ownerId })
         } catch (error) {
           if (created && (await repository.countIcon(created)) === 0)
             await icons.remove(created)
           throw error
         }
       }),
-    update: (input: AppInput & { id: string }) =>
+    update: (input: AppInput & { id: string }, ownerId: string) =>
       serialize(async () => {
         const existing = await repository.find(input.id)
         if (!existing) throw new AppNotFoundError()
+        if (existing.ownerId !== ownerId) throw new AppForbiddenError()
+        if (input.url !== existing.url) {
+          const matchingUrl = await repository.findByUrl(input.url)
+          if (matchingUrl && matchingUrl.id !== input.id)
+            throw new AppUrlConflictError()
+        }
         const { values, created } = await createValuesForUpdate(input, existing)
         let updated: SharedApp
         try {
@@ -149,10 +174,11 @@ export function createSharedAppService(
         if (previous !== next) await removeIfUnreferenced(previous)
         return updated
       }),
-    delete: (id: string) =>
+    delete: (id: string, ownerId: string) =>
       serialize(async () => {
         const existing = await repository.find(id)
         if (!existing) throw new AppNotFoundError()
+        if (existing.ownerId !== ownerId) throw new AppForbiddenError()
         const deleted = await repository.delete(id)
         await removeIfUnreferenced(iconKey(deleted))
         return deleted

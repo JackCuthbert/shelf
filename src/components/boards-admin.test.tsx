@@ -125,6 +125,7 @@ it("renders icon-only move controls with accessible labels", () => {
               categoryId: null,
               position: 0,
               app: {
+                ownerId: "user-1",
                 id: "plex",
                 name: "Plex",
                 description: "",
@@ -173,6 +174,7 @@ it("shows assigned app icons without a surrounding box", () => {
               categoryId: null,
               position: 0,
               app: {
+                ownerId: "user-1",
                 id: "plex",
                 name: "Plex",
                 description: "",
@@ -249,6 +251,7 @@ it("separates admin app rows with spacing and a hover state instead of borders",
               categoryId: null,
               position: 0,
               app: {
+                ownerId: "user-1",
                 id: "plex",
                 name: "Plex",
                 description: "",
@@ -307,6 +310,7 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
               categoryId: "movies",
               position: 0,
               app: {
+                ownerId: "user-1",
                 id: "plex",
                 name: "Plex",
                 description: "",
@@ -342,6 +346,7 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
 it("uses a custom select to move an app between categories", () => {
   const app = (id: string, name: string) => ({
     id,
+    ownerId: "user-1",
     name,
     description: "",
     url: `https://${id}.example`,
@@ -548,6 +553,7 @@ it("keeps each category's controls and apps together in one section", () => {
               categoryId: "movies",
               position: 0,
               app: {
+                ownerId: "user-1",
                 id: "plex",
                 name: "Plex",
                 description: "",

@@ -18,6 +18,7 @@ model User {
   sessions      Session[]
   accounts      Account[]
   boards        Board[]
+  apps          App[]
   defaultBoardId String?
   defaultBoard  Board?    @relation("UserDefaultBoard", fields: [id, defaultBoardId], references: [ownerId, id], onDelete: NoAction)
   @@map("user")
@@ -79,6 +80,8 @@ model Instance {
 
 model App {
   id            String    @id @default(cuid())
+  ownerId       String
+  owner         User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   name          String
   description   String    @default("")
   url           String
@@ -95,6 +98,7 @@ model App {
 
   @@index([iconSlug])
   @@index([iconHash])
+  @@index([ownerId])
   @@map("app")
 }
 

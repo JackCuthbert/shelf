@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest"
 import {
+  AppForbiddenError,
+  AppUrlConflictError,
   createSharedAppService,
   type AppRepository,
   type SharedApp,
@@ -11,6 +13,8 @@ function setup() {
   const repository: AppRepository = {
     list: async () => [...records.values()],
     find: async (id) => records.get(id) ?? null,
+    findByUrl: async (url) =>
+      [...records.values()].find((app) => app.url === url) ?? null,
     create: async (input) => {
       const app = {
         ...input,
@@ -44,8 +48,17 @@ function setup() {
     storeFromUrl: vi.fn(async () => ({ hash: "hash-a", created: true })),
     remove: vi.fn(async () => {}),
   }
+  const rawService = createSharedAppService(repository, cache)
   return {
-    service: createSharedAppService(repository, cache),
+    service: {
+      ...rawService,
+      create: (input: Parameters<typeof rawService.create>[0]) =>
+        rawService.create(input, "user-1"),
+      update: (input: Parameters<typeof rawService.update>[0]) =>
+        rawService.update(input, "user-1"),
+      delete: (id: string) => rawService.delete(id, "user-1"),
+    },
+    rawService,
     repository,
     cache,
     records,
@@ -69,6 +82,36 @@ const urlInput = {
 }
 
 describe("shared app service", () => {
+  it("lets only the creator update or delete an app", async () => {
+    const { rawService } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    await expect(
+      rawService.update({ ...dashboardInput, id: app.id }, "user-2"),
+    ).rejects.toBeInstanceOf(AppForbiddenError)
+    await expect(rawService.delete(app.id, "user-2")).rejects.toBeInstanceOf(
+      AppForbiddenError,
+    )
+    expect(await rawService.list()).toHaveLength(1)
+    await rawService.delete(app.id, "user-1")
+  })
+
+  it("rejects a URL already used by another app", async () => {
+    const { rawService } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    await expect(
+      rawService.create({ ...dashboardInput, name: "Another" }, "user-2"),
+    ).rejects.toBeInstanceOf(AppUrlConflictError)
+    const second = await rawService.create(
+      { ...dashboardInput, url: "https://other.home" },
+      "user-2",
+    )
+    await expect(
+      rawService.update({ ...dashboardInput, id: second.id }, "user-2"),
+    ).rejects.toBeInstanceOf(AppUrlConflictError)
+    expect(await rawService.list()).toHaveLength(2)
+    expect(app.ownerId).toBe("user-1")
+  })
+
   it("does not create a record or remove a cached icon after a failed dashboard download", async () => {
     const { service, repository, cache } = setup()
     cache.ensure.mockRejectedValueOnce(new Error("offline"))
@@ -80,7 +123,11 @@ describe("shared app service", () => {
   it("removes the previous icon only after its last app stops referencing it", async () => {
     const { service, cache } = setup()
     const first = await service.create(dashboardInput)
-    await service.create({ ...dashboardInput, name: "Plex again" })
+    await service.create({
+      ...dashboardInput,
+      name: "Plex again",
+      url: "https://plex-again.home",
+    })
     await service.update({
       id: first.id,
       ...dashboardInput,

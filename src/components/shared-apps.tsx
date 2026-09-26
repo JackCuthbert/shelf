@@ -15,6 +15,7 @@ import {
   LuEllipsis,
   LuRefreshCw,
   LuExternalLink,
+  LuEye,
 } from "react-icons/lu"
 import { AppBoardDialog } from "@/components/app-board-dialog"
 import { AppFormDialog } from "@/components/app-form-dialog"
@@ -25,6 +26,7 @@ import { iconKey } from "@/lib/app-icon"
 
 type App = {
   id: string
+  ownerId: string
   name: string
   description: string
   url: string
@@ -58,7 +60,13 @@ export function appCheckActionLabel(appName: string) {
   return `Check ${appName} now`
 }
 
-export function SharedApps({ initialApps }: { initialApps: App[] }) {
+export function SharedApps({
+  initialApps,
+  currentUserId,
+}: {
+  initialApps: App[]
+  currentUserId: string
+}) {
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
     initialData: initialApps,
   })
@@ -129,7 +137,8 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                   className="panel w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
                   aria-label="Shared apps information"
                 >
-                  Apps are available to everyone in your household.
+                  Apps are available to everyone. Only their owners can edit or
+                  delete them.
                 </Popover.Popup>
               </Popover.Positioner>
             </Popover.Portal>
@@ -269,92 +278,105 @@ export function SharedApps({ initialApps }: { initialApps: App[] }) {
                     />
                   </a>
                 </div>
-                <Menu.Root>
-                  <Menu.Trigger
-                    className="btn size-9 shrink-0 p-0"
-                    aria-label={`Actions for ${app.name}`}
-                    title={`Actions for ${app.name}`}
+                <div className="flex shrink-0 items-center gap-2">
+                  <a
+                    href={`/apps/${encodeURIComponent(app.id)}`}
+                    className="btn gap-1.5 text-sm"
                   >
-                    <LuEllipsis aria-hidden className="size-5" />
-                  </Menu.Trigger>
-                  <Menu.Portal keepMounted>
-                    <Menu.Positioner
-                      align="end"
-                      sideOffset={4}
-                      className="z-50"
+                    <LuEye aria-hidden className="size-4" />
+                    View
+                  </a>
+                  <Menu.Root>
+                    <Menu.Trigger
+                      className="btn size-9 shrink-0 p-0"
+                      aria-label={`Actions for ${app.name}`}
+                      title={`Actions for ${app.name}`}
                     >
-                      <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
-                        <Menu.Item
-                          disabled={checking}
-                          aria-label={appCheckActionLabel(app.name)}
-                          onClick={() => {
-                            setCheckErrors((current) => ({
-                              ...current,
-                              [app.id]: "",
-                            }))
-                            setCheckingIds((current) => ({
-                              ...current,
-                              [app.id]: true,
-                            }))
-                            recheck.mutate({ id: app.id })
-                          }}
-                          className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
-                        >
-                          <LuRefreshCw aria-hidden className="size-4" />
-                          {checking ? "Checking…" : "Check now"}
-                        </Menu.Item>
-                        <AppBoardDialog
-                          appName={app.name}
-                          boards={boardsMissingApp}
-                          triggerRender={
-                            <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt" />
-                          }
-                          triggerClassName="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
-                          onAssign={(boardId, categoryId) =>
-                            assign.mutate({
-                              boardId,
-                              appId: app.id,
-                              categoryId,
-                            })
-                          }
-                        />
-                        <Menu.Item
-                          onClick={() => setEditing(app)}
-                          className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
-                        >
-                          <LuPencil aria-hidden className="size-4" />
-                          Edit
-                        </Menu.Item>
-                        <AlertDialog.Root>
-                          <AlertDialog.Trigger
-                            nativeButton={false}
-                            render={
-                              <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-danger hover:bg-surface-alt focus:bg-surface-alt" />
+                      <LuEllipsis aria-hidden className="size-5" />
+                    </Menu.Trigger>
+                    <Menu.Portal keepMounted>
+                      <Menu.Positioner
+                        align="end"
+                        sideOffset={4}
+                        className="z-50"
+                      >
+                        <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
+                          <Menu.Item
+                            disabled={checking}
+                            aria-label={appCheckActionLabel(app.name)}
+                            onClick={() => {
+                              setCheckErrors((current) => ({
+                                ...current,
+                                [app.id]: "",
+                              }))
+                              setCheckingIds((current) => ({
+                                ...current,
+                                [app.id]: true,
+                              }))
+                              recheck.mutate({ id: app.id })
+                            }}
+                            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
+                          >
+                            <LuRefreshCw aria-hidden className="size-4" />
+                            {checking ? "Checking…" : "Check now"}
+                          </Menu.Item>
+                          <AppBoardDialog
+                            appName={app.name}
+                            boards={boardsMissingApp}
+                            triggerRender={
+                              <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt" />
                             }
-                          >
-                            <LuTrash2 aria-hidden className="size-4" />
-                            Delete
-                          </AlertDialog.Trigger>
-                          <ConfirmContent
-                            title="Delete app"
-                            description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
-                          >
-                            <AlertDialog.Close className="btn">
-                              Cancel
-                            </AlertDialog.Close>
-                            <AlertDialog.Close
-                              className="btn btn-danger"
-                              onClick={() => remove.mutate({ id: app.id })}
+                            triggerClassName="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
+                            onAssign={(boardId, categoryId) =>
+                              assign.mutate({
+                                boardId,
+                                appId: app.id,
+                                categoryId,
+                              })
+                            }
+                          />
+                          {app.ownerId === currentUserId && (
+                            <Menu.Item
+                              onClick={() => setEditing(app)}
+                              className="flex cursor-pointer items-center gap-2 px-3 py-2 text-sm hover:bg-surface-alt focus:bg-surface-alt"
                             >
-                              <LuTrash2 aria-hidden className="size-4" />
-                              Delete
-                            </AlertDialog.Close>
-                          </ConfirmContent>
-                        </AlertDialog.Root>
-                      </Menu.Popup>
-                    </Menu.Positioner>
-                  </Menu.Portal>
-                </Menu.Root>
+                              <LuPencil aria-hidden className="size-4" />
+                              Edit
+                            </Menu.Item>
+                          )}
+                          {app.ownerId === currentUserId && (
+                            <AlertDialog.Root>
+                              <AlertDialog.Trigger
+                                nativeButton={false}
+                                render={
+                                  <Menu.Item className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm text-danger hover:bg-surface-alt focus:bg-surface-alt" />
+                                }
+                              >
+                                <LuTrash2 aria-hidden className="size-4" />
+                                Delete
+                              </AlertDialog.Trigger>
+                              <ConfirmContent
+                                title="Delete app"
+                                description={`Delete ${app.name} from the shared app library? It will be removed from every board.`}
+                              >
+                                <AlertDialog.Close className="btn">
+                                  Cancel
+                                </AlertDialog.Close>
+                                <AlertDialog.Close
+                                  className="btn btn-danger"
+                                  onClick={() => remove.mutate({ id: app.id })}
+                                >
+                                  <LuTrash2 aria-hidden className="size-4" />
+                                  Delete
+                                </AlertDialog.Close>
+                              </ConfirmContent>
+                            </AlertDialog.Root>
+                          )}
+                        </Menu.Popup>
+                      </Menu.Positioner>
+                    </Menu.Portal>
+                  </Menu.Root>
+                </div>
               </li>
             )
           })}
