@@ -5,6 +5,7 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 ## Header
 
 - A single sticky header spans the board. It shows the board name on the left, a centered search field, and an account control on the right. The browser tab title shows the board name followed by the site name, separated by a middle dot: `Home · Shelf`.
+- The board name is a Base UI dropdown trigger with a chevron, retaining the two-line `Shelf` / board-name style. Its menu lists all instance boards with their owners, ordered by owner and then board name. The current board is disabled at normal text contrast. A signed-in user's default board has a star, including when they are viewing another board. The selected option has a subtle accent tint and a thin, continuously rotating multicolor accent border. Keep the trigger's open and hover states visible and the menu spacing even and compact. The menu supports keyboard, pointer, and touch input.
 - On narrow screens, the name and account control remain on the first row and the search field moves to a full-width second row. The header must not cause horizontal scrolling.
 - Signed-in visitors see the shared user menu used in admin: a person icon and display name, with Account, Boards, Apps, and Sign out actions. Anonymous visitors see a Sign in button. The menu must work with keyboard, pointer, and touch input.
 - Search remains visible for empty boards and filters only apps on the viewed board. Filtering and ranking follow [search.md](search.md).

@@ -8,7 +8,7 @@
 - If the default board is deleted, the oldest remaining owned board becomes default. If none remain, the user's default is empty and `/` sends them to the board-creation empty state in `/admin/boards`.
 - A board owner can assign an app from the shared library once per board, remove an assignment without deleting the app, and move assigned apps up or down. Order is independent on each board.
 - A board owner can organize assignments into board-owned categories. Uncategorized apps appear first; categories follow in manual order. Category behavior is specified in [categories.md](categories.md).
-- A deleted board URL returns a not-found view. There is no public board listing or search across boards.
+- A deleted board URL returns a not-found view. There is no standalone public board index or cross-board search. The public board header's switcher lists every board on the instance, with its owner, as a compact way to move between boards.
 
 ## Board view
 

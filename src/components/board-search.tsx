@@ -6,6 +6,7 @@ import { Popover } from "@base-ui/react/popover"
 import { useRouter } from "next/navigation"
 import { LuInfo } from "react-icons/lu"
 import { CreateAppMenubarAction } from "@/components/create-app-menubar-action"
+import { BoardSwitcher } from "@/components/board-switcher"
 import {
   filterAppGroups,
   groupBoardApps,
@@ -144,15 +145,25 @@ function BoardTile({
 export function BoardSearch({
   boardName,
   boardNanoid,
+  boards = [],
+  defaultBoardId = null,
   apps,
   categories,
   user,
 }: {
   boardName: string
   boardNanoid: string
+  boards?: {
+    id: string
+    nanoid: string
+    name: string
+    ownerId: string
+    ownerName: string
+  }[]
+  defaultBoardId?: string | null
   apps: BoardApp[]
   categories: CategorySummary[]
-  user: { name: string } | null
+  user: { id?: string; name: string } | null
 }) {
   const router = useRouter()
   const [query, setQuery] = useState("")
@@ -237,15 +248,12 @@ export function BoardSearch({
       <header className="sticky top-0 z-20 border-b border-line bg-background">
         <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
           <div className="order-1 min-w-0">
-            <div className="min-w-0">
-              <p className="text-xs leading-none text-muted">Shelf</p>
-              <h1
-                className="truncate text-base font-semibold leading-tight"
-                title={boardName}
-              >
-                {boardName}
-              </h1>
-            </div>
+            <BoardSwitcher
+              boardName={boardName}
+              boardNanoid={boardNanoid}
+              boards={boards}
+              initialDefaultBoardId={defaultBoardId}
+            />
           </div>
           <div className="order-3 col-span-2 sm:order-2 sm:col-span-1">
             <label htmlFor="board-search" className="sr-only">

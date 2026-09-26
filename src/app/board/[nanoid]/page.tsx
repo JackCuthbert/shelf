@@ -41,11 +41,34 @@ export default async function BoardPage({
     auth.api.getSession({ headers: await headers() }),
   ])
   if (!board) notFound()
+  const [boards, viewer] = await Promise.all([
+    prisma.board.findMany({
+      select: {
+        id: true,
+        nanoid: true,
+        name: true,
+        ownerId: true,
+        owner: { select: { name: true } },
+      },
+      orderBy: [{ owner: { name: "asc" } }, { name: "asc" }, { id: "asc" }],
+    }),
+    session
+      ? prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { defaultBoardId: true },
+        })
+      : Promise.resolve(null),
+  ])
   return (
     <BoardSearch
       boardName={board.name}
       boardNanoid={board.nanoid}
-      user={session ? { name: session.user.name } : null}
+      boards={boards.map(({ owner, ...item }) => ({
+        ...item,
+        ownerName: owner.name,
+      }))}
+      user={session ? { id: session.user.id, name: session.user.name } : null}
+      defaultBoardId={viewer?.defaultBoardId ?? null}
       categories={board.categories.map((category) => ({
         id: category.id,
         title: category.title,

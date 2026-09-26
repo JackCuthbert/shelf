@@ -23,6 +23,32 @@
   background-size: 24px 24px;
 }
 
+@property --board-switcher-angle {
+  syntax: "<angle>";
+  inherits: false;
+  initial-value: 0deg;
+}
+
+.board-switcher-selected {
+  --board-switcher-angle: 0deg;
+  animation: board-switcher-gradient-cycle 9s linear infinite;
+  border-image: conic-gradient(
+      from var(--board-switcher-angle),
+      var(--color-accent),
+      #4f46e5,
+      #8b5cf6,
+      #38bdf8,
+      var(--color-accent)
+    )
+    1;
+}
+
+@keyframes board-switcher-gradient-cycle {
+  to {
+    --board-switcher-angle: 360deg;
+  }
+}
+
 :root {
   color-scheme: light;
 }
