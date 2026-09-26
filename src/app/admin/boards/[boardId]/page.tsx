@@ -43,7 +43,7 @@ export default async function AdminBoardPage({
           categories: board.categories.map(({ id, title }) => ({ id, title })),
         }}
       />
-      <main className="mx-auto min-h-screen max-w-5xl px-4 pt-5 pb-8 sm:px-6">
+      <main className="mx-auto w-full flex-1 max-w-5xl px-4 pt-5 pb-8 sm:px-6">
         <BoardsAdmin
           boardNanoid={board.nanoid}
           initialBoards={[
