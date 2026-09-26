@@ -74,7 +74,7 @@ describe("BoardSearch", () => {
     expect(html).toContain("sticky")
     expect(html).toContain("Home")
     expect(html).toContain('id="board-search"')
-    expect(html).toContain('href="/"')
+    expect(html).toContain('href="/login"')
     expect(html).toContain("Sign in")
   })
 

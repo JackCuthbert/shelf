@@ -5,7 +5,7 @@ import { USER_MENU_ITEMS, UserMenu } from "./user-menu"
 describe("UserMenu", () => {
   it("shows sign in for anonymous visitors", () => {
     const html = renderToStaticMarkup(<UserMenu user={null} />)
-    expect(html).toContain('href="/"')
+    expect(html).toContain('href="/login"')
     expect(html).toContain("Sign in")
     expect(html).not.toContain('href="/admin/account"')
   })

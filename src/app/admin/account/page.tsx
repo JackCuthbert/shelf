@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: appTitle("Account") }
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const oidcProvider = getOidcProviderConfig(process.env)
   const oidcAccount = oidcProvider
     ? await prisma.account.findFirst({

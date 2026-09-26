@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: appTitle("Boards") }
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const [boards, user] = await Promise.all([
     prisma.board.findMany({
       where: { ownerId: session.user.id },
