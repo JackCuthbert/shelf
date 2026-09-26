@@ -164,7 +164,6 @@ export const boardRouter = router({
           where: { id: ctx.session.user.id },
           select: { defaultBoardId: true },
         })
-        await tx.board.delete({ where: { id: board.id } })
         if (user.defaultBoardId === board.id) {
           const next = await tx.board.findFirst({
             where: { ownerId: ctx.session.user.id },
@@ -175,6 +174,7 @@ export const boardRouter = router({
             data: { defaultBoardId: next?.id ?? null },
           })
         }
+        await tx.board.delete({ where: { id: board.id } })
         return { success: true }
       })
     }),
