@@ -4,7 +4,8 @@ import { auth } from "@/lib/auth"
 import { prisma } from "@/lib/prisma"
 import { iconKey } from "@/lib/app-icon"
 import { BoardSearch } from "@/components/board-search"
-import { LuArrowRight, LuLogIn } from "react-icons/lu"
+import { AnonymousPageNav } from "@/components/anonymous-page-nav"
+import { LuArrowRight } from "react-icons/lu"
 
 export const dynamic = "force-dynamic"
 
@@ -75,11 +76,8 @@ export default async function HomePage() {
     orderBy: [{ owner: { name: "asc" } }, { name: "asc" }, { id: "asc" }],
   })
   return (
-    <main className="relative flex min-h-screen items-center justify-center px-5 py-16 pb-20">
-      <a href="/login" className="btn absolute top-5 right-5 gap-1.5 text-xs">
-        <LuLogIn aria-hidden className="size-4" />
-        Sign in
-      </a>
+    <main className="relative flex flex-1 items-center justify-center px-5 py-16">
+      <AnonymousPageNav showBoards={false} />
       <div className="w-full max-w-sm">
         <header className="mb-5">
           <h1 className="text-2xl font-semibold">Shelf</h1>
@@ -109,9 +107,6 @@ export default async function HomePage() {
           ))}
         </ul>
       </div>
-      <footer className="absolute inset-x-0 bottom-4 text-center text-xs text-muted">
-        Built by <a href="https://jackcuthbert.dev" className="hover:underline">Jack Cuthbert</a>
-      </footer>
     </main>
   )
 }

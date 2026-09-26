@@ -20,8 +20,36 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="en" className={mono.variable}>
-      <body className="bg-background bg-dot-grid font-mono text-foreground text-sm">
-        <TRPCProvider>{children}</TRPCProvider>
+      <body className="min-h-screen bg-background bg-dot-grid font-mono text-foreground text-sm">
+        <TRPCProvider>
+          <div className="flex min-h-screen flex-col">
+            <div className="flex flex-1 flex-col">{children}</div>
+            <footer className="px-4 py-3 text-center text-xs text-muted">
+              Built by{" "}
+              <a
+                href="https://jackcuthbert.dev"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground hover:underline"
+              >
+                Jack Cuthbert
+              </a>
+              <span aria-hidden> · </span>
+              <a href="/docs" className="hover:text-foreground hover:underline">
+                Docs
+              </a>
+              <span aria-hidden> · </span>
+              <a
+                href="https://github.com/JackCuthbert/shelf"
+                target="_blank"
+                rel="noreferrer"
+                className="hover:text-foreground hover:underline"
+              >
+                Shelf is open source
+              </a>
+            </footer>
+          </div>
+        </TRPCProvider>
       </body>
     </html>
   )
