@@ -31,6 +31,7 @@
 - Changing a password requires a new password of at least eight characters and signs out the account's other sessions. The current session stays signed in.
 - Failed changes show a clear error and preserve the form entry for correction. Only the signed-in account can be changed.
 - When an OIDC provider is configured, the account page shows whether it is connected and lets the signed-in user connect it.
+- The account page also lets the signed-in user create, list, and revoke named API keys for the agent REST API. Each plaintext key is shown once at creation; see [agent-api.md](agent-api.md).
 
 ## Recovery and future identity
 

@@ -6,6 +6,7 @@
 - SQLite is the only database. Prisma owns the schema, migrations, and application data access.
 - tRPC defines typed procedures for app and board reads and writes; the frontend shares their TypeScript types. Server Components may call the tRPC server caller for initial data without an HTTP round trip. Small client components handle forms, the icon picker, and board search.
 - Successful app and board mutations invalidate their affected client list queries through the shared tRPC query client. Board creation and deletion update board choices in app creation, and assignment from the public board view refreshes its server-rendered tiles.
+- A versioned REST API for agents uses Hono and generated OpenAPI documentation. It shares server-side board, app, and icon operations with tRPC and authenticates through Better Auth user-owned API keys; see [agent-api.md](agent-api.md).
 - Better Auth handles local email/password credentials and sessions through its Next.js integration and Prisma adapter. Its auth routes are separate from tRPC. [Next.js integration](https://better-auth.com/docs/integrations/next), [Prisma adapter](https://better-auth.com/docs/adapters/prisma).
 - Better Auth's Generic OAuth plugin optionally handles one administrator-configured OIDC provider. OAuth tokens are encrypted in the database. Implicit email-based account linking is disabled; authenticated users explicitly link provider identities. The local user-creation hook enforces `ENABLE_SIGNUP` for OIDC sign-up as well as email sign-up.
 - Account settings use authenticated server-side operations for the current user. Email and password changes verify the existing local password; password changes revoke other sessions while preserving the current session.
@@ -15,6 +16,7 @@
 ## Core records
 
 - **User:** an account with a nullable default board reference. Authentication tables are managed through Better Auth's Prisma schema generation, with migrations applied by Prisma.
+- **API key:** a named, revocable, user-owned credential managed and hashed by Better Auth's API Key plugin. It grants the same app and board access as its user, without per-key scopes.
 - **App:** one shared household record with a name, optional plain-text description, HTTP(S) URL, and exactly one icon source: a Dashboard Icons slug or a downloaded custom image. A custom image stores the SHA-256 hash of its PNG bytes and its source URL; see [apps-and-icons.md](apps-and-icons.md). Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name.
 - App liveness status is stored on the shared App record and refreshed for apps assigned to a viewed board; see [app-status.md](app-status.md). The record keeps a nullable failure reason alongside the status.
 - **Board:** a name, an unguessable Nano ID used in its public URL, and one owning user.
@@ -29,6 +31,7 @@ Keep category positions in one ordered sequence per board and board app position
 - Every signed-in user may read, create, update, and delete records in the shared app library.
 - Only the board owner may create or change that board's categories, assignments, order, name, or default status, or delete the board.
 - Authorization is enforced in the server-side tRPC procedures and in protected page loading; hiding controls in the UI is insufficient.
+- REST handlers enforce the same app access and board ownership boundary after verifying the API key. Browser sessions do not authenticate REST data operations.
 - Deleting a shared app removes its assignments from all boards. Deleting a board removes its assignments.
 
 See [accounts.md](accounts.md), [apps-and-icons.md](apps-and-icons.md), and [boards.md](boards.md) for user-visible behavior.
