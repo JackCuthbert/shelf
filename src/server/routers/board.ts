@@ -125,7 +125,7 @@ export const boardRouter = router({
         })
         if (user.defaultBoardId === board.id) {
           const next = await tx.board.findFirst({
-            where: { ownerId: ctx.session.user.id },
+            where: { ownerId: ctx.session.user.id, id: { not: board.id } },
             orderBy: [{ createdAt: "asc" }, { id: "asc" }],
           })
           await tx.user.update({

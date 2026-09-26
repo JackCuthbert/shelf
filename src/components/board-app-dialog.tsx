@@ -5,6 +5,7 @@ import { Dialog } from "@base-ui/react/dialog"
 import { Input } from "@base-ui/react/input"
 import { LuPlus } from "react-icons/lu"
 import { CategorySelect } from "@/components/category-select"
+import { NoAvailableAppsPlaceholder } from "@/components/available-apps-empty-state"
 import { ModalContent } from "@/components/modal"
 import { iconKey } from "@/lib/app-icon"
 
@@ -74,71 +75,63 @@ export function BoardAppDialog({
         title="Add app"
         description={`Choose an app to add to “${boardName}”.`}
       >
+        {apps.length > 0 && categories.length > 0 && !locked && (
+          <div className="mb-3 space-y-1">
+            <span className="block text-xs text-muted">
+              Add to category (optional)
+            </span>
+            <CategorySelect
+              value={categoryId || null}
+              categories={categories}
+              label="Add to category (optional)"
+              className="w-full"
+              onChange={(next) => setCategoryId(next ?? "")}
+            />
+          </div>
+        )}
+        <label htmlFor={filterId} className="sr-only">
+          Filter apps
+        </label>
+        <Input
+          id={filterId}
+          type="search"
+          value={filter}
+          onChange={(event) => setFilter(event.target.value)}
+          placeholder="Filter apps…"
+          className="field"
+        />
         {apps.length === 0 ? (
-          <p className="text-sm text-muted">
-            Every app in the library is already on this board.
+          <NoAvailableAppsPlaceholder />
+        ) : visible.length === 0 ? (
+          <p role="status" className="mt-3 text-sm text-muted">
+            No apps match “{filter}”.
           </p>
         ) : (
-          <>
-            {categories.length > 0 && (
-              <div className="mb-3 space-y-1">
-                <span className="block text-xs text-muted">Category</span>
-                <CategorySelect
-                  value={categoryId || null}
-                  categories={categories}
-                  label="Category"
-                  className="w-full"
-                  disabled={locked}
-                  onChange={(next) => setCategoryId(next ?? "")}
-                />
-              </div>
-            )}
-            <label htmlFor={filterId} className="sr-only">
-              Filter apps
-            </label>
-            <Input
-              id={filterId}
-              type="search"
-              value={filter}
-              onChange={(event) => setFilter(event.target.value)}
-              placeholder="Filter apps…"
-              className="field"
-            />
-            {visible.length === 0 ? (
-              <p role="status" className="mt-3 text-sm text-muted">
-                No apps match “{filter}”.
-              </p>
-            ) : (
-              <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto">
-                {visible.map((app) => (
-                  <li key={app.id}>
-                    <Dialog.Close
-                      onClick={() => onAssign(app.id, categoryId || null)}
-                      className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt"
-                    >
-                      <img
-                        src={`/icons/${iconKey(app)}`}
-                        alt=""
-                        className="h-9 w-9 shrink-0 object-contain p-1"
-                      />
-                      <span className="min-w-0 flex-1">
-                        <span className="block truncate font-medium">
-                          {app.name}
-                        </span>
-                        <span className="block truncate text-xs text-muted">
-                          {hostname(app.url)}
-                        </span>
-                      </span>
-                      <LuPlus
-                        aria-hidden
-                        className="size-4 shrink-0 text-muted"
-                      />
-                    </Dialog.Close>
-                  </li>
-                ))}
-              </ul>
-            )}
-          </>
+          <ul className="mt-3 max-h-80 space-y-2 overflow-y-auto">
+            {visible.map((app) => (
+              <li key={app.id}>
+                <Dialog.Close
+                  onClick={() => onAssign(app.id, categoryId || null)}
+                  className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt"
+                >
+                  <img
+                    src={`/icons/${iconKey(app)}`}
+                    alt=""
+                    className="h-9 w-9 shrink-0 object-contain p-1"
+                  />
+                  <span className="min-w-0 flex-1">
+                    <span className="block truncate font-medium">
+                      {app.name}
+                    </span>
+                    <span className="block truncate text-xs text-muted">
+                      {hostname(app.url)}
+                    </span>
+                  </span>
+                  <LuPlus aria-hidden className="size-4 shrink-0 text-muted" />
+                </Dialog.Close>
+              </li>
+            ))}
+          </ul>
         )}
       </ModalContent>
     </Dialog.Root>

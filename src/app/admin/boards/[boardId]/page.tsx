@@ -34,7 +34,15 @@ export default async function AdminBoardPage({
   if (!board) notFound()
   return (
     <>
-      <AdminMenubar active="boards" user={{ name: session.user.name }} />
+      <AdminMenubar
+        active="boards"
+        user={{ name: session.user.name }}
+        board={{
+          id: board.id,
+          name: board.name,
+          categories: board.categories.map(({ id, title }) => ({ id, title })),
+        }}
+      />
       <main className="mx-auto min-h-screen max-w-5xl px-4 pt-5 pb-8 sm:px-6">
         <BoardsAdmin
           boardNanoid={board.nanoid}

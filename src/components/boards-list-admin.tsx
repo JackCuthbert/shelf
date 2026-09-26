@@ -18,7 +18,7 @@ import {
   LuStar,
   LuTrash2,
 } from "react-icons/lu"
-import { ConfirmContent, ModalContent } from "@/components/modal"
+import { ConfirmContent, ModalContent, ModalFooter } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 
 type Board = {
@@ -112,6 +112,7 @@ export function BoardsListAdmin({
             Create board
           </Dialog.Trigger>
           <ModalContent
+            withFooter
             title="Create board"
             description="Boards are reachable by anyone with the public link."
           >
@@ -134,13 +135,13 @@ export function BoardsListAdmin({
                 />
                 <Field.Error className="text-xs text-danger" />
               </Field.Root>
-              <div className="mt-4 flex justify-end gap-2">
+              <ModalFooter>
                 <Dialog.Close className="btn">Cancel</Dialog.Close>
                 <Button type="submit" className="btn btn-primary">
                   <LuPlus aria-hidden className="size-4" />
                   Create board
                 </Button>
-              </div>
+              </ModalFooter>
             </Form>
           </ModalContent>
         </Dialog.Root>

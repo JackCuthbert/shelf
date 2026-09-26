@@ -3,6 +3,7 @@
 ## App records
 
 - Every signed-in user can create, edit, and delete apps in the shared household library.
+- App creation is available from signed-in navigation. Outside a board, the creator may optionally select an owned board and one of its categories (or leave it uncategorized). On an owned board view, creation defaults to adding the new shared app to that board; the creator can turn this off, and managed board views also allow category selection. On an owned public board view, the action offers Create app and Add existing app forms in one tabbed modal. Both place a checkbox labelled with the board name as the final option before Save. The Create app tab has no category selector. Category selectors are labelled “Add to category (optional)”. Assignment to the current board is available only to its owner. If creation succeeds but assignment fails, report that the shared app was created and the assignment failed; retrying must only retry assignment for the saved app and must not create a duplicate.
 - An app requires a nonempty name, an HTTP or HTTPS URL, and one explicitly selected icon. URLs may point to private household hosts or IP addresses. Other URL schemes are rejected.
 - An app has exactly one icon source: a Dashboard Icons slug or a downloaded custom image. The two are mutually exclusive and the form presents them as separate choices.
 - An app may have a plain-text description of up to 280 characters. Empty descriptions are allowed. Existing apps have an empty description after migration.
@@ -13,6 +14,8 @@
 ## Icon selection and persistence
 
 - Opening the icon picker fetches the published Dashboard Icons `metadata.json` in the browser. The picker searches icon slugs and aliases and shows remote CDN previews. No catalogue or unselected preview icon is saved in `/data`. [Published metadata](https://github.com/homarr-labs/dashboard-icons/blob/main/metadata.json).
+- The Dashboard Icons results list opens when no icon is selected, shows about three rows at a time within a bordered scrolling grid, and narrows as the user filters. Selecting an icon collapses the grid; the selected row offers Change icon to reopen it.
+- In app creation, the selected-icon row and search share a darkened background and a single outer border while the grid is open.
 - A user chooses an icon explicitly; the app name does not auto-select one. The Homarr import is the one exception: it may pre-select a slug detected from the source icon URL, and assigns the reserved placeholder icon when a row is saved without a chosen icon. See [homarr-import.md](homarr-import.md).
 - The placeholder icon is bundled with the application, never downloaded from the CDN, and never removed by icon cleanup.
 - On app save, the server validates the selected slug and downloads its PNG from the fixed Dashboard Icons CDN pattern into `/data/icons/<slug>.png`. The file is reused when another saved app selects the same slug. The source README documents the CDN URL pattern and PNG format. [Dashboard Icons README](https://github.com/homarr-labs/dashboard-icons/blob/main/README.md).

@@ -71,4 +71,27 @@ describe("IconCatalogueSearch", () => {
     expect(html).toContain("Could not load the icon catalogue.")
     expect(html).toContain("Retry")
   })
+
+  it("keeps the icon grid bordered and about three rows tall", () => {
+    const manyIcons = Object.fromEntries(
+      Array.from({ length: 13 }, (_, index) => [
+        `icon-${index}`,
+        { base: "png" },
+      ]),
+    ) as Catalogue
+    const html = renderToStaticMarkup(
+      <IconCatalogueSearch
+        embedded
+        catalogue={manyIcons}
+        error=""
+        onRetry={() => {}}
+        value=""
+        onSelect={() => {}}
+      />,
+    )
+    expect(html).toContain("max-h-[11.5rem]")
+    expect(html).toContain("border border-line p-2")
+    expect(html).not.toContain("more icons")
+    expect(html).toContain('class="bg-background px-3 pb-3"')
+  })
 })

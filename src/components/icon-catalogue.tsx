@@ -82,12 +82,14 @@ export function IconCatalogueSearch({
   onRetry,
   value,
   onSelect,
+  embedded = false,
 }: {
   catalogue: Catalogue | null
   error: string
   onRetry: () => void
   value: string
   onSelect: (slug: string) => void
+  embedded?: boolean
 }) {
   const [query, setQuery] = useState("")
   const results = useMemo(
@@ -96,7 +98,7 @@ export function IconCatalogueSearch({
   )
 
   return (
-    <div className="panel mt-3 p-3">
+    <div className={embedded ? "bg-background px-3 pb-3" : "panel mt-3 p-3"}>
       <label className="text-xs text-muted" htmlFor="icon-search">
         Search Dashboard Icons
       </label>
@@ -124,33 +126,35 @@ export function IconCatalogueSearch({
         <p className="mt-3 text-sm text-muted">Loading icon catalogue…</p>
       )}
       {catalogue && (
-        <div
-          className="mt-3 grid max-h-72 grid-cols-2 gap-2 overflow-y-auto sm:grid-cols-3 md:grid-cols-4"
-          aria-label="Icon results"
-        >
-          {results.map(([slug, entry]) => (
-            <Button
-              type="button"
-              key={slug}
-              onClick={() => onSelect(slug)}
-              aria-pressed={slug === value}
-              className={`flex min-w-0 items-center gap-2 border p-2 text-left hover:border-foreground ${slug === value ? "border-accent bg-surface-alt" : "border-line"}`}
-            >
-              <img
-                className="h-8 w-8 shrink-0 object-contain"
-                src={iconPreviewUrl(entry, slug)}
-                alt=""
-                loading="lazy"
-              />
-              <span className="truncate text-sm">{slug}</span>
-            </Button>
-          ))}
-          {results.length === 0 && (
-            <p className="col-span-full py-4 text-center text-sm text-muted">
-              No matching icons.
-            </p>
-          )}
-        </div>
+        <>
+          <div
+            className="mt-3 grid max-h-[11.5rem] grid-cols-2 gap-2 overflow-y-auto border border-line p-2 sm:grid-cols-3 md:grid-cols-4"
+            aria-label="Icon results"
+          >
+            {results.map(([slug, entry]) => (
+              <Button
+                type="button"
+                key={slug}
+                onClick={() => onSelect(slug)}
+                aria-pressed={slug === value}
+                className={`flex min-w-0 items-center gap-2 border p-2 text-left hover:border-foreground ${slug === value ? "border-accent bg-surface-alt" : "border-line"}`}
+              >
+                <img
+                  className="h-8 w-8 shrink-0 object-contain"
+                  src={iconPreviewUrl(entry, slug)}
+                  alt=""
+                  loading="lazy"
+                />
+                <span className="truncate text-sm">{slug}</span>
+              </Button>
+            ))}
+            {results.length === 0 && (
+              <p className="col-span-full py-4 text-center text-sm text-muted">
+                No matching icons.
+              </p>
+            )}
+          </div>
+        </>
       )}
     </div>
   )

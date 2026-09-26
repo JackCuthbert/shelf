@@ -7,6 +7,10 @@ vi.mock("@/components/trpc-provider", () => {
     trpc: {
       useUtils: () => ({ apps: { list: { invalidate: () => {} } } }),
       apps: { create: { useMutation }, update: { useMutation } },
+      boards: {
+        list: { useQuery: () => ({ data: [] }) },
+        assign: { useMutation },
+      },
     },
   }
 })

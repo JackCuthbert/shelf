@@ -15,7 +15,7 @@ describe("IconPicker", () => {
     expect(html).toContain('src="https://images.home/a.png"')
   })
 
-  it("shows the dashboard picker in dashboard mode", () => {
+  it("collapses the picker when an icon is selected", () => {
     const html = renderToStaticMarkup(
       <IconPicker
         value={{ source: "dashboard", slug: "plex", url: "" }}
@@ -25,6 +25,21 @@ describe("IconPicker", () => {
     )
     expect(html).toContain("Selected icon")
     expect(html).toContain('src="/icons/plex"')
+    expect(html).toContain("Change icon")
+    expect(html).not.toContain("Search Dashboard Icons")
+    expect(html).not.toContain(">Close</span>")
     expect(html).not.toContain('type="url"')
+  })
+
+  it("opens the picker when no icon is selected", () => {
+    const html = renderToStaticMarkup(
+      <IconPicker
+        value={{ source: "dashboard", slug: "", url: "" }}
+        onChange={() => {}}
+      />,
+    )
+    expect(html).toContain("Select icon")
+    expect(html).toContain("Search Dashboard Icons")
+    expect(html).not.toContain("Change icon")
   })
 })

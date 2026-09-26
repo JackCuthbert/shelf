@@ -6,13 +6,19 @@ import {
   statusColor,
 } from "./board-search"
 
+vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
+
 vi.mock("@/components/trpc-provider", () => ({
   trpc: {
+    useUtils: () => ({ boards: { list: { invalidate: async () => {} } } }),
     boards: {
+      list: { useQuery: () => ({ data: [] }) },
+      assign: { useMutation: () => ({ mutate: () => {} }) },
       refreshStatuses: {
         useMutation: () => ({ mutateAsync: async () => [] }),
       },
     },
+    apps: { list: { useQuery: () => ({ data: [] }) } },
   },
 }))
 

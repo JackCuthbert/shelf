@@ -94,7 +94,7 @@ export function AppBoardDialog({
                       <CategorySelect
                         value={categoryByBoard[board.id] || null}
                         categories={board.categories}
-                        label={`Category on ${board.name}`}
+                        label={`Add to category (optional) on ${board.name}`}
                         onChange={(categoryId) =>
                           setCategoryByBoard((previous) => ({
                             ...previous,
