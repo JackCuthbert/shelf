@@ -1,0 +1,14 @@
+services:
+  shelf:
+    build: .
+    restart: unless-stopped
+    ports:
+      - "3367:3367"
+    environment:
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+    volumes:
+      - shelf-data:/data
+
+volumes:
+  shelf-data:
