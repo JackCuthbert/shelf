@@ -12,7 +12,7 @@ export const metadata: Metadata = { title: appTitle("Account") }
 
 export default async function AccountPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const oidcProvider = getOidcProviderConfig(process.env)
   const oidcAccount = oidcProvider
     ? await prisma.account.findFirst({
@@ -26,7 +26,7 @@ export default async function AccountPage() {
   return (
     <>
       <AdminMenubar active="account" user={{ name: session.user.name }} />
-      <main className="mx-auto min-h-screen max-w-5xl space-y-5 px-4 pt-5 pb-8 sm:px-6">
+      <main className="mx-auto w-full flex-1 max-w-5xl space-y-5 px-4 pt-5 pb-8 sm:px-6">
         <h1 className="text-2xl font-semibold">Account settings</h1>
         <AccountSettings
           name={session.user.name}

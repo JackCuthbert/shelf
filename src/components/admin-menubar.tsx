@@ -7,7 +7,7 @@ export function AdminMenubar({
   user,
   board,
 }: {
-  active: "boards" | "apps" | "account"
+  active: "boards" | "apps" | "account" | null
   user: { name: string }
   board?: {
     id: string

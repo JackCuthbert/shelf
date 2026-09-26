@@ -244,7 +244,7 @@ export function BoardSearch({
   }
 
   return (
-    <main className="min-h-screen">
+    <main className="flex-1">
       <header className="sticky top-0 z-20 border-b border-line bg-background">
         <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
           <div className="order-1 min-w-0">

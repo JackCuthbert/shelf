@@ -11,7 +11,7 @@ export const metadata: Metadata = { title: appTitle("Boards") }
 
 export default async function AdminPage() {
   const session = await auth.api.getSession({ headers: await headers() })
-  if (!session) redirect("/")
+  if (!session) redirect("/login")
   const [boards, user] = await Promise.all([
     prisma.board.findMany({
       where: { ownerId: session.user.id },
@@ -33,7 +33,7 @@ export default async function AdminPage() {
   return (
     <>
       <AdminMenubar active="boards" user={{ name: session.user.name }} />
-      <main className="mx-auto min-h-screen max-w-5xl px-4 pt-5 pb-8 sm:px-6">
+      <main className="mx-auto w-full flex-1 max-w-5xl px-4 pt-5 pb-8 sm:px-6">
         <BoardsListAdmin
           initialBoards={boards.map((board) => ({
             ...board,

@@ -21,7 +21,7 @@ export function UserMenu({ user }: { user: { name: string } | null }) {
   }, [])
   if (!user) {
     return (
-      <a href="/" className="btn text-xs">
+      <a href="/login" className="btn text-xs">
         Sign in
       </a>
     )
