@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
 import {
   createBoardNanoid,
+  createCategoryNanoid,
   moveItem,
   normalizeCategoryTitle,
   orderedBoardAssignmentIds,
@@ -89,7 +90,7 @@ export const boardRouter = router({
         const board = await tx.board.create({
           data: {
             name: input.name,
-            nanoid: createBoardNanoid(),
+            id: createBoardNanoid(),
             ownerId: ctx.session.user.id,
           },
         })
@@ -284,6 +285,83 @@ export const boardRouter = router({
       )
       return { success: true }
     }),
+  reorder: protectedProcedure
+    .input(
+      z.object({
+        boardId: boardIdSchema,
+        appIds: z.array(z.string().min(1)),
+        appId: z.string().min(1),
+        categoryId: categoryIdSchema,
+      }),
+    )
+    .mutation(async ({ ctx, input }) => {
+      await ownedBoard(input.boardId, ctx.session.user.id)
+      const assignments = await prisma.boardApp.findMany({
+        where: { boardId: input.boardId },
+        orderBy: { position: "asc" },
+      })
+      const categories = await prisma.boardCategory.findMany({
+        where: { boardId: input.boardId },
+        orderBy: { position: "asc" },
+        select: { id: true },
+      })
+      await categoryOnBoard(input.categoryId, input.boardId)
+      const moved = assignments.find((entry) => entry.appId === input.appId)
+      if (!moved)
+        throw new TRPCError({
+          code: "NOT_FOUND",
+          message: "App assignment not found.",
+        })
+      const nextAssignments = assignments.map((entry) =>
+        entry.appId === input.appId
+          ? { ...entry, categoryId: input.categoryId }
+          : entry,
+      )
+      const expected = orderedBoardAssignmentIds(
+        nextAssignments,
+        categories.map((category) => category.id),
+      )
+      const expectedIds = new Set(expected)
+      if (
+        input.appIds.length !== expected.length ||
+        new Set(input.appIds).size !== expected.length ||
+        input.appIds.some((id) => !expectedIds.has(id))
+      )
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "App order must include every assignment exactly once.",
+        })
+      const categoryById = new Map(
+        nextAssignments.map((entry) => [entry.appId, entry.categoryId]),
+      )
+      const categoryIds = [null, ...categories.map((category) => category.id)]
+      let offset = 0
+      for (const categoryId of categoryIds) {
+        const groupSize = nextAssignments.filter(
+          (entry) => entry.categoryId === categoryId,
+        ).length
+        if (
+          input.appIds
+            .slice(offset, offset + groupSize)
+            .some((id) => categoryById.get(id) !== categoryId)
+        )
+          throw new TRPCError({
+            code: "BAD_REQUEST",
+            message: "App order cannot move assignments between categories.",
+          })
+        offset += groupSize
+      }
+      await prisma.$transaction(async (tx) => {
+        await tx.boardApp.update({
+          where: {
+            boardId_appId: { boardId: input.boardId, appId: input.appId },
+          },
+          data: { categoryId: input.categoryId },
+        })
+        await writeAssignmentPositions(tx, input.boardId, input.appIds)
+      })
+      return { success: true }
+    }),
   setAssignmentCategory: protectedProcedure
     .input(
       z.object({
@@ -353,6 +431,7 @@ export const boardRouter = router({
       })
       return prisma.boardCategory.create({
         data: {
+          id: createCategoryNanoid(),
           boardId: input.boardId,
           title: input.title,
           description: input.description,
@@ -443,7 +522,7 @@ export const boardRouter = router({
     .input(z.object({ nanoid: z.string().min(8).max(30) }))
     .query(({ input }) =>
       prisma.board.findUnique({
-        where: { nanoid: input.nanoid },
+        where: { id: input.nanoid },
         include: {
           categories: { orderBy: { position: "asc" } },
           apps: { include: { app: true }, orderBy: { position: "asc" } },

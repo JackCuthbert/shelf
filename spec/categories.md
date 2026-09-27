@@ -19,7 +19,7 @@ Categories organize apps on one board. They do not change the shared app library
 ## Management and ordering
 
 - The board owner can create and edit a category, move categories up or down, and delete a category with confirmation. Category controls work with pointer, touch, and keyboard input; drag and drop is not required.
-- Adding a shared app to a board offers an optional category selection, defaulting to uncategorized. The owner can move an existing assignment into another category or back to uncategorized. Moving to a new group appends the app to that group's end. Within each group, Move up / Move down changes only that group's app order.
+- Adding a shared app to a board offers an optional category selection, defaulting to uncategorized. The owner can move an existing assignment into another category or back to uncategorized with the category selector or by dragging it into the destination group. Dragging over an app inserts before it; dropping into empty space or an empty category appends to that group. Drag and drop changes order within each group.
 - Deleting a category moves its apps to the end of the uncategorized group in their existing relative order; it does not remove those apps from the board. The category and assignment changes persist together.
 - Maintain deterministic positions for categories and app assignments after moves, category deletion, assignment removal, and app deletion. The existing board app position can remain one board-wide sequence; category membership determines grouping, and positions determine order within each group.
 
@@ -27,7 +27,7 @@ Categories organize apps on one board. They do not change the shared app library
 
 - Existing boards display their apps in the same order after migration.
 - One app cannot be assigned twice to the same board or appear in two categories on that board. An assignment cannot reference a category from another board.
-- Category order, category membership, and app order within each group persist across reloads and do not change other boards.
+- Category order, category membership, and app order within each group persist across reloads and do not change other boards. Cross-category drag updates category membership and global assignment positions together.
 - Deleting a populated category preserves its apps, app order relative to one another, links, and descriptions.
 - Empty categories and category descriptions remain accessible at phone and desktop widths without horizontal scrolling.
 - Search keeps group order, ranks matches within groups, hides groups without matches, and shows a clear no-results state when appropriate.

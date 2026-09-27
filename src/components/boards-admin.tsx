@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, type ReactNode } from "react"
+import { Fragment, useEffect, useState, type ReactNode } from "react"
 import { AlertDialog } from "@base-ui/react/alert-dialog"
 import { Button } from "@base-ui/react/button"
 import { Dialog } from "@base-ui/react/dialog"
@@ -10,15 +10,30 @@ import { Input } from "@base-ui/react/input"
 import { Popover } from "@base-ui/react/popover"
 import { Tooltip } from "@base-ui/react/tooltip"
 import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  TouchSensor,
+  closestCenter,
+  pointerWithin,
+  useDraggable,
+  useDroppable,
+  useSensor,
+  useSensors,
+  type CollisionDetection,
+  type DragEndEvent,
+} from "@dnd-kit/core"
+import {
   LuArrowDown,
   LuArrowUp,
-  LuExternalLink,
+  LuGripVertical,
   LuInfo,
   LuPencil,
   LuPlus,
   LuStar,
   LuTrash2,
   LuX,
+  LuExternalLink,
 } from "react-icons/lu"
 import { AppFormDialog } from "@/components/app-form-dialog"
 import {
@@ -47,7 +62,6 @@ type BoardAppEntry = {
 type Board = {
   id: string
   name: string
-  nanoid: string
   ownerId: string
   createdAt: string
   updatedAt: string
@@ -71,6 +85,42 @@ type App = {
   updatedAt: string
 }
 
+const boardCollisionDetection: CollisionDetection = (args) => {
+  const hits = pointerWithin(args).filter(
+    (collision) => collision.id !== args.active.id,
+  )
+  const groupHit = hits.find(
+    (collision) =>
+      args.droppableContainers.find(
+        (container) => container.id === collision.id,
+      )?.data.current?.kind === "group",
+  )
+  if (!groupHit || !args.pointerCoordinates) return []
+  const group = args.droppableContainers.find(
+    (container) => container.id === groupHit.id,
+  )
+  const slots = args.droppableContainers.filter(
+    (container) =>
+      container.data.current?.kind === "slot" &&
+      container.data.current?.boardId === group?.data.current?.boardId &&
+      container.data.current?.categoryId === group?.data.current?.categoryId,
+  )
+  if (slots.length === 0) return []
+  const { x, y } = args.pointerCoordinates
+  return closestCenter({
+    ...args,
+    collisionRect: {
+      top: y,
+      bottom: y,
+      left: x,
+      right: x,
+      width: 0,
+      height: 0,
+    },
+    droppableContainers: slots,
+  })
+}
+
 function boardGroups(board: Board) {
   return [
     { category: null, apps: board.apps.filter((entry) => !entry.categoryId) },
@@ -79,6 +129,91 @@ function boardGroups(board: Board) {
       apps: board.apps.filter((entry) => entry.categoryId === category.id),
     })),
   ]
+}
+
+function SortableAssignment({
+  boardId,
+  appId,
+  id,
+  isDragging,
+  children,
+}: {
+  id: string
+  boardId: string
+  appId: string
+  isDragging: boolean
+  children: ReactNode
+}) {
+  const { attributes, listeners, setNodeRef } = useDraggable({
+    id,
+    data: { kind: "app", boardId, appId },
+  })
+  return (
+    <li
+      ref={setNodeRef}
+      className={`list-none ${isDragging ? "opacity-10" : ""}`}
+    >
+      <div className="flex items-center">
+        <button
+          type="button"
+          className="touch-none cursor-grab px-1 text-muted active:cursor-grabbing"
+          aria-label="Drag to reorder app"
+          {...attributes}
+          {...listeners}
+        >
+          <LuGripVertical aria-hidden className="size-4" />
+        </button>
+        <div className="min-w-0 flex-1">{children}</div>
+      </div>
+    </li>
+  )
+}
+
+function InsertionSlot({
+  boardId,
+  categoryId,
+  index,
+  active,
+}: {
+  boardId: string
+  categoryId: string | null
+  index: number
+  active: boolean
+}) {
+  const id = `board:${boardId}:category:${categoryId ?? "uncategorized"}:slot:${index}`
+  const { setNodeRef } = useDroppable({
+    id,
+    data: { kind: "slot", boardId, categoryId, index },
+  })
+  return (
+    <div ref={setNodeRef} className="relative z-10 h-1 -mb-1" aria-hidden>
+      {active && (
+        <div className="absolute inset-x-2 top-1/2 border-t-2 border-accent" />
+      )}
+    </div>
+  )
+}
+
+function CategoryDropTarget({
+  boardId,
+  categoryId,
+  label,
+  children,
+}: {
+  boardId: string
+  categoryId: string | null
+  label: string
+  children: ReactNode
+}) {
+  const { setNodeRef } = useDroppable({
+    id: `board:${boardId}:group:${categoryId ?? "uncategorized"}`,
+    data: { kind: "group", boardId, categoryId },
+  })
+  return (
+    <section ref={setNodeRef} aria-label={label} className="panel">
+      {children}
+    </section>
+  )
 }
 
 function IconAction({
@@ -141,7 +276,7 @@ export function BoardsAdmin({
     initialData: initialApps,
   })
   const visibleBoards = boardNanoid
-    ? boards.filter((board) => board.nanoid === boardNanoid)
+    ? boards.filter((board) => board.id === boardNanoid)
     : boards
   const activeBoard = visibleBoards[0]
   const [defaultId, setDefaultId] = useState<string | null>(
@@ -156,13 +291,28 @@ export function BoardsAdmin({
     | null
   >(null)
   const [editingApp, setEditingApp] = useState<App | null>(null)
+  const [optimisticOrders, setOptimisticOrders] = useState<
+    Record<
+      string,
+      { appIds: string[]; appId: string; categoryId: string | null }
+    >
+  >({})
   const [error, setError] = useState("")
+  const [activeDrag, setActiveDrag] = useState<{
+    boardId: string
+    appId: string
+  } | null>(null)
+  const [dropPreview, setDropPreview] = useState<string | null>(null)
   const refresh = () => {
     setError("")
   }
   const fail = (cause: { message: string }) => setError(cause.message)
   const rename = trpc.boards.rename.useMutation({
     onSuccess: refresh,
+    onError: fail,
+  })
+  const deleteBoard = trpc.boards.delete.useMutation({
+    onSuccess: () => window.location.assign("/admin/boards"),
     onError: fail,
   })
   const setDefault = trpc.boards.setDefault.useMutation({
@@ -177,10 +327,39 @@ export function BoardsAdmin({
     onSuccess: refresh,
     onError: fail,
   })
-  const move = trpc.boards.move.useMutation({
+  const reorder = trpc.boards.reorder.useMutation({
     onSuccess: refresh,
-    onError: fail,
+    onError: (cause, variables) => {
+      setOptimisticOrders((current) => {
+        const next = { ...current }
+        delete next[variables.boardId]
+        return next
+      })
+      fail(cause)
+    },
   })
+  useEffect(() => {
+    const matchedBoardIds = Object.entries(optimisticOrders)
+      .filter(([boardId, optimistic]) => {
+        const board = boards.find((item) => item.id === boardId)
+        return (
+          board &&
+          optimistic.appIds.length === board.apps.length &&
+          optimistic.appIds.every(
+            (id, index) => board.apps[index]?.appId === id,
+          ) &&
+          board.apps.find((entry) => entry.appId === optimistic.appId)
+            ?.categoryId === optimistic.categoryId
+        )
+      })
+      .map(([boardId]) => boardId)
+    if (matchedBoardIds.length === 0) return
+    setOptimisticOrders((current) => {
+      const next = { ...current }
+      for (const boardId of matchedBoardIds) delete next[boardId]
+      return next
+    })
+  }, [boards, optimisticOrders])
   const setAssignmentCategory = trpc.boards.setAssignmentCategory.useMutation({
     onSuccess: refresh,
     onError: fail,
@@ -202,6 +381,75 @@ export function BoardsAdmin({
     onError: fail,
   })
   const categoryPending = createCategory.isPending || updateCategory.isPending
+  const sensors = useSensors(
+    useSensor(PointerSensor),
+    useSensor(TouchSensor, {
+      activationConstraint: { delay: 120, tolerance: 8 },
+    }),
+  )
+  function reorderGroup(board: Board, event: DragEndEvent) {
+    const { active, over } = event
+    if (!over || active.id === over.id) return
+    const draggedId = String(active.data.current?.appId ?? "")
+    const dragged = board.apps.find((entry) => entry.appId === draggedId)
+    if (!dragged) return
+    const categoryId = over.data.current?.categoryId as
+      | string
+      | null
+      | undefined
+    const slotIndex = over.data.current?.index
+    if (
+      over.data.current?.kind !== "slot" ||
+      typeof slotIndex !== "number" ||
+      categoryId === undefined
+    )
+      return
+    const originalGroups = boardGroups(board)
+    const nextGroups = originalGroups.map((group) => ({
+      categoryId: group.category?.id ?? null,
+      appIds: group.apps
+        .map((entry) => entry.appId)
+        .filter((id) => id !== draggedId),
+    }))
+    const destination = nextGroups.find(
+      (group) => group.categoryId === categoryId,
+    )
+    if (!destination) return
+    const sourceGroup = originalGroups.find((group) =>
+      group.apps.some((entry) => entry.appId === draggedId),
+    )
+    const sourceIndex =
+      sourceGroup?.apps.findIndex((entry) => entry.appId === draggedId) ?? -1
+    const adjustedIndex =
+      categoryId === dragged.categoryId && sourceIndex < slotIndex
+        ? slotIndex - 1
+        : slotIndex
+    destination.appIds.splice(
+      Math.max(0, Math.min(adjustedIndex, destination.appIds.length)),
+      0,
+      draggedId,
+    )
+    const order = nextGroups.flatMap((group) => group.appIds)
+    if (
+      order.every((id, index) => id === board.apps[index]?.appId) &&
+      categoryId === dragged.categoryId
+    )
+      return
+    setOptimisticOrders((current) => ({
+      ...current,
+      [board.id]: {
+        appIds: order,
+        appId: draggedId,
+        categoryId,
+      },
+    }))
+    reorder.mutate({
+      boardId: board.id,
+      appIds: order,
+      appId: draggedId,
+      categoryId,
+    })
+  }
 
   function saveCategory(values: { title: string; description: string }) {
     if (!categoryDraft) return
@@ -217,17 +465,9 @@ export function BoardsAdmin({
       )
   }
 
-  function renderAssignment(
-    board: Board,
-    entry: BoardAppEntry,
-    index: number,
-    groupCount: number,
-  ) {
+  function renderAssignment(board: Board, entry: BoardAppEntry) {
     return (
-      <li
-        key={entry.appId}
-        className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt/50 sm:flex-row sm:flex-wrap sm:items-center"
-      >
+      <div className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt/50 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex min-w-0 items-center gap-2 sm:flex-1">
           <img
             src={`/icons/${iconKey(entry.app)}`}
@@ -285,62 +525,6 @@ export function BoardsAdmin({
                 </Tooltip.Positioner>
               </Tooltip.Portal>
             </Tooltip.Root>
-            <Tooltip.Root>
-              <Tooltip.Trigger
-                render={
-                  <button
-                    type="button"
-                    className="btn text-xs"
-                    disabled={index === 0}
-                    onClick={() =>
-                      move.mutate({
-                        boardId: board.id,
-                        appId: entry.appId,
-                        direction: "up",
-                      })
-                    }
-                    aria-label={`Move ${entry.app.name} up`}
-                  />
-                }
-              >
-                <LuArrowUp aria-hidden className="size-4" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Positioner sideOffset={6}>
-                  <Tooltip.Popup className="panel px-2 py-1 text-xs">
-                    Move up
-                  </Tooltip.Popup>
-                </Tooltip.Positioner>
-              </Tooltip.Portal>
-            </Tooltip.Root>
-            <Tooltip.Root>
-              <Tooltip.Trigger
-                render={
-                  <button
-                    type="button"
-                    className="btn text-xs"
-                    disabled={index === groupCount - 1}
-                    onClick={() =>
-                      move.mutate({
-                        boardId: board.id,
-                        appId: entry.appId,
-                        direction: "down",
-                      })
-                    }
-                    aria-label={`Move ${entry.app.name} down`}
-                  />
-                }
-              >
-                <LuArrowDown aria-hidden className="size-4" />
-              </Tooltip.Trigger>
-              <Tooltip.Portal>
-                <Tooltip.Positioner sideOffset={6}>
-                  <Tooltip.Popup className="panel px-2 py-1 text-xs">
-                    Move down
-                  </Tooltip.Popup>
-                </Tooltip.Positioner>
-              </Tooltip.Portal>
-            </Tooltip.Root>
           </div>
           <IconAction
             label={`Remove ${entry.app.name} from ${board.name}`}
@@ -356,7 +540,7 @@ export function BoardsAdmin({
             <LuX aria-hidden className="size-4" />
           </IconAction>
         </div>
-      </li>
+      </div>
     )
   }
 
@@ -487,7 +671,7 @@ export function BoardsAdmin({
               <h1 className="truncate text-xl font-semibold">
                 <a
                   className="inline-flex max-w-full items-center gap-1.5 hover:underline"
-                  href={`/board/${activeBoard.nanoid}`}
+                  href={`/board/${activeBoard.id}`}
                   target="_blank"
                   rel="noreferrer"
                 >
@@ -522,6 +706,24 @@ export function BoardsAdmin({
                 <LuPlus aria-hidden className="size-4" />
                 Add category
               </Button>
+              <AlertDialog.Root>
+                <AlertDialog.Trigger className="btn btn-danger text-xs">
+                  <LuTrash2 aria-hidden className="size-4" />
+                  Delete board
+                </AlertDialog.Trigger>
+                <ConfirmContent
+                  title="Delete board"
+                  description={`Delete “${activeBoard.name}”? This removes the board, its categories, and its assignments.`}
+                >
+                  <AlertDialog.Close className="btn">Cancel</AlertDialog.Close>
+                  <AlertDialog.Close
+                    className="btn btn-danger"
+                    onClick={() => deleteBoard.mutate({ id: activeBoard.id })}
+                  >
+                    <LuTrash2 aria-hidden className="size-4" /> Delete
+                  </AlertDialog.Close>
+                </ConfirmContent>
+              </AlertDialog.Root>
             </div>
           </div>
         ) : (
@@ -592,118 +794,248 @@ export function BoardsAdmin({
           Create your first board to start sharing apps.
         </p>
       ) : (
-        <ul className="mt-4 space-y-3">
-          {visibleBoards.map((board) => {
-            const available = apps.filter(
-              (app) => !board.apps.some((entry) => entry.appId === app.id),
-            )
-            const groups = boardGroups(board)
-            return (
-              <li key={board.id}>
-                <div className="space-y-4">
-                  {groups.map((group) => {
-                    const category = group.category
-                    const categoryIndex = category
-                      ? board.categories.findIndex(
-                          (item) => item.id === category.id,
+        <DndContext
+          id="boards-admin-apps"
+          sensors={sensors}
+          collisionDetection={boardCollisionDetection}
+          onDragStart={(event) => {
+            const boardId = String(event.active.data.current?.boardId ?? "")
+            const appId = String(event.active.data.current?.appId ?? "")
+            if (boardId && appId) setActiveDrag({ boardId, appId })
+          }}
+          onDragOver={(event) => {
+            const over = event.over
+            if (
+              !over ||
+              over.id === event.active.id ||
+              String(over.data.current?.boardId ?? "") !==
+                String(event.active.data.current?.boardId ?? "")
+            ) {
+              setDropPreview(null)
+              return
+            }
+            if (over.data.current?.kind !== "slot") {
+              setDropPreview(null)
+              return
+            }
+            setDropPreview(String(over.id))
+          }}
+          onDragEnd={(event) => {
+            const boardId = String(event.active.data.current?.boardId ?? "")
+            if (
+              event.over &&
+              String(event.over.data.current?.boardId ?? "") === boardId
+            ) {
+              const board = visibleBoards.find((item) => item.id === boardId)
+              const orderedBoard =
+                board && optimisticOrders[board.id]
+                  ? {
+                      ...board,
+                      apps: optimisticOrders[board.id].appIds.flatMap((id) => {
+                        const entry = board.apps.find(
+                          (item) => item.appId === id,
                         )
-                      : -1
-                    return (
-                      <section
-                        key={category?.id ?? "uncategorized"}
-                        className="panel"
-                        aria-label={category?.title ?? "Uncategorised"}
-                      >
-                        <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
-                          <div className="flex min-w-0 flex-col items-start">
-                            <div className="flex min-w-0 items-center gap-1">
-                              <h5 className="truncate text-sm font-semibold">
-                                {category?.title ?? "Uncategorised"}
-                              </h5>
-                              {!category && (
-                                <Popover.Root>
-                                  <Popover.Trigger
-                                    aria-label="About Uncategorised"
-                                    className="inline-flex size-6 shrink-0 items-center justify-center text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
-                                  >
-                                    <LuInfo aria-hidden className="size-4" />
-                                  </Popover.Trigger>
-                                  <Popover.Portal>
-                                    <Popover.Positioner
-                                      side="top"
-                                      align="start"
-                                      sideOffset={8}
-                                      collisionPadding={8}
-                                      className="z-50"
+                        return entry
+                          ? [
+                              {
+                                ...entry,
+                                categoryId:
+                                  entry.appId ===
+                                  optimisticOrders[board.id].appId
+                                    ? optimisticOrders[board.id].categoryId
+                                    : entry.categoryId,
+                              },
+                            ]
+                          : []
+                      }),
+                    }
+                  : board
+              if (orderedBoard) reorderGroup(orderedBoard, event)
+            }
+            setActiveDrag(null)
+            setDropPreview(null)
+          }}
+          onDragCancel={() => {
+            setActiveDrag(null)
+            setDropPreview(null)
+          }}
+        >
+          <ul className="mt-4 space-y-3">
+            {visibleBoards.map((board) => {
+              const available = apps.filter(
+                (app) => !board.apps.some((entry) => entry.appId === app.id),
+              )
+              const savedOrder = optimisticOrders[board.id]
+              const orderedBoard = savedOrder
+                ? {
+                    ...board,
+                    apps: savedOrder.appIds.flatMap((appId) => {
+                      const entry = board.apps.find(
+                        (item) => item.appId === appId,
+                      )
+                      return entry
+                        ? [
+                            {
+                              ...entry,
+                              categoryId:
+                                entry.appId === savedOrder.appId
+                                  ? savedOrder.categoryId
+                                  : entry.categoryId,
+                            },
+                          ]
+                        : []
+                    }),
+                  }
+                : board
+              const groups = boardGroups(orderedBoard)
+              return (
+                <li key={board.id}>
+                  <div className="space-y-4">
+                    {groups.map((group) => {
+                      const category = group.category
+                      const categoryIndex = category
+                        ? board.categories.findIndex(
+                            (item) => item.id === category.id,
+                          )
+                        : -1
+                      return (
+                        <CategoryDropTarget
+                          boardId={board.id}
+                          categoryId={category?.id ?? null}
+                          key={category?.id ?? "uncategorized"}
+                          label={category?.title ?? "Uncategorised"}
+                        >
+                          <header className="flex flex-wrap items-center justify-between gap-2 rounded-[2px] bg-surface-alt px-3 py-2">
+                            <div className="flex min-w-0 flex-col items-start">
+                              <div className="flex min-w-0 items-center gap-1">
+                                <h5 className="truncate text-sm font-semibold">
+                                  {category?.title ?? "Uncategorised"}
+                                </h5>
+                                {!category && (
+                                  <Popover.Root>
+                                    <Popover.Trigger
+                                      aria-label="About Uncategorised"
+                                      className="inline-flex size-6 shrink-0 items-center justify-center text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus"
                                     >
-                                      <Popover.Popup
-                                        className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
-                                        aria-label="Uncategorised information"
+                                      <LuInfo aria-hidden className="size-4" />
+                                    </Popover.Trigger>
+                                    <Popover.Portal>
+                                      <Popover.Positioner
+                                        side="top"
+                                        align="start"
+                                        sideOffset={8}
+                                        collisionPadding={8}
+                                        className="z-50"
                                       >
-                                        Apps here appear first on the public
-                                        board without a category.
-                                      </Popover.Popup>
-                                    </Popover.Positioner>
-                                  </Popover.Portal>
-                                </Popover.Root>
+                                        <Popover.Popup
+                                          className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
+                                          aria-label="Uncategorised information"
+                                        >
+                                          Apps here appear first on the public
+                                          board without a category.
+                                        </Popover.Popup>
+                                      </Popover.Positioner>
+                                    </Popover.Portal>
+                                  </Popover.Root>
+                                )}
+                              </div>
+                              {category?.description && (
+                                <p className="text-xs text-muted">
+                                  {category.description}
+                                </p>
                               )}
                             </div>
-                            {category?.description && (
-                              <p className="text-xs text-muted">
-                                {category.description}
-                              </p>
+                            {category ? (
+                              renderCategoryControls(
+                                board,
+                                category,
+                                categoryIndex,
+                              )
+                            ) : (
+                              <BoardAppDialog
+                                boardName={board.name}
+                                apps={available}
+                                categories={board.categories}
+                                lockedCategoryId={null}
+                                triggerAriaLabel="Add app to Uncategorised"
+                                triggerClassName="btn text-xs"
+                                onAssign={(appId, categoryId) =>
+                                  assign.mutate({
+                                    boardId: board.id,
+                                    appId,
+                                    categoryId,
+                                  })
+                                }
+                              />
                             )}
-                          </div>
-                          {category ? (
-                            renderCategoryControls(
-                              board,
-                              category,
-                              categoryIndex,
-                            )
-                          ) : (
-                            <BoardAppDialog
-                              boardName={board.name}
-                              apps={available}
-                              categories={board.categories}
-                              lockedCategoryId={null}
-                              triggerAriaLabel="Add app to Uncategorised"
-                              triggerClassName="btn text-xs"
-                              onAssign={(appId, categoryId) =>
-                                assign.mutate({
-                                  boardId: board.id,
-                                  appId,
-                                  categoryId,
-                                })
-                              }
-                            />
-                          )}
-                        </header>
-                        <div>
-                          {group.apps.length === 0 ? (
+                          </header>
+                          {group.apps.length === 0 && (
                             <p className="px-3 py-2 text-sm text-muted">
                               No apps assigned.
                             </p>
-                          ) : (
-                            <ol>
-                              {group.apps.map((entry, index) =>
-                                renderAssignment(
-                                  board,
-                                  entry,
-                                  index,
-                                  group.apps.length,
-                                ),
-                              )}
-                            </ol>
                           )}
-                        </div>
-                      </section>
-                    )
-                  })}
-                </div>
-              </li>
-            )
-          })}
-        </ul>
+                          <ol>
+                            {group.apps.map((entry, index) => (
+                              <Fragment key={entry.appId}>
+                                <InsertionSlot
+                                  boardId={board.id}
+                                  categoryId={category?.id ?? null}
+                                  index={index}
+                                  active={
+                                    dropPreview ===
+                                    `board:${board.id}:category:${category?.id ?? "uncategorized"}:slot:${index}`
+                                  }
+                                />
+                                <SortableAssignment
+                                  boardId={board.id}
+                                  appId={entry.appId}
+                                  id={`board:${board.id}:app:${entry.appId}`}
+                                  isDragging={
+                                    activeDrag?.boardId === board.id &&
+                                    activeDrag.appId === entry.appId
+                                  }
+                                >
+                                  {renderAssignment(board, entry)}
+                                </SortableAssignment>
+                              </Fragment>
+                            ))}
+                            <InsertionSlot
+                              boardId={board.id}
+                              categoryId={category?.id ?? null}
+                              index={group.apps.length}
+                              active={
+                                dropPreview ===
+                                `board:${board.id}:category:${category?.id ?? "uncategorized"}:slot:${group.apps.length}`
+                              }
+                            />
+                          </ol>
+                        </CategoryDropTarget>
+                      )
+                    })}
+                  </div>
+                </li>
+              )
+            })}
+          </ul>
+          <DragOverlay dropAnimation={null}>
+            {activeDrag &&
+              (() => {
+                const app = visibleBoards
+                  .find((board) => board.id === activeDrag.boardId)
+                  ?.apps.find((entry) => entry.appId === activeDrag.appId)?.app
+                return app ? (
+                  <div className="flex items-center gap-2 border border-accent bg-surface px-3 py-2 shadow-lg">
+                    <img
+                      src={`/icons/${iconKey(app)}`}
+                      alt=""
+                      className="size-8 object-contain"
+                    />
+                    <span className="text-sm font-medium">{app.name}</span>
+                  </div>
+                ) : null
+              })()}
+          </DragOverlay>
+        </DndContext>
       )}
     </section>
   )

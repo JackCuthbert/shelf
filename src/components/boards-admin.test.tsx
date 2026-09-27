@@ -19,6 +19,7 @@ vi.mock("@/components/trpc-provider", () => {
         assign: { useMutation },
         unassign: { useMutation },
         move: { useMutation },
+        reorder: { useMutation },
         setAssignmentCategory: { useMutation },
         createCategory: { useMutation },
         updateCategory: { useMutation },
@@ -50,7 +51,6 @@ it("renders the same board link during server and browser initial renders", () =
     initialBoards: [
       {
         id: "board-1",
-        nanoid: "public-id",
         name: "Home",
         ownerId: "user-1",
         createdAt: "",
@@ -63,13 +63,13 @@ it("renders the same board link during server and browser initial renders", () =
   }
   const markup = () => renderToStaticMarkup(<BoardsAdmin {...props} />)
   const link = () =>
-    markup().match(/<a[^>]*href="\/board\/public-id"[^>]*>.*?<\/a>/)?.[0]
+    markup().match(/<a[^>]*href="\/board\/board-1"[^>]*>.*?<\/a>/)?.[0]
 
   const serverLink = link()
   vi.stubGlobal("window", { location: { origin: "http://localhost:3000" } })
   const browserLink = link()
 
-  expect(serverLink).toContain("/board/public-id")
+  expect(serverLink).toContain("/board/board-1")
   expect(serverLink).toContain('target="_blank"')
   expect(serverLink).toContain('rel="noreferrer"')
   expect(browserLink).toBe(serverLink)
@@ -83,7 +83,6 @@ it("marks the default board and disables its set-default control", () => {
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -106,13 +105,12 @@ it("marks the default board and disables its set-default control", () => {
   expect(html).not.toContain('class="panel p-4"')
 })
 
-it("renders icon-only move controls with accessible labels", () => {
+it("renders an accessible app drag handle", () => {
   const html = renderToStaticMarkup(
     <BoardsAdmin
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -148,8 +146,7 @@ it("renders icon-only move controls with accessible labels", () => {
     />,
   )
   expect(html).toContain('aria-label="Edit Plex"')
-  expect(html).toContain('aria-label="Move Plex up"')
-  expect(html).toContain('aria-label="Move Plex down"')
+  expect(html).toContain('aria-label="Drag to reorder app"')
   expect(html).not.toContain(">Edit<")
   expect(html).not.toContain(">Move up<")
   expect(html).not.toContain(">Move down<")
@@ -161,7 +158,6 @@ it("shows assigned app icons without a surrounding box", () => {
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -212,7 +208,6 @@ it("shows an add-app Uncategorised section when a board has no categories or app
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -238,7 +233,6 @@ it("separates admin app rows with spacing and a hover state instead of borders",
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -287,7 +281,6 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -365,7 +358,6 @@ it("uses a custom select to move an app between categories", () => {
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -425,7 +417,7 @@ it("offers board creation on the index and keeps app creation in the menubar", (
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "short-id",
+
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -469,13 +461,12 @@ it("includes Create app before the user menu in the shared admin menubar", () =>
   )
 })
 
-it("links the edit action with the board's short id", () => {
+it("links the entire board row to its editor with the short id", () => {
   const html = renderToStaticMarkup(
     <BoardsListAdmin
       initialBoards={[
         {
-          id: "internal-cuid-value",
-          nanoid: "short-id",
+          id: "short-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -486,9 +477,8 @@ it("links the edit action with the board's short id", () => {
     />,
   )
   expect(html).toContain('href="/admin/boards/short-id"')
-  expect(html).not.toContain('href="/admin/boards/internal-cuid-value"')
-  expect(html).toContain('href="/board/short-id" target="_blank"')
-  expect(html).not.toContain(">/board/short-id</a>")
+  expect(html).toContain("after:absolute after:inset-0")
+  expect(html).not.toContain('href="/board/short-id"')
 })
 
 it("shows each board's default state with an icon-only control before its title", () => {
@@ -497,7 +487,6 @@ it("shows each board's default state with an icon-only control before its title"
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "first",
           name: "First",
           ownerId: "user-1",
           createdAt: "",
@@ -505,7 +494,6 @@ it("shows each board's default state with an icon-only control before its title"
         },
         {
           id: "board-2",
-          nanoid: "second",
           name: "Second",
           ownerId: "user-1",
           createdAt: "",
@@ -520,7 +508,7 @@ it("shows each board's default state with an icon-only control before its title"
   expect(html).not.toContain(">Default</button>")
   expect(html).not.toContain(">Set as default</button>")
   expect(html.indexOf('aria-label="Set as default"')).toBeLessThan(
-    html.indexOf('href="/board/first"'),
+    html.indexOf('href="/board/board-1"'),
   )
 })
 
@@ -530,7 +518,6 @@ it("keeps each category's controls and apps together in one section", () => {
       initialBoards={[
         {
           id: "board-1",
-          nanoid: "public-id",
           name: "Home",
           ownerId: "user-1",
           createdAt: "",
@@ -588,7 +575,7 @@ it("keeps each category's controls and apps together in one section", () => {
   expect(section).toContain('aria-label="Move category Movies down"')
   expect(section).toContain('aria-label="Add app to Movies"')
   expect(section).toContain("Plex")
-  expect(section).toContain('aria-label="Move Plex up"')
+  expect(section).toContain('aria-label="Drag to reorder app"')
   expect(html).toContain('aria-label="Uncategorised"')
   expect(html).toContain('aria-label="Add app to Uncategorised"')
 })
