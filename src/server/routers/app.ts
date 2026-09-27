@@ -4,33 +4,14 @@ import {
   appInputSchema,
   appUpdateInputSchema,
 } from "@/lib/app-validation"
-import { iconCache } from "@/lib/icon-cache"
-import { prisma } from "@/lib/prisma"
 import {
   AppForbiddenError,
   AppNotFoundError,
   AppUrlConflictError,
-  createSharedAppService,
 } from "@/server/app-service"
 import { appStatusService } from "@/server/app-status"
+import { sharedAppService } from "@/server/shared-apps"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
-
-const appService = createSharedAppService(
-  {
-    list: () =>
-      prisma.app.findMany({ orderBy: [{ name: "asc" }, { id: "asc" }] }),
-    find: (id) => prisma.app.findUnique({ where: { id } }),
-    findByUrl: (url) => prisma.app.findFirst({ where: { url } }),
-    create: (data) => prisma.app.create({ data }),
-    update: (id, data) => prisma.app.update({ where: { id }, data }),
-    delete: (id) => prisma.app.delete({ where: { id } }),
-    countIcon: (key) =>
-      prisma.app.count({
-        where: { OR: [{ iconSlug: key }, { iconHash: key }] },
-      }),
-  },
-  iconCache,
-)
 
 function appMutationError(error: unknown): never {
   if (error instanceof AppNotFoundError)
@@ -43,7 +24,7 @@ function appMutationError(error: unknown): never {
 }
 
 export const appRouter = router({
-  list: publicProcedure.query(() => appService.list()),
+  list: publicProcedure.query(() => sharedAppService.list()),
   recheckStatus: protectedProcedure
     .input(appIdInputSchema)
     .mutation(async ({ input }) => {
@@ -55,7 +36,7 @@ export const appRouter = router({
     .input(appInputSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        return await appService.create(input, ctx.session.user.id)
+        return await sharedAppService.create(input, ctx.session.user.id)
       } catch (error) {
         appMutationError(error)
       }
@@ -64,7 +45,7 @@ export const appRouter = router({
     .input(appUpdateInputSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        return await appService.update(input, ctx.session.user.id)
+        return await sharedAppService.update(input, ctx.session.user.id)
       } catch (error) {
         appMutationError(error)
       }
@@ -73,7 +54,7 @@ export const appRouter = router({
     .input(appIdInputSchema)
     .mutation(async ({ input, ctx }) => {
       try {
-        return await appService.delete(input.id, ctx.session.user.id)
+        return await sharedAppService.delete(input.id, ctx.session.user.id)
       } catch (error) {
         appMutationError(error)
       }

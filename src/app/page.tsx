@@ -72,6 +72,8 @@ export default async function HomePage() {
     )
   }
 
+  if ((await prisma.user.count()) === 0) redirect("/login")
+
   const boards = await prisma.board.findMany({
     select: {
       id: true,

@@ -15,10 +15,14 @@
     "format:check": "oxfmt --check",
     "db:deploy": "prisma migrate deploy",
     "db:generate": "prisma generate",
-    "admin:reset-password": "node scripts/reset-password.js"
+    "admin:reset-password": "node scripts/reset-password.js",
+    "api:openapi": "node --import tsx scripts/generate-openapi.ts",
+    "api:openapi:check": "node --import tsx scripts/generate-openapi.ts --check"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
+    "@better-auth/api-key": "^1.7.6",
+    "@hono/zod-openapi": "^1.6.3",
     "@libsql/client": "^0.18.0",
     "@prisma/adapter-libsql": "^7.10.0",
     "@prisma/client": "^7.10.0",
@@ -27,6 +31,7 @@
     "@trpc/react-query": "^11.19.0",
     "@trpc/server": "^11.19.0",
     "better-auth": "^1.7.5",
+    "hono": "^4.13.9",
     "nanoid": "^6.0.1",
     "next": "^16.3.6",
     "react": "^19.3.0",
@@ -46,5 +51,10 @@
     "tsx": "latest",
     "typescript": "^7.0.2",
     "vitest": "^5.0.1"
+  },
+  "allowScripts": {
+    "@prisma/engines@7.10.0": true,
+    "esbuild@0.28.2": true,
+    "prisma@7.10.0": true
   }
 }
