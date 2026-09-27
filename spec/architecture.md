@@ -15,9 +15,10 @@
 ## Core records
 
 - **User:** an account with a nullable default board reference. Authentication tables are managed through Better Auth's Prisma schema generation, with migrations applied by Prisma.
+- App, board, and board category records use eight-character Nano IDs as their database primary keys. Board IDs are also the permanent public URL IDs. Foreign keys and the user's default-board reference point to these IDs.
 - **App:** one public, shared record with an owning creator, a name, optional plain-text description, HTTP(S) URL, and exactly one icon source: a Dashboard Icons slug or a downloaded custom image. A custom image stores the SHA-256 hash of its PNG bytes and its source URL; see [apps-and-icons.md](apps-and-icons.md). Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name. New and updated apps cannot reuse another app's URL; older duplicates are preserved.
 - App liveness status is stored on the shared App record and refreshed for apps assigned to a viewed board; see [app-status.md](app-status.md). The record keeps a nullable failure reason alongside the status.
-- **Board:** a name, an unguessable Nano ID used in its public URL, and one owning user.
+- **Board:** a name, an unguessable Nano ID primary key used in its public URL, and one owning user.
 - **Board category:** a board-owned title, optional description, and persisted position among that board's categories. Titles are unique per board without regard to case.
 - **Board app:** a unique board/app assignment with a persisted position and optional category on the same board. The same app can appear on multiple boards, at different positions and in different categories.
 

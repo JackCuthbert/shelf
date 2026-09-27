@@ -11,7 +11,7 @@ function statusOf(value: string): AppStatus {
 export const appStatusService = createAppStatusService({
   listBoardApps: async (nanoid) => {
     const board = await prisma.board.findUnique({
-      where: { nanoid },
+      where: { id: nanoid },
       select: {
         apps: {
           select: {
@@ -42,7 +42,7 @@ export const appStatusService = createAppStatusService({
   },
   isBoardAppAssigned: async (nanoid, appId) => {
     const board = await prisma.board.findUnique({
-      where: { nanoid },
+      where: { id: nanoid },
       select: { apps: { where: { appId }, select: { appId: true } } },
     })
     return Boolean(board?.apps.length)

@@ -108,7 +108,7 @@ model Instance {
 }
 
 model App {
-  id            String    @id @default(cuid())
+  id            String    @id
   ownerId       String
   owner         User      @relation(fields: [ownerId], references: [id], onDelete: Restrict)
   name          String
@@ -132,8 +132,7 @@ model App {
 }
 
 model Board {
-  id         String          @id @default(cuid())
-  nanoid     String          @unique
+  id         String          @id
   name       String
   ownerId    String
   owner      User            @relation(fields: [ownerId], references: [id], onDelete: Cascade)
@@ -149,7 +148,7 @@ model Board {
 }
 
 model BoardCategory {
-  id          String     @id @default(cuid())
+  id          String     @id
   boardId     String
   title       String
   description String     @default("")

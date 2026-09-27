@@ -29,7 +29,6 @@ export default async function HomePage() {
     const boards = await prisma.board.findMany({
       select: {
         id: true,
-        nanoid: true,
         name: true,
         ownerId: true,
         owner: { select: { name: true } },
@@ -39,7 +38,7 @@ export default async function HomePage() {
     return (
       <BoardSearch
         boardName={board.name}
-        boardNanoid={board.nanoid}
+        boardNanoid={board.id}
         boards={boards.map(({ owner, ...item }) => ({
           ...item,
           ownerName: owner.name,
@@ -77,12 +76,12 @@ export default async function HomePage() {
   const boards = await prisma.board.findMany({
     select: {
       id: true,
-      nanoid: true,
       name: true,
       owner: { select: { name: true } },
     },
     orderBy: [{ owner: { name: "asc" } }, { name: "asc" }, { id: "asc" }],
   })
+  if (boards.length === 0) redirect("/login")
   return (
     <main className="relative flex flex-1 items-center justify-center px-5 py-16">
       <AnonymousPageNav showBoards={false} />
@@ -95,7 +94,7 @@ export default async function HomePage() {
           {boards.map((board) => (
             <li key={board.id}>
               <a
-                href={`/board/${board.nanoid}`}
+                href={`/board/${board.id}`}
                 className="group flex items-center gap-3 rounded-[2px] px-3 py-2 text-left hover:bg-surface-alt focus-visible:bg-surface-alt focus-visible:outline-2 focus-visible:outline-focus"
               >
                 <span className="min-w-0 flex-1">

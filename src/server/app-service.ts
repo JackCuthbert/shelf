@@ -1,4 +1,5 @@
 import type { AppInput } from "@/lib/app-validation"
+import { createAppNanoid } from "@/server/board-service"
 
 export type SharedApp = {
   id: string
@@ -29,7 +30,7 @@ export type AppValues = Pick<
 >
 export type AppUpdateValues = AppValues &
   Partial<Pick<SharedApp, "status" | "lastCheckedAt" | "lastError">>
-export type AppCreateValues = AppValues & Pick<SharedApp, "ownerId">
+export type AppCreateValues = AppValues & Pick<SharedApp, "id" | "ownerId">
 
 export interface AppRepository {
   list(): Promise<SharedApp[]>
@@ -134,7 +135,11 @@ export function createSharedAppService(
           throw new AppUrlConflictError()
         const { values, created } = await createValues(input)
         try {
-          return await repository.create({ ...values, ownerId })
+          return await repository.create({
+            ...values,
+            ownerId,
+            id: createAppNanoid(),
+          })
         } catch (error) {
           if (created && (await repository.countIcon(created)) === 0)
             await icons.remove(created)

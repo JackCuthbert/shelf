@@ -5,9 +5,11 @@ export function createBoardNanoid(): string {
   return nanoid(8)
 }
 
+export const createAppNanoid = createBoardNanoid
+export const createCategoryNanoid = createBoardNanoid
+
 export type BoardRecord = {
   id: string
-  nanoid: string
   name: string
   ownerId: string
   createdAt: Date

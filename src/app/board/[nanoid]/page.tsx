@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic"
 
 const findBoard = cache((nanoid: string) =>
   prisma.board.findUnique({
-    where: { nanoid },
+    where: { id: nanoid },
     include: {
       categories: { orderBy: { position: "asc" } },
       apps: { include: { app: true }, orderBy: { position: "asc" } },
@@ -45,7 +45,6 @@ export default async function BoardPage({
     prisma.board.findMany({
       select: {
         id: true,
-        nanoid: true,
         name: true,
         ownerId: true,
         owner: { select: { name: true } },
@@ -62,7 +61,7 @@ export default async function BoardPage({
   return (
     <BoardSearch
       boardName={board.name}
-      boardNanoid={board.nanoid}
+      boardNanoid={board.id}
       boards={boards.map(({ owner, ...item }) => ({
         ...item,
         ownerName: owner.name,

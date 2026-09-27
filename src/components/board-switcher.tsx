@@ -5,7 +5,6 @@ import { LuChevronDown, LuStar } from "react-icons/lu"
 
 type BoardOption = {
   id: string
-  nanoid: string
   name: string
   ownerId: string
   ownerName: string
@@ -21,7 +20,7 @@ export function BoardSwitcherOptions({
   defaultBoardId: string | null
 }) {
   return boards.map((board) => {
-    const current = board.nanoid === currentBoardNanoid
+    const current = board.id === currentBoardNanoid
     const optionContent = (
       <>
         <span className="block truncate text-sm font-semibold">
@@ -47,7 +46,7 @@ export function BoardSwitcherOptions({
           </span>
         ) : (
           <a
-            href={`/board/${board.nanoid}`}
+            href={`/board/${board.id}`}
             className="block min-w-0 flex-1 p-2 focus-visible:bg-surface-alt focus-visible:outline-2 focus-visible:outline-focus"
           >
             {optionContent}

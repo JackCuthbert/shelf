@@ -268,7 +268,6 @@ export function BoardSearch({
   boardNanoid: string
   boards?: {
     id: string
-    nanoid: string
     name: string
     ownerId: string
     ownerName: string
@@ -305,7 +304,7 @@ export function BoardSearch({
   const { data: ownedBoards = [] } = trpc.boards.list.useQuery(undefined, {
     enabled: Boolean(user),
   })
-  const ownedBoard = ownedBoards.find((board) => board.nanoid === boardNanoid)
+  const ownedBoard = ownedBoards.find((board) => board.id === boardNanoid)
   const { data: libraryApps = [], isPending: libraryPending } =
     trpc.apps.list.useQuery(undefined, {
       enabled: Boolean(ownedBoard),

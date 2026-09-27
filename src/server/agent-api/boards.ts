@@ -147,8 +147,8 @@ async function boardData(userId: string, id: string) {
   })
   return {
     id: board.id,
-    nanoid: board.nanoid,
-    url: `/board/${board.nanoid}`,
+    nanoid: board.id,
+    url: `/board/${board.id}`,
     name: board.name,
     isDefault: user?.defaultBoardId === board.id,
     createdAt: board.createdAt.toISOString(),

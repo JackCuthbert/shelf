@@ -4,15 +4,13 @@ import { BoardSwitcher, BoardSwitcherOptions } from "./board-switcher"
 
 const boards = [
   {
-    id: "one",
-    nanoid: "home-id",
+    id: "home-id",
     name: "Home",
     ownerName: "Jack",
     ownerId: "jack",
   },
   {
-    id: "two",
-    nanoid: "media-id",
+    id: "media-id",
     name: "Media",
     ownerName: "Alex",
     ownerId: "alex",
@@ -25,7 +23,7 @@ it("keeps the two-line header as a single dropdown trigger", () => {
       boardName="Home"
       boardNanoid="home-id"
       boards={boards}
-      initialDefaultBoardId="one"
+      initialDefaultBoardId="home-id"
     />,
   )
   expect(html).toContain("Shelf")
@@ -41,7 +39,7 @@ it("shows every board and owner without default controls", () => {
     <BoardSwitcherOptions
       boards={boards}
       currentBoardNanoid="media-id"
-      defaultBoardId="one"
+      defaultBoardId="home-id"
     />,
   )
   expect(html).toContain("Jack")
