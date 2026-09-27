@@ -9,13 +9,20 @@ const PNG_SIGNATURE = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10])
 const MAX_ICON_BYTES = 5 * 1024 * 1024
 export const iconDirectory = process.env.SHELF_ICON_DIR ?? "/data/icons"
 
+export class IconDownloadError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = "IconDownloadError"
+  }
+}
+
 function assertPng(bytes: Buffer, message: string) {
   if (
     bytes.length < PNG_SIGNATURE.length ||
     bytes.length > MAX_ICON_BYTES ||
     !bytes.subarray(0, 8).equals(PNG_SIGNATURE)
   ) {
-    throw new Error(message)
+    throw new IconDownloadError(message)
   }
 }
 
@@ -76,32 +83,45 @@ export function createIconCache(
 }
 
 async function downloadPng(slug: string): Promise<Buffer> {
-  const response = await fetch(`${CDN}${slug}.png`, {
-    signal: AbortSignal.timeout(15_000),
-  })
-  if (!response.ok)
-    throw new Error(
-      `Could not download the selected icon (HTTP ${response.status}).`,
-    )
-  const contentType = response.headers.get("content-type") ?? ""
-  if (!contentType.toLowerCase().includes("image/png"))
-    throw new Error("Dashboard Icons returned an invalid PNG.")
-  const bytes = Buffer.from(await response.arrayBuffer())
-  if (bytes.length > MAX_ICON_BYTES)
-    throw new Error("Dashboard Icons image is too large.")
-  return bytes
+  try {
+    const response = await fetch(`${CDN}${slug}.png`, {
+      signal: AbortSignal.timeout(15_000),
+    })
+    if (!response.ok)
+      throw new IconDownloadError(
+        `Could not download the selected icon (HTTP ${response.status}).`,
+      )
+    const contentType = response.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("image/png"))
+      throw new IconDownloadError("Dashboard Icons returned an invalid PNG.")
+    const bytes = Buffer.from(await response.arrayBuffer())
+    if (bytes.length > MAX_ICON_BYTES)
+      throw new IconDownloadError("Dashboard Icons image is too large.")
+    return bytes
+  } catch (error) {
+    if (error instanceof IconDownloadError) throw error
+    throw new IconDownloadError("Could not download the selected icon.")
+  }
 }
 
 async function downloadUrl(url: string): Promise<Buffer> {
-  const response = await fetch(url, { signal: AbortSignal.timeout(15_000) })
-  if (!response.ok)
-    throw new Error(`Could not download the image (HTTP ${response.status}).`)
-  const contentType = response.headers.get("content-type") ?? ""
-  if (!contentType.toLowerCase().includes("image/png"))
-    throw new Error("The image URL must return a PNG.")
-  const bytes = Buffer.from(await response.arrayBuffer())
-  if (bytes.length > MAX_ICON_BYTES) throw new Error("The image is too large.")
-  return bytes
+  try {
+    const response = await fetch(url, { signal: AbortSignal.timeout(15_000) })
+    if (!response.ok)
+      throw new IconDownloadError(
+        `Could not download the image (HTTP ${response.status}).`,
+      )
+    const contentType = response.headers.get("content-type") ?? ""
+    if (!contentType.toLowerCase().includes("image/png"))
+      throw new IconDownloadError("The image URL must return a PNG.")
+    const bytes = Buffer.from(await response.arrayBuffer())
+    if (bytes.length > MAX_ICON_BYTES)
+      throw new IconDownloadError("The image is too large.")
+    return bytes
+  } catch (error) {
+    if (error instanceof IconDownloadError) throw error
+    throw new IconDownloadError("Could not download the image.")
+  }
 }
 
 export const iconCache = createIconCache()

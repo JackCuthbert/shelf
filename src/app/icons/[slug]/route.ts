@@ -11,7 +11,7 @@ export const runtime = "nodejs"
 
 export async function GET(
   _request: Request,
-  context: RouteContext<"/icons/[slug]">,
+  context: { params: Promise<{ slug: string }> },
 ) {
   const { slug } = await context.params
   if (!iconSlugSchema.safeParse(slug).success)

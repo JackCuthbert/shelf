@@ -1,4 +1,5 @@
 import { betterAuth } from "better-auth"
+import { apiKey } from "@better-auth/api-key"
 import { APIError } from "better-auth/api"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { genericOAuth } from "better-auth/plugins"
@@ -26,7 +27,21 @@ const commonOptions = {
 
 export const auth = betterAuth({
   ...commonOptions,
-  plugins: oidcProvider ? [genericOAuth({ config: [oidcProvider] })] : [],
+  plugins: [
+    apiKey({
+      references: "user",
+      requireName: true,
+      maximumNameLength: 80,
+      maximumPrefixLength: 0,
+      enableMetadata: false,
+      keyExpiration: {
+        defaultExpiresIn: null,
+        disableCustomExpiresTime: true,
+      },
+      rateLimit: { enabled: false },
+    }),
+    ...(oidcProvider ? [genericOAuth({ config: [oidcProvider] })] : []),
+  ],
   account: {
     encryptOAuthTokens: true,
     accountLinking: {

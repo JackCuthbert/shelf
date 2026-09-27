@@ -70,6 +70,24 @@ The OIDC variables must all be set together or startup fails. Register `<BETTER_
 
 `BETTER_AUTH_URL` must match the address users actually visit, so terminate TLS in front of the container and point that hostname at port 3000.
 
+## Agent REST API
+
+Create a named API key in **Account settings** and use it as a bearer token. The generated contract is available at `/api/v1/openapi.json`. For example:
+
+```sh
+API_KEY='paste-your-key-here'
+BASE='https://shelf.example.com/api/v1'
+BOARD=$(curl -fsS -X POST "$BASE/boards" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d '{"name":"Assistant"}')
+BOARD_ID=$(printf '%s' "$BOARD" | node -pe 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).id')
+curl -fsS "$BASE/icons/search?q=plex" -H "Authorization: Bearer $API_KEY"
+APP=$(curl -fsS -X POST "$BASE/apps" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d '{"name":"Plex","description":"","url":"https://plex.home","iconSource":"dashboard","iconSlug":"plex"}')
+APP_ID=$(printf '%s' "$APP" | node -pe 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).id')
+curl -fsS -X POST "$BASE/boards/$BOARD_ID/apps" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d "{\"appId\":\"$APP_ID\"}"
+curl -fsS "$BASE/boards/$BOARD_ID" -H "Authorization: Bearer $API_KEY"
+```
+
+The OpenAPI document lists every request and response schema.
+
 ## Account maintenance
 
 Reset a password by email; the command prompts for the new password instead of taking it as an argument:
