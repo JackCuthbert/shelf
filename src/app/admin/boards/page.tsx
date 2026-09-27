@@ -18,7 +18,6 @@ export default async function AdminPage() {
       select: {
         id: true,
         name: true,
-        nanoid: true,
         ownerId: true,
         createdAt: true,
         updatedAt: true,
@@ -33,7 +32,7 @@ export default async function AdminPage() {
   return (
     <>
       <AdminMenubar active="boards" user={{ name: session.user.name }} />
-      <main className="mx-auto w-full flex-1 max-w-5xl px-4 pt-5 pb-8 sm:px-6">
+      <main className="mx-auto w-full flex-1 max-w-6xl px-4 pt-5 pb-8 sm:px-6">
         <BoardsListAdmin
           initialBoards={boards.map((board) => ({
             ...board,

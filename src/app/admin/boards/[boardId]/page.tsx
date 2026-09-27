@@ -19,7 +19,7 @@ export default async function AdminBoardPage({
   const { boardId: boardNanoid } = await params
   const [board, apps, user] = await Promise.all([
     prisma.board.findFirst({
-      where: { nanoid: boardNanoid, ownerId: session.user.id },
+      where: { id: boardNanoid, ownerId: session.user.id },
       include: {
         categories: { orderBy: { position: "asc" } },
         apps: { include: { app: true }, orderBy: { position: "asc" } },
@@ -43,9 +43,9 @@ export default async function AdminBoardPage({
           categories: board.categories.map(({ id, title }) => ({ id, title })),
         }}
       />
-      <main className="mx-auto w-full flex-1 max-w-5xl px-4 pt-5 pb-8 sm:px-6">
+      <main className="mx-auto w-full flex-1 max-w-6xl px-4 pt-5 pb-8 sm:px-6">
         <BoardsAdmin
-          boardNanoid={board.nanoid}
+          boardNanoid={board.id}
           initialBoards={[
             {
               ...board,
