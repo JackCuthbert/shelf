@@ -9,7 +9,8 @@
 - An app may have a plain-text description of up to 280 characters. Empty descriptions are allowed. Existing apps have an empty description after migration.
 - App names are not unique. The admin list shows the URL alongside the name to distinguish duplicates.
 - A saved app can be assigned to one or more boards by each board's owner. Editing an app updates it everywhere it is assigned.
-- `/apps/<id>` is a public app detail page with its icon, web address, owner, status, and creation date. Anyone can copy the app URL from the website row. Owners can open the existing edit dialog there. Signed-in users can manually refresh its status. The copy and check icon buttons have tooltips. The shared app list has a visible View action linking to this page.
+- `/apps/<id>` is a public app detail page available to signed-in and anonymous viewers, with public board navigation for both. The page shows its icon, web address, owner, icon source (including the custom image URL when present), status, creation date, last checked time, and links to public boards that include the app. Anyone can copy the app URL from the website row. Owners can open the existing edit dialog there. Signed-in users can manually refresh its status. The copy and check icon buttons have tooltips. The shared app list offers “View public app” in each app's action menu, opening this page in a new tab.
+- The Nano ID migration changes existing app detail IDs. Previously saved `/apps/<old-id>` links do not resolve after migration; new links use the migrated short ID.
 - Deleting an app requires confirmation and removes it from every board.
 
 ## Icon selection and persistence

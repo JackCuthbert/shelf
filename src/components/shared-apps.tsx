@@ -279,13 +279,6 @@ export function SharedApps({
                   </a>
                 </div>
                 <div className="flex shrink-0 items-center gap-2">
-                  <a
-                    href={`/apps/${encodeURIComponent(app.id)}`}
-                    className="btn gap-1.5 text-sm"
-                  >
-                    <LuEye aria-hidden className="size-4" />
-                    View
-                  </a>
                   <Menu.Root>
                     <Menu.Trigger
                       className="btn size-9 shrink-0 p-0"
@@ -301,6 +294,10 @@ export function SharedApps({
                         className="z-50"
                       >
                         <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
+                          <Menu.Item render={<a href={`/apps/${encodeURIComponent(app.id)}`} target="_blank" rel="noreferrer" />} className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt">
+                            <LuEye aria-hidden className="size-4" />
+                            View public app
+                          </Menu.Item>
                           <Menu.Item
                             disabled={checking}
                             aria-label={appCheckActionLabel(app.name)}

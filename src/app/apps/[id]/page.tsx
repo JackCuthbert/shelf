@@ -3,8 +3,7 @@ import { headers } from "next/headers"
 import { notFound } from "next/navigation"
 import type { Metadata } from "next"
 import { LuExternalLink } from "react-icons/lu"
-import { AdminMenubar } from "@/components/admin-menubar"
-import { AnonymousPageNav } from "@/components/anonymous-page-nav"
+import { PublicBoardNav } from "@/components/public-board-nav"
 import { AppDetailEditAction } from "@/components/app-detail-edit-action"
 import { AppDetailCheckAction } from "@/components/app-detail-check-action"
 import { AppDetailCopyAction } from "@/components/app-detail-copy-action"
@@ -18,7 +17,13 @@ export const dynamic = "force-dynamic"
 const findApp = cache((id: string) =>
   prisma.app.findUnique({
     where: { id },
-    include: { owner: { select: { name: true } } },
+    include: {
+      owner: { select: { name: true } },
+      boards: {
+        include: { board: { select: { id: true, name: true } } },
+        orderBy: { board: { name: "asc" } },
+      },
+    },
   }),
 )
 
@@ -44,17 +49,36 @@ export default async function AppPage({
   ])
   if (!app) notFound()
   const isOwner = session?.user.id === app.ownerId
+  const [boards, viewer] = await Promise.all([
+    prisma.board.findMany({
+      select: {
+        id: true,
+        name: true,
+        ownerId: true,
+        owner: { select: { name: true } },
+      },
+      orderBy: [{ owner: { name: "asc" } }, { name: "asc" }, { id: "asc" }],
+    }),
+    session
+      ? prisma.user.findUnique({
+          where: { id: session.user.id },
+          select: { defaultBoardId: true },
+        })
+      : Promise.resolve(null),
+  ])
 
   return (
     <div className="flex flex-1 flex-col">
-      {session ? (
-        <AdminMenubar active={null} user={{ name: session.user.name }} />
-      ) : (
-        <AnonymousPageNav />
-      )}
-      <main
-        className={`mx-auto w-full max-w-3xl flex-1 px-5 sm:px-6 ${session ? "py-10" : "pt-24 pb-10"}`}
-      >
+      <PublicBoardNav
+        boardName="Apps"
+        boards={boards.map(({ owner, ...item }) => ({
+          ...item,
+          ownerName: owner.name,
+        }))}
+        defaultBoardId={viewer?.defaultBoardId ?? null}
+        user={session ? { id: session.user.id, name: session.user.name } : null}
+      />
+      <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:px-6">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:gap-8">
           <div className="panel flex size-36 shrink-0 items-center justify-center p-6 sm:size-44">
             <img
@@ -116,6 +140,32 @@ export default async function AppPage({
             <dd className="text-sm">{app.owner.name}</dd>
           </div>
           <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-muted">Icon source</dt>
+            <dd className="min-w-0 break-all text-sm">
+              {app.iconSource === "url" ? (
+                <>
+                  <span>Custom image</span>
+                  {app.customIconUrl && (
+                    <>
+                      {" "}
+                      ·{" "}
+                      <a
+                        href={app.customIconUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="underline underline-offset-2"
+                      >
+                        {app.customIconUrl}
+                      </a>
+                    </>
+                  )}
+                </>
+              ) : (
+                <>Dashboard Icons{app.iconSlug ? ` · ${app.iconSlug}` : ""}</>
+              )}
+            </dd>
+          </div>
+          <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
             <dt className="text-sm text-muted">Status</dt>
             <dd className="flex w-full flex-wrap items-center gap-3 text-sm">
               <span className="inline-flex items-center gap-2">
@@ -142,6 +192,39 @@ export default async function AppPage({
                   app.createdAt,
                 )}
               </time>
+            </dd>
+          </div>
+          <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-muted">Last checked</dt>
+            <dd className="text-sm">
+              {app.lastCheckedAt ? (
+                <time dateTime={app.lastCheckedAt.toISOString()}>
+                  {new Intl.DateTimeFormat("en-AU", {
+                    dateStyle: "long",
+                    timeStyle: "short",
+                    timeZone: "UTC",
+                  }).format(app.lastCheckedAt)}{" "}
+                  UTC
+                </time>
+              ) : (
+                "Never"
+              )}
+            </dd>
+          </div>
+          <div className="grid items-start gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
+            <dt className="text-sm text-muted">Public boards</dt>
+            <dd className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+              {app.boards.length
+                ? app.boards.map(({ board }) => (
+                    <a
+                      key={board.id}
+                      href={`/board/${encodeURIComponent(board.id)}`}
+                      className="underline underline-offset-2 hover:text-muted"
+                    >
+                      {board.name}
+                    </a>
+                  ))
+                : "Not on any public boards"}
             </dd>
           </div>
         </dl>
