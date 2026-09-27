@@ -1,6 +1,6 @@
 # Board visual design
 
-This is the next board presentation feature. It replaces the v1 list with a simple, Homarr-inspired tile layout without adding layout configuration, widgets, or per-device positions.
+Boards use a simple, Homarr-inspired tile layout without layout configuration, widgets, or per-device positions.
 
 ## Header
 
@@ -23,7 +23,7 @@ This is the next board presentation feature. It replaces the v1 list with a simp
 
 - Use a wide, centered content area with the same maximum width as the header. The grid shows one square tile per row on very narrow screens, two from 360px, three at the small breakpoint, four at the medium breakpoint, five at the large breakpoint, and six at the extra-large breakpoint. Columns divide the available width equally, so every row fills the content width; unused space only appears at the end of a row with fewer apps than columns. No layout scrolls horizontally.
 - Tile order and membership are the same at every viewport size. Do not store coordinates, separate mobile positions, custom breakpoints, or per-board layout settings.
-- Use a Google-hosted monospace typeface at a 14px base and a restrained, high-contrast palette with hard 1px lines, derived from one shared set of design tokens. Use sentence case, not all caps. Follow the device's light or dark setting. Both modes keep text, icons, focus states, and tile boundaries legible. There is no manual theme control in this stage.
+- Use a Google-hosted monospace typeface at a 14px base and a restrained, high-contrast palette with hard 1px lines, derived from one shared set of design tokens. Use sentence case, not all caps. Follow the device's light or dark setting. Both modes keep text, icons, focus states, and tile boundaries legible. There is no manual theme control.
 - Empty and no-results states remain clear and fit the new layout.
 
 ## Search interaction

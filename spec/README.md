@@ -18,11 +18,10 @@ Shelf is a small, self-hosted dashboard for one household. It provides a shared 
 | Deployment and persistence             | [deployment.md](deployment.md)         |
 | Deferred features and exclusions       | [future.md](future.md)                 |
 
-## Planned feature specifications
+## Additional feature specifications
 
 | Feature                           | File                                             |
 | --------------------------------- | ------------------------------------------------ |
-| Responsive board tiles and header | [board-visual-design.md](board-visual-design.md) |
 | Agent REST API and API keys       | [agent-api.md](agent-api.md)                     |
 
-V1's responsive list remains described in [boards.md](boards.md). The next feature replaces that presentation with responsive tiles and removes custom search keyboard shortcuts.
+Boards use the responsive tile layout described in [board-visual-design.md](board-visual-design.md).

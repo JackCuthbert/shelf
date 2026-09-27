@@ -2,8 +2,7 @@
 
 The following need their own design before implementation:
 
-- A liveness ping and visible status for saved apps (the desired simple "is it up" signal).
 - Drag and drop ordering, if Move up / Move down controls prove insufficient.
 - A redesigned keyboard interaction for board search and tiles.
 
-Widgets, service integrations, and configurable per-device board layouts are deliberately outside the product's current scope. V1 does not reserve UI or database fields for them.
+Widgets, service integrations, and configurable per-device board layouts are deliberately outside the product's current scope. The product does not reserve UI or database fields for them.
