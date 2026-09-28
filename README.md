@@ -2,41 +2,72 @@
 
 # Shelf
 
-<img src="screenshot.png">
+**A simple front door for the apps you host yourself.**
 
 </div>
 
-Shelf is a small, self-hosted dashboard for one household. It provides a shared library of app links and individually owned boards that are quick to search and easy to edit on any screen — no widgets, YAML, or per-device layouts.
+[![Shelf's board view](screenshot.png)](screenshot.png)
 
-## Features
+Your homelab has enough moving parts. Shelf gives you one place to find
+an app, see whether its server replies, and open it.
 
-- A shared app library with a name, optional description, HTTP(S) URL, and an explicitly chosen [Dashboard Icons](https://dashboardicons.com) icon.
-- Personal boards with an unguessable public link, owned by one user.
-- A responsive tile grid that fills the screen, with app descriptions on hover or focus (and a touch button).
-- Board categories to group apps, with manual ordering.
-- Fast client-side search across a board.
-- App liveness indicators (up, down, not checked).
-- Local email/password accounts plus an optional single OIDC provider.
-- Import apps from an existing Homarr instance.
+## What it does
 
-## Running with Docker Compose
+A shared library of app links, arranged into boards of your own.
 
-> **Note:** The container image is not published yet. Until it is, build it yourself from this repository — replace the `image:` line below with `build: .` and run `docker compose up -d --build`.
+- **Boards for what belongs together.** Make one for media, one for tools,
+  or one for each person in the house. Group apps into categories and put
+  them in the order you want. Choose a default board for when you sign in.
+- **One app, several boards.** Save a link once and reuse it. Its name,
+  address, icon and description stay the same everywhere. Only the person
+  who created it can edit or delete it.
+- **Find it quickly.** Search the board by app name. Close matches still
+  show up when you make a small spelling mistake.
+- **Icons you choose.** Pick from [Dashboard Icons](https://dashboardicons.com)
+  or supply a PNG URL. Shelf keeps a local copy.
+- **A quick check before you click.** A dot shows whether the app's web
+  server replied. Checks run when you open a board, with results kept for
+  ten minutes. You can also check an app immediately from its detail page.
+- **Works on a phone.** The grid fits the screen and follows your device's
+  light or dark setting. Descriptions appear on hover, keyboard focus, or
+  a tap on the info button.
+- **Bring your Homarr links.** Review an import, choose icons, and save
+  the apps you want to keep.
+
+No widgets, no layout files, no separate arrangement for every device.
+Add your links, open a board, get on with what you came to do.
+
+Shelf draws inspiration from [Homarr](https://homarr.dev/) and
+[Homepage](https://gethomepage.dev/).
+
+## Who can see what
+
+Every board is public and listed on the homepage. Anyone who can reach
+Shelf can view the boards and their app links. A board's URL is a way to
+share it, not an access control.
+
+Sign in to create apps and manage your own boards. Apps are shared across
+Shelf, but only their owner can change them. Editing an app changes it on
+every board that uses it; deleting it removes it from those boards too.
+Only you can change your boards, categories and app order.
+
+## Running it
+
+One Docker container, two settings, and a volume for your data.
 
 Create a `compose.yaml`:
 
 ```yaml
 services:
   shelf:
-    image: ghcr.io/jackcuthbert/shelf:latest
-    container_name: shelf
+    image: ghcr.io/jackcuthbert/shelf:0.2
     restart: unless-stopped
     ports:
       - "3000:3000"
     environment:
       BETTER_AUTH_URL: https://shelf.example.com
+      # openssl rand -base64 32
       BETTER_AUTH_SECRET: replace-with-a-long-random-secret
-      # ENABLE_SIGNUP: "true"
     volumes:
       - shelf-data:/data
 
@@ -44,54 +75,91 @@ volumes:
   shelf-data:
 ```
 
-Start it:
-
 ```sh
 docker compose up -d
 ```
 
-Open `BETTER_AUTH_URL`; the first visit runs first-account setup. To keep data across upgrades, keep the `/data` volume — it holds the SQLite database (`/data/app.db`) and downloaded icons (`/data/icons`).
+Put a reverse proxy in front of it for HTTPS, then open the address you
+set in `BETTER_AUTH_URL`. That must be the address people actually visit;
+Shelf uses it for authentication and sign-in redirects. Keep the signing
+secret private and stable.
 
-## Configuration
+The first visit lets you create the first account. Further sign-ups are
+disabled by default; add `ENABLE_SIGNUP: "true"` to allow them.
 
-| Variable             | Required | Purpose                                                                                                         |
-| -------------------- | -------- | --------------------------------------------------------------------------------------------------------------- |
-| `BETTER_AUTH_URL`    | Yes      | Shelf's public URL, e.g. `https://shelf.example.com`. Used for auth and OIDC redirects.                         |
-| `BETTER_AUTH_SECRET` | Yes      | Long random signing secret. Generate one with `openssl rand -base64 32` and keep it stable.                     |
-| `ENABLE_SIGNUP`      | No       | Set to `true` to allow creating additional accounts. Defaults to disabled; the first account is always allowed. |
-| `OIDC_ISSUER`        | No       | Generic OIDC issuer URL.                                                                                        |
-| `OIDC_CLIENT_ID`     | No       | OIDC client ID.                                                                                                 |
-| `OIDC_CLIENT_SECRET` | No       | OIDC client secret.                                                                                             |
-| `OIDC_PROVIDER_NAME` | No       | Display name for the provider. Defaults to `OpenID Connect`.                                                    |
-| `SHELF_ICON_DIR`     | No       | Icon cache directory. Defaults to `/data/icons`.                                                                |
-| `PORT`               | No       | HTTP port. Defaults to `3000`.                                                                                  |
+To upgrade, run `docker compose pull && docker compose up -d`.
 
-The OIDC variables must all be set together or startup fails. Register `<BETTER_AUTH_URL>/api/auth/callback/oidc` as the provider's redirect URI, and restart the container after changing these settings. Existing users can connect OIDC from **Account settings** after signing in locally.
+Keep the `/data` volume when you upgrade, and include it in
+your backups. It holds the SQLite database at `/data/app.db` and cached
+icons in `/data/icons`. Migrations run automatically when the container
+starts.
 
-`BETTER_AUTH_URL` must match the address users actually visit, so terminate TLS in front of the container and point that hostname at port 3000.
+### OpenID Connect
 
-## Agent REST API
+Local email and password accounts work out of the box. You can also
+configure one OpenID Connect provider:
 
-Create a named API key in **Account settings** and use it as a bearer token. The generated contract is available at `/api/v1/openapi.json`. For example:
-
-```sh
-API_KEY='paste-your-key-here'
-BASE='https://shelf.example.com/api/v1'
-BOARD=$(curl -fsS -X POST "$BASE/boards" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d '{"name":"Assistant"}')
-BOARD_ID=$(printf '%s' "$BOARD" | node -pe 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).id')
-curl -fsS "$BASE/icons/search?q=plex" -H "Authorization: Bearer $API_KEY"
-APP=$(curl -fsS -X POST "$BASE/apps" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d '{"name":"Plex","description":"","url":"https://plex.home","iconSource":"dashboard","iconSlug":"plex"}')
-APP_ID=$(printf '%s' "$APP" | node -pe 'JSON.parse(require("node:fs").readFileSync(0,"utf8")).id')
-curl -fsS -X POST "$BASE/boards/$BOARD_ID/apps" -H "Authorization: Bearer $API_KEY" -H 'Content-Type: application/json' -d "{\"appId\":\"$APP_ID\"}"
-curl -fsS "$BASE/boards/$BOARD_ID" -H "Authorization: Bearer $API_KEY"
+```yaml
+OIDC_ISSUER: https://identity.example.com
+OIDC_CLIENT_ID: shelf
+OIDC_CLIENT_SECRET: replace-with-your-client-secret
+# OIDC_PROVIDER_NAME: OpenID Connect
 ```
 
-The OpenAPI document lists every request and response schema.
+Set the issuer, client ID and client secret together. Register
+`https://shelf.example.com/api/auth/callback/oidc` as the redirect URI,
+using your own Shelf address, and restart the container.
 
-## Account maintenance
+Existing users can connect the provider from **Account settings** after
+signing in locally. Creating new accounts through OIDC follows the same
+`ENABLE_SIGNUP` setting.
 
-Reset a password by email; the command prompts for the new password instead of taking it as an argument:
+### Other settings
+
+| Variable | Default | What it changes |
+| --- | --- | --- |
+| `OIDC_PROVIDER_NAME` | `OpenID Connect` | The provider's name on the sign-in page. |
+| `SHELF_ICON_DIR` | `/data/icons` | Where downloaded icons are kept. |
+| `PORT` | `3000` | The container's HTTP port. |
+
+### Resetting a password
+
+Run this with the account's email address. It prompts for the new password
+so you don't have to put it in the command:
 
 ```sh
 docker compose exec shelf npm run admin:reset-password -- person@example.com
 ```
+
+## Using the API
+
+Create a named API key in **Account settings** and send it as a bearer
+token. For example, to create a board:
+
+```sh
+curl -fsS -X POST 'https://shelf.example.com/api/v1/boards' \
+  -H 'Authorization: Bearer YOUR_API_KEY' \
+  -H 'Content-Type: application/json' \
+  -d '{"name":"Assistant"}'
+```
+
+The OpenAPI document at `/api/v1/openapi.json` describes the available
+operations and their request and response schemas.
+
+## What it does not do
+
+- **Private boards.** All boards and app links are public to anyone who
+  can reach Shelf.
+- **Background monitoring.** Checks run when you view a board. A green
+  dot means the server replied, even if it returned an error page; it
+  cannot tell you whether the app itself works correctly.
+- **Import a whole Homarr setup.** The import brings over app links.
+  Boards, categories and widgets stay behind.
+
+## Docs
+
+Open `/docs` on your Shelf instance for the user guide. It covers boards,
+apps, search, live checks and importing from Homarr.
+
+The product specifications live in [spec/](spec/README.md), with hosting
+and recovery details in [spec/deployment.md](spec/deployment.md).
