@@ -60,7 +60,7 @@ Create a `compose.yaml`:
 ```yaml
 services:
   shelf:
-    image: ghcr.io/jackcuthbert/shelf:0.2
+    image: ghcr.io/jackcuthbert/shelf:latest
     restart: unless-stopped
     ports:
       - "3000:3000"
