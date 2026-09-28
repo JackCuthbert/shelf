@@ -38,7 +38,7 @@ The command prompts for the new password in the terminal.
 
 - Pull requests and pushes to `main` run lint, formatting checks, the production build, type checks, and tests using Node.js 26.8.1 and `npm ci`. Failed checks stop the release workflow.
 - Release Please maintains a release pull request from Conventional Commits. Merging it creates a version tag and GitHub Release, then publishes the existing Dockerfile to `ghcr.io/jackcuthbert/shelf` for `linux/amd64` and `linux/arm64`.
-- Build each architecture in parallel on a native GitHub-hosted runner: `ubuntu-latest` for AMD64 and `ubuntu-24.04-arm` for ARM64. Publish the shared multi-platform image tags only after both builds succeed.
+- Build each architecture in parallel on a native GitHub-hosted runner: `ubuntu-24.04` for AMD64 and `ubuntu-24.04-arm` for ARM64. Publish the shared multi-platform image tags only after both builds succeed.
 - Images have full version and minor version tags, plus `latest` for stable releases. Major version tags start at 1.0 to avoid implying compatibility across pre-1.0 releases.
 - The release workflow can be dispatched with an existing release tag to rerun checks and rebuild its image.
 - Enable **Allow GitHub Actions to create and approve pull requests** in repository Settings → Actions → General. The workflows use the built-in `GITHUB_TOKEN`; no registry password or personal access token is required. Release Please's bot-created pull requests do not automatically trigger CI with this token; checks still run on `main` before creating a release and publishing.
