@@ -17,7 +17,8 @@
     "db:generate": "prisma generate",
     "admin:reset-password": "node scripts/reset-password.js",
     "api:openapi": "node --import tsx scripts/generate-openapi.ts",
-    "api:openapi:check": "node --import tsx scripts/generate-openapi.ts --check"
+    "api:openapi:check": "node --import tsx scripts/generate-openapi.ts --check",
+    "screenshot": "playwright test --project screenshot"
   },
   "dependencies": {
     "@base-ui/react": "^1.8.0",
@@ -43,6 +44,7 @@
     "zod": "^4.6.5"
   },
   "devDependencies": {
+    "@playwright/test": "^1.63.0",
     "@tailwindcss/postcss": "^4.3.3",
     "@types/node": "^26.6.2",
     "@types/react": "^19.3.0",
