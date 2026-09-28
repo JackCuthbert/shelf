@@ -227,7 +227,7 @@ it("shows an add-app Uncategorised section when a board has no categories or app
   expect(html.match(/>Add app</g)).toHaveLength(1)
 })
 
-it("separates admin app rows with spacing and a hover state instead of borders", () => {
+it("keeps admin app rows together with a hover state instead of borders", () => {
   const html = renderToStaticMarkup(
     <BoardsAdmin
       initialBoards={[
@@ -268,7 +268,7 @@ it("separates admin app rows with spacing and a hover state instead of borders",
     />,
   )
   expect(html).not.toContain("border border-line")
-  const row = html.match(/<li class="[^"]*hover:bg-surface-alt\/50[^"]*"/)?.[0]
+  const row = html.match(/<div class="[^"]*hover:bg-surface-alt\/50[^"]*"/)?.[0]
   expect(row).toBeDefined()
   expect(row).not.toContain("border")
   expect(row).toContain("hover:bg-surface-alt/50")
@@ -325,7 +325,7 @@ it("stacks admin app rows on phones and lays them out inline from sm up", () => 
       initialApps={[]}
     />,
   )
-  const row = html.match(/<li class="flex flex-col[^"]*"/)?.[0]
+  const row = html.match(/<div class="flex flex-col[^"]*"/)?.[0]
   expect(row).toBeDefined()
   expect(row).toContain("sm:flex-row")
   expect(row).toContain("sm:items-center")
@@ -427,7 +427,7 @@ it("offers board creation on the index and keeps app creation in the menubar", (
         },
       ]}
       initialApps={[]}
-      boardNanoid="short-id"
+      boardNanoid="board-1"
     />,
   )
   expect(indexHtml).toContain("Create board")
@@ -507,8 +507,9 @@ it("shows each board's default state with an icon-only control before its title"
   expect(html.match(/disabled=""/g)).toHaveLength(1)
   expect(html).not.toContain(">Default</button>")
   expect(html).not.toContain(">Set as default</button>")
+  expect(html.indexOf('href="/admin/boards/board-1"')).toBeGreaterThanOrEqual(0)
   expect(html.indexOf('aria-label="Set as default"')).toBeLessThan(
-    html.indexOf('href="/board/board-1"'),
+    html.indexOf('href="/admin/boards/board-1"'),
   )
 })
 

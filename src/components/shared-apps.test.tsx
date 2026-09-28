@@ -81,8 +81,13 @@ it("shows a filter and a single-column list when apps exist", () => {
   )
   expect(html).toContain('id="app-filter"')
   expect(html).toContain("Plex")
-  expect(html).toContain('href="/apps/a1"')
-  expect(html).toContain(">View</a>")
+  expect(html).toContain('href="https://plex.example"')
+  const actions = html.match(
+    /<button[^>]*aria-label="Actions for Plex"[^>]*>/,
+  )?.[0]
+  expect(actions).toBeDefined()
+  expect(actions).toContain('aria-haspopup="menu"')
+  expect(actions).toContain('aria-expanded="false"')
   expect(html).toContain("Movies and shows")
   expect(html).not.toContain("sm:grid-cols-2")
   const icon = html.match(/<img[^>]*src="\/icons\/plex"[^>]*>/)?.[0]
