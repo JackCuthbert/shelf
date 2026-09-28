@@ -116,11 +116,11 @@ signing in locally. Creating new accounts through OIDC follows the same
 
 ### Other settings
 
-| Variable | Default | What it changes |
-| --- | --- | --- |
+| Variable             | Default          | What it changes                          |
+| -------------------- | ---------------- | ---------------------------------------- |
 | `OIDC_PROVIDER_NAME` | `OpenID Connect` | The provider's name on the sign-in page. |
-| `SHELF_ICON_DIR` | `/data/icons` | Where downloaded icons are kept. |
-| `PORT` | `3000` | The container's HTTP port. |
+| `SHELF_ICON_DIR`     | `/data/icons`    | Where downloaded icons are kept.         |
+| `PORT`               | `3000`           | The container's HTTP port.               |
 
 ### Resetting a password
 
