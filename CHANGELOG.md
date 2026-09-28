@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.2.2](https://github.com/JackCuthbert/shelf/compare/v0.2.1...v0.2.2) (2026-09-28)
+
+
+### Bug Fixes
+
+* **ci:** build release images on native architecture runners ([82fe99c](https://github.com/JackCuthbert/shelf/commit/82fe99c7a617f1a1596ec99dbc096f6c8ff6e403))
+* **ci:** pin native image build runners to Ubuntu 24.04 ([514cdc6](https://github.com/JackCuthbert/shelf/commit/514cdc6189944c25dc83b07022038d7b64783fa8))
+
 ## [0.2.1](https://github.com/JackCuthbert/shelf/compare/v0.2.0...v0.2.1) (2026-09-28)
 
 
