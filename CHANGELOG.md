@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/JackCuthbert/shelf/compare/v0.2.0...v0.2.1) (2026-09-28)
+
+
+### Bug Fixes
+
+* **docker:** pin Node 24 to restore ARM64 builds ([ee0e17b](https://github.com/JackCuthbert/shelf/commit/ee0e17be0eb6f676149b79a2a70c3e1bc635a3f5))
+
 ## [0.2.0](https://github.com/JackCuthbert/shelf/compare/v0.1.0...v0.2.0) (2026-09-28)
 
 
