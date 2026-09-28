@@ -43,7 +43,10 @@ export function BoardCategoryDialog({
 
   return (
     <Dialog.Root open={open} onOpenChange={onOpenChange}>
-      <ModalContent withFooter title={category ? "Edit category" : "Add category"}>
+      <ModalContent
+        withFooter
+        title={category ? "Edit category" : "Add category"}
+      >
         <Form
           onFormSubmit={() =>
             onSave({

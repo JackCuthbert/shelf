@@ -22,7 +22,7 @@ it.each([
       mutationFn: async () => ({}),
     })
 
-  await operation.execute(undefined)
+    await operation.execute(undefined)
 
     expect(client.getQueryState(appKey)?.isInvalidated).toBe(apps)
     expect(client.getQueryState(boardKey)?.isInvalidated).toBe(boards)
