@@ -28,7 +28,7 @@ Create a `compose.yaml`:
 ```yaml
 services:
   shelf:
-    image: ghcr.io/JackCuthbert/shelf:latest
+    image: ghcr.io/jackcuthbert/shelf:latest
     container_name: shelf
     restart: unless-stopped
     ports:
