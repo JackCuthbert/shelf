@@ -35,7 +35,9 @@ export default async function LoginPage() {
         <AccountForm
           setup={setup}
           signup={signup}
-          oidc={!setup && oidcProvider ? { name: oidcProvider.name } : undefined}
+          oidc={
+            !setup && oidcProvider ? { name: oidcProvider.name } : undefined
+          }
         />
       </div>
     </main>

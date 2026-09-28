@@ -294,7 +294,16 @@ export function SharedApps({
                         className="z-50"
                       >
                         <Menu.Popup className="panel min-w-44 p-1 shadow-lg">
-                          <Menu.Item render={<a href={`/apps/${encodeURIComponent(app.id)}`} target="_blank" rel="noreferrer" />} className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt">
+                          <Menu.Item
+                            render={
+                              <a
+                                href={`/apps/${encodeURIComponent(app.id)}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              />
+                            }
+                            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt"
+                          >
                             <LuEye aria-hidden className="size-4" />
                             View public app
                           </Menu.Item>

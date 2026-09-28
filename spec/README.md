@@ -20,8 +20,8 @@ Shelf is a small, self-hosted dashboard for one household. It provides a shared 
 
 ## Additional feature specifications
 
-| Feature                           | File                                             |
-| --------------------------------- | ------------------------------------------------ |
-| Agent REST API and API keys       | [agent-api.md](agent-api.md)                     |
+| Feature                     | File                         |
+| --------------------------- | ---------------------------- |
+| Agent REST API and API keys | [agent-api.md](agent-api.md) |
 
 Boards use the responsive tile layout described in [board-visual-design.md](board-visual-design.md).
