@@ -34,6 +34,15 @@ docker exec -it shelf npm run admin:reset-password -- person@example.com
 
 The command prompts for the new password in the terminal.
 
+## Automated releases
+
+- Pull requests and pushes to `main` run lint, formatting checks, the production build, type checks, and tests using Node.js 26.8.1 and `npm ci`. Failed checks stop the release workflow.
+- Release Please maintains a release pull request from Conventional Commits. Merging it creates a version tag and GitHub Release, then publishes the existing Dockerfile to `ghcr.io/jackcuthbert/shelf` for `linux/amd64` and `linux/arm64`.
+- Images have full version and minor version tags, plus `latest` for stable releases. Major version tags start at 1.0 to avoid implying compatibility across pre-1.0 releases.
+- The release workflow can be dispatched with an existing release tag to rerun checks and rebuild its image.
+- Enable **Allow GitHub Actions to create and approve pull requests** in repository Settings → Actions → General. The workflows use the built-in `GITHUB_TOKEN`; no registry password or personal access token is required. Release Please's bot-created pull requests do not automatically trigger CI with this token; checks still run on `main` before creating a release and publishing.
+- Make the GHCR package public after its first publication so users can pull it without authentication.
+
 ## Operational checks
 
 - Start with an empty directory volume, create the first account and an app, restart the container, and confirm the account, app, database, and icon remain available.
