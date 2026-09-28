@@ -6,7 +6,7 @@
 
 </div>
 
-[![Shelf's board view](screenshot.png)](screenshot.png)
+[![Shelf's public board](docs/screenshots/board.png)](docs/screenshots/board.png)
 
 Your homelab has enough moving parts. Shelf gives you one place to find
 an app, see whether its server replies, and open it.
@@ -39,6 +39,16 @@ Add your links, open a board, get on with what you came to do.
 
 Shelf draws inspiration from [Homarr](https://homarr.dev/) and
 [Homepage](https://gethomepage.dev/).
+
+## Screenshots
+
+<table>
+  <tr>
+    <td align="center"><a href="docs/screenshots/management.png"><img src="docs/screenshots/management.png" alt="Board management with categories and apps" width="320"></a><br>Board management</td>
+    <td align="center"><a href="docs/screenshots/create-app.png"><img src="docs/screenshots/create-app.png" alt="Create app modal" width="320"></a><br>Create app modal</td>
+    <td align="center"><a href="docs/screenshots/app.png"><img src="docs/screenshots/app.png" alt="Public app detail page" width="320"></a><br>Public app detail</td>
+  </tr>
+</table>
 
 ## Who can see what
 

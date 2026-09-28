@@ -23,6 +23,12 @@ When implementing features, agents must keep output token efficient. Communicate
 
 Implementers started by a primary agent must report back to that primary agent when finished, including the commit, verification results, and any unresolved issues.
 
+## README screenshots
+
+After UI changes affecting README screenshots, run `npm run screenshot` and
+include the refreshed `docs/screenshots/*.png` images with the change. The
+Playwright generator uses an isolated seeded database under `data/screenshots`.
+
 ## Commit convention
 
 Use Conventional Commits for every commit. Write the summary and any body so generated release notes clearly describe the change's user-visible effect; mark breaking changes with the conventional `!` and `BREAKING CHANGE:` footer.
