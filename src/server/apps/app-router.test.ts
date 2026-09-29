@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import { appRouterRoot } from "./root"
+import { appRouterRoot } from "../root"
 
 const prismaMocks = vi.hoisted(() => ({
   findMany: vi.fn(async () => []),

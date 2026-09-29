@@ -1,4 +1,4 @@
-import type { PrismaClient } from "../generated/prisma/client.ts"
+import type { PrismaClient } from "../../../generated/prisma/client.ts"
 import {
   type AppStatus,
   STATUS_FRESHNESS_MS,
@@ -6,7 +6,7 @@ import {
   type ProbeTrigger,
   type ProbeWork,
   type StatusRecord,
-} from "../lib/app-status.ts"
+} from "../../../lib/app-status.ts"
 
 export interface AppStatusRepository {
   listBoardApps(nanoid: string): Promise<StatusRecord[] | null>

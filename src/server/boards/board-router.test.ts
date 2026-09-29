@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest"
-import { appRouterRoot } from "./root"
+import { appRouterRoot } from "../root"
 
 const statusMocks = vi.hoisted(() => ({
   boardStatuses: vi.fn(async () => null),
 }))
-vi.mock("@/server/app-status", () => ({ appStatusService: statusMocks }))
+vi.mock("@/server/apps/status", () => ({ appStatusService: statusMocks }))
 
 describe("board category authentication", () => {
   const caller = appRouterRoot.createCaller({ session: null })

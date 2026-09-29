@@ -1,5 +1,5 @@
 import type { AppInput } from "@/lib/app-validation"
-import { createAppNanoid } from "@/server/board-service"
+import { createAppNanoid } from "@/server/boards/service"
 
 export type SharedApp = {
   id: string

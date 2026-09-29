@@ -6,7 +6,7 @@ import {
   orderedBoardAssignmentIds,
   orderedGroupAssignmentIds,
   orderedPositions,
-} from "./board-service"
+} from "./service"
 
 describe("board public IDs", () => {
   it("generates eight URL-safe characters with fresh random values", () => {

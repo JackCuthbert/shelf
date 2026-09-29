@@ -1,12 +1,12 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import { appInputSchema } from "@/lib/app-validation"
 import { IconDownloadError } from "@/lib/icon-cache"
-import { sharedAppService } from "@/server/shared-apps"
+import { sharedAppService } from "@/server/apps/shared"
 import {
   AppForbiddenError,
   AppNotFoundError,
   AppUrlConflictError,
-} from "@/server/app-service"
+} from "@/server/apps/service"
 import type { AgentApi } from "./app"
 import { apiError, ErrorSchema } from "./errors"
 

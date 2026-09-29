@@ -1,6 +1,6 @@
 import { iconCache } from "@/lib/icon-cache"
 import { prisma } from "@/lib/prisma"
-import { createSharedAppService } from "./app-service"
+import { createSharedAppService } from "./service"
 
 export const sharedAppService = Object.assign(
   createSharedAppService(

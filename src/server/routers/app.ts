@@ -9,9 +9,9 @@ import {
   AppForbiddenError,
   AppNotFoundError,
   AppUrlConflictError,
-} from "@/server/app-service"
-import { appStatusService } from "@/server/app-status"
-import { sharedAppService } from "@/server/shared-apps"
+} from "@/server/apps/service"
+import { appStatusService } from "@/server/apps/status"
+import { sharedAppService } from "@/server/apps/shared"
 import { protectedProcedure, publicProcedure, router } from "@/server/trpc"
 
 function appMutationError(error: unknown): never {

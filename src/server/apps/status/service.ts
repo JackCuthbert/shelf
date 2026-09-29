@@ -1,7 +1,10 @@
-import { toStatusSnapshot, type AppStatusSnapshot } from "../lib/app-status.ts"
-import type { AppStatusRepository } from "./app-status-repository.ts"
+import {
+  toStatusSnapshot,
+  type AppStatusSnapshot,
+} from "../../../lib/app-status.ts"
+import type { AppStatusRepository } from "./repository.ts"
 
-export type { AppStatusRepository } from "./app-status-repository"
+export type { AppStatusRepository } from "./repository"
 
 export function createAppStatusService(
   repository: AppStatusRepository,

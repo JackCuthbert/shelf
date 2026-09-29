@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest"
-import { createAppStatusScheduler } from "./app-status-scheduler"
-import type { AppStatusRepository } from "./app-status-repository"
+import { createAppStatusScheduler } from "./scheduler"
+import type { AppStatusRepository } from "./repository"
 import type { ProbeWork, StatusRecord } from "@/lib/app-status"
 
 const record: StatusRecord = {
