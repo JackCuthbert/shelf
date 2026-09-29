@@ -32,6 +32,7 @@ import {
   type AppStatusSnapshot,
 } from "@/lib/app-status"
 import { usePageVisible } from "@/components/use-page-visible"
+import { useLocalDateTime } from "@/components/use-local-date-time"
 
 type BoardApp = {
   id: string
@@ -83,7 +84,9 @@ function BoardTile({
   status,
   checking,
   label,
-  checked,
+  lastCheckedAt,
+  stale,
+  lastError,
   open,
   onOpenChange,
   canManage,
@@ -96,7 +99,9 @@ function BoardTile({
   status: AppStatus
   checking: boolean
   label: string
-  checked: string
+  lastCheckedAt: number | null
+  stale: boolean
+  lastError?: string | null
   open: boolean
   onOpenChange: (open: boolean) => void
   canManage: boolean
@@ -105,6 +110,13 @@ function BoardTile({
   onCopyLink: () => void
   descriptionBlocked: boolean
 }) {
+  const localTime = useLocalDateTime(lastCheckedAt)
+  const checked =
+    lastCheckedAt === null
+      ? checking
+        ? "not checked yet; checking now"
+        : "not checked yet"
+      : `last checked ${localTime ?? "…"}${stale ? "; stale" : ""}${checking ? "; checking now" : ""}${lastError ? `; ${lastError}` : ""}`
   const anchorRef = useRef<HTMLDivElement>(null)
   const suppressDescription = useRef(false)
   const [contextOpen, setContextOpen] = useState(false)
@@ -378,12 +390,6 @@ export function BoardSearch({
         ? "Checking"
         : `${statusLabel(status.status)}, checking`
       : statusLabel(status.status)
-    const checked =
-      status.lastCheckedAt === null
-        ? checking
-          ? "not checked yet; checking now"
-          : "not checked yet"
-        : `last checked ${new Date(status.lastCheckedAt).toISOString()}${stale ? "; stale" : ""}${checking ? "; checking now" : ""}${status.lastError ? `; ${status.lastError}` : ""}`
     return (
       <BoardTile
         key={app.id}
@@ -391,7 +397,9 @@ export function BoardSearch({
         status={status.status}
         checking={checking}
         label={label}
-        checked={checked}
+        lastCheckedAt={status.lastCheckedAt}
+        stale={stale}
+        lastError={status.lastError}
         open={openDescription === app.id}
         onOpenChange={(open) => setOpenDescription(open ? app.id : null)}
         canManage={Boolean(user?.id && user.id === app.ownerId)}

@@ -82,6 +82,19 @@ test("regenerate the README screenshots", async ({ page }) => {
   await page.goto("/apps/jellyfin")
   await expect(page.getByRole("heading", { name: "Jellyfin" })).toBeVisible()
   await expect(page.getByRole("link", { name: "Open app" })).toBeVisible()
+  const lastChecked = page
+    .getByText("Last checked", { exact: true })
+    .locator("..")
+    .locator("time")
+  const checkedAt = await lastChecked.getAttribute("datetime")
+  if (!checkedAt) throw new Error("Missing last check time")
+  await expect(lastChecked).toHaveText(
+    new Intl.DateTimeFormat("en-AU", {
+      dateStyle: "long",
+      timeStyle: "short",
+      timeZone: "Australia/Melbourne",
+    }).format(new Date(checkedAt)),
+  )
   await capture(page, "app")
 
   await page.goto("/login")

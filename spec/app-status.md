@@ -17,11 +17,11 @@ URL edits reset saved status and invalidate work for the old URL. Other app edit
 
 ## Board display
 
-Board pages supply saved snapshots initially. While visible, the client polls every thirty seconds, or every two seconds while an app is checking. Polling pauses when hidden and reads immediately on resume. A read failure retains saved results and offers retry; it never changes reachability. Each tile keeps its previous green/red/grey result while checking and pulses. Status detail includes the last check time, failure reason, and a stale label at one hour. Links, descriptions, search, and ordering are unchanged.
+Board pages supply saved snapshots initially. While visible, the client polls every thirty seconds, or every two seconds while an app is checking. Polling pauses when hidden and reads immediately on resume. A read failure retains saved results and offers retry; it never changes reachability. Each tile keeps its previous green/red/grey result while checking and pulses. Status detail includes the last check time in the browser's local timezone, failure reason, and a stale label at one hour. Links, descriptions, search, and ordering are unchanged.
 
 ## Apps and detail views
 
-The shared app library and public detail page render saved status without accepting a check on open. Signed-in users can request a manual check for an app, including an app not assigned to a board. Controls remain busy while checking. Clients poll requested IDs every two seconds while visible; hidden views retain intent and read immediately when visible again. A failed read retains reachability and offers retry. Completion updates only that app in the library cache; the detail page refreshes saved status after completion.
+The shared app library and public detail page render saved status without accepting a check on open. Check times in the detail page and status hover text use the browser's local timezone. Signed-in users can request a manual check for an app, including an app not assigned to a board. Controls remain busy while checking. Clients poll requested IDs every two seconds while visible; hidden views retain intent and read immediately when visible again. A failed read retains reachability and offers retry. Completion updates only that app in the library cache; the detail page refreshes saved status after completion.
 
 ## Persistence and security
 

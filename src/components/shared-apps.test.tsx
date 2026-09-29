@@ -165,7 +165,7 @@ it("shows the last recorded state and failure reason without re-checking", () =>
   expect(html).toContain("Connection refused")
   expect(html).toContain('aria-label="Actions for Proxmox"')
   expect(html).toContain("last checked")
-  expect(html).toContain("2026-09-24T00:00:00.000Z UTC")
+  expect(html).toContain("last checked …")
 })
 
 it("renders a compact responsive row with status on the icon and a menu trigger", () => {

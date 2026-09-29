@@ -23,6 +23,7 @@ import { HomarrImportDialog } from "@/components/homarr-import-dialog"
 import { ConfirmContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 import { useManualAppCheck } from "@/components/use-manual-app-check"
+import { useLocalDateTime } from "@/components/use-local-date-time"
 import { iconKey } from "@/lib/app-icon"
 
 type App = {
@@ -56,6 +57,25 @@ function appStatusText(app: App) {
       ? `Not responding — ${app.lastError}`
       : "Not responding"
   return "Not checked yet"
+}
+
+function AppStatusIndicator({
+  app,
+  checking,
+}: {
+  app: App
+  checking: boolean
+}) {
+  const localTime = useLocalDateTime(app.lastCheckedAt)
+  const checked = app.lastCheckedAt ? `; last checked ${localTime ?? "…"}` : ""
+  return (
+    <span
+      role="img"
+      title={`${appStatusText(app)}${checked}`}
+      aria-label={`${appStatusText(app)}${checked}${checking ? "; Checking" : ""}`}
+      className={`absolute -right-0.5 -top-0.5 size-3 rounded-full border-2 border-[var(--color-background)] ${appStatusColor(app.status)} ${checking ? "animate-pulse" : ""}`}
+    />
+  )
 }
 
 export function appCheckActionLabel(appName: string) {
@@ -267,12 +287,7 @@ export function SharedApps({
                     alt=""
                     className="size-full object-contain"
                   />
-                  <span
-                    role="img"
-                    title={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}`}
-                    aria-label={`${appStatusText(app)}${app.lastCheckedAt ? `; last checked ${new Date(app.lastCheckedAt).toISOString()} UTC` : ""}${checking ? "; Checking" : ""}`}
-                    className={`absolute -right-0.5 -top-0.5 size-3 rounded-full border-2 border-[var(--color-background)] ${appStatusColor(app.status)} ${checking ? "animate-pulse" : ""}`}
-                  />
+                  <AppStatusIndicator app={app} checking={checking} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold">{app.name}</h3>
