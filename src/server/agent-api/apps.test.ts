@@ -9,11 +9,11 @@ const { service } = vi.hoisted(() => ({
     delete: vi.fn(),
   },
 }))
-vi.mock("@/server/shared-apps", () => ({ sharedAppService: service }))
+vi.mock("@/server/apps/shared", () => ({ sharedAppService: service }))
 
 import { createAgentApi } from "./app"
 import { registerAppRoutes } from "./apps"
-import { AppForbiddenError, AppUrlConflictError } from "@/server/app-service"
+import { AppForbiddenError, AppUrlConflictError } from "@/server/apps/service"
 
 const savedApp = {
   id: "app-1",

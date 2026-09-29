@@ -12,8 +12,8 @@ import {
   orderedGroupAssignmentIds,
   writeAssignmentPositions,
   writeCategoryPositions,
-} from "@/server/board-service"
-import { appStatusService } from "@/server/app-status"
+} from "@/server/boards/service"
+import { appStatusService } from "@/server/apps/status"
 
 const nameSchema = z.string().trim().min(1).max(80)
 const boardIdSchema = z.string().min(1)

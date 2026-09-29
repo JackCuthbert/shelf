@@ -5,7 +5,7 @@ import {
   createSharedAppService,
   type AppRepository,
   type SharedApp,
-} from "./app-service"
+} from "./service"
 
 function setup() {
   const records = new Map<string, SharedApp>()

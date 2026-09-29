@@ -4,7 +4,7 @@ import { join } from "node:path"
 import { PrismaLibSql } from "@prisma/adapter-libsql"
 import { PrismaClient } from "@/generated/prisma/client"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
-import { createAppStatusRepository } from "./app-status-repository"
+import { createAppStatusRepository } from "./repository"
 
 describe("app status repository", () => {
   let directory: string

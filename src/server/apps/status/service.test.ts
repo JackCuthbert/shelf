@@ -1,8 +1,5 @@
 import { describe, expect, it, vi } from "vitest"
-import {
-  createAppStatusService,
-  type AppStatusRepository,
-} from "./app-status-service"
+import { createAppStatusService, type AppStatusRepository } from "./service"
 import type { StatusRecord } from "@/lib/app-status"
 
 const record: StatusRecord = {

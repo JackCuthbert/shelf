@@ -1,5 +1,5 @@
 import { expect, it, vi } from "vitest"
-import type { TRPCContext } from "./trpc"
+import type { TRPCContext } from "../trpc"
 
 const { prismaMock, txMock } = vi.hoisted(() => {
   const txMock = {
@@ -23,7 +23,7 @@ const { prismaMock, txMock } = vi.hoisted(() => {
 
 vi.mock("@/lib/prisma", () => ({ prisma: prismaMock }))
 
-import { appRouterRoot } from "./root"
+import { appRouterRoot } from "../root"
 
 it("clears the default before deleting a user's final board", async () => {
   prismaMock.board.findFirst.mockResolvedValue({ id: "board-1" })

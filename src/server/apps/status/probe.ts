@@ -5,7 +5,7 @@ import {
   RETRY_MIN_MS,
   type ProbeResult,
   type ProbeWork,
-} from "../lib/app-status.ts"
+} from "../../../lib/app-status.ts"
 
 export type ProbeRunnerOptions = {
   fetcher?: (url: string, options: RequestInit) => Promise<Response>

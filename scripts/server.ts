@@ -1,6 +1,6 @@
 import { createServer } from "node:http"
 import next from "next"
-import { runAppStatusScheduler } from "../src/server/app-status.ts"
+import { runAppStatusScheduler } from "../src/server/apps/status/index.ts"
 
 function parseOptions(args: string[], env: NodeJS.ProcessEnv) {
   let hostname = "0.0.0.0"

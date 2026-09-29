@@ -2,13 +2,13 @@ import {
   HOURLY_START_SPACING_MS,
   SCHEDULER_POLL_MS,
   type ProbeResult,
-} from "../lib/app-status.ts"
-import type { AppStatusRepository } from "./app-status-repository.ts"
+} from "../../../lib/app-status.ts"
+import type { AppStatusRepository } from "./repository.ts"
 
 export function createAppStatusScheduler(options: {
   repository: AppStatusRepository
   probe: (
-    work: import("../lib/app-status.ts").ProbeWork,
+    work: import("../../../lib/app-status.ts").ProbeWork,
   ) => Promise<ProbeResult>
   now?: () => Date
   sleep?: (ms: number) => Promise<void>

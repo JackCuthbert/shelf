@@ -7,7 +7,7 @@ import {
   orderedBoardAssignmentIds,
   writeAssignmentPositions,
   writeCategoryPositions,
-} from "@/server/board-service"
+} from "@/server/boards/service"
 import type { AgentApi } from "./app"
 import { apiError, ErrorSchema } from "./errors"
 
