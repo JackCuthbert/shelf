@@ -2,7 +2,7 @@
 
 ## Stack
 
-- A single Docker image runs a Next.js application using the App Router, React Server Components, and the Node.js runtime.
+- A single Docker image runs a Next.js application using the App Router, React Server Components, and the Node.js runtime. A small custom Node entrypoint prepares Next.js, owns the HTTP listener, then starts the serial in-process app status loop. The operating system handles ordinary process termination.
 - SQLite is the only database. Prisma owns the schema, migrations, and application data access.
 - tRPC defines typed procedures for app and board reads and writes; the frontend shares their TypeScript types. Server Components may call the tRPC server caller for initial data without an HTTP round trip. Small client components handle forms, the icon picker, and board search.
 - Successful app and board mutations invalidate their affected client list queries through the shared tRPC query client. Board creation and deletion update board choices in app creation, and assignment from the public board view refreshes its server-rendered tiles.
@@ -17,7 +17,7 @@
 - **User:** an account with a nullable default board reference. Authentication tables are managed through Better Auth's Prisma schema generation, with migrations applied by Prisma.
 - App, board, and board category records use eight-character Nano IDs as their database primary keys. Board IDs are also the permanent public URL IDs. Foreign keys and the user's default-board reference point to these IDs.
 - **App:** one public, shared record with an owning creator, a name, optional plain-text description, HTTP(S) URL, and exactly one icon source: a Dashboard Icons slug or a downloaded custom image. A custom image stores the SHA-256 hash of its PNG bytes and its source URL; see [apps-and-icons.md](apps-and-icons.md). Descriptions are at most 280 characters; existing apps have an empty description after migration. Two apps may have the same name. New and updated apps cannot reuse another app's URL; older duplicates are preserved.
-- App liveness status is stored on the shared App record and refreshed for apps assigned to a viewed board; see [app-status.md](app-status.md). The record keeps a nullable failure reason alongside the status.
+- App liveness status is stored on the shared App record and refreshed by the background scheduler; a single nullable `probeRequestedAt` timestamp persists pending work. Board views return saved snapshots and accept no probe work. See [app-status.md](app-status.md). The record keeps a nullable failure reason alongside the status.
 - **Board:** a name, an unguessable Nano ID primary key used in its public URL, and one owning user.
 - **Board category:** a board-owned title, optional description, and persisted position among that board's categories. Titles are unique per board without regard to case.
 - **Board app:** a unique board/app assignment with a persisted position and optional category on the same board. The same app can appear on multiple boards, at different positions and in different categories.
