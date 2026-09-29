@@ -7,6 +7,7 @@ import { PublicBoardNav } from "@/components/public-board-nav"
 import { AppDetailEditAction } from "@/components/app-detail-edit-action"
 import { AppDetailCheckAction } from "@/components/app-detail-check-action"
 import { AppDetailCopyAction } from "@/components/app-detail-copy-action"
+import { LocalDateTime } from "@/components/local-date-time"
 import { auth } from "@/lib/auth"
 import { iconKey } from "@/lib/app-icon"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
@@ -221,12 +222,10 @@ export default async function AppPage({
             <dd className="text-sm">
               {app.lastCheckedAt ? (
                 <time dateTime={app.lastCheckedAt.toISOString()}>
-                  {new Intl.DateTimeFormat("en-AU", {
-                    dateStyle: "long",
-                    timeStyle: "short",
-                    timeZone: "UTC",
-                  }).format(app.lastCheckedAt)}{" "}
-                  UTC
+                  <LocalDateTime
+                    value={app.lastCheckedAt.toISOString()}
+                    fallback="…"
+                  />
                 </time>
               ) : (
                 "Never"

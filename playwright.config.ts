@@ -16,7 +16,7 @@ export default defineConfig({
     viewport: { width: 1280, height: 841 },
     colorScheme: "light",
     locale: "en-AU",
-    timezoneId: "UTC",
+    timezoneId: "Australia/Melbourne",
     trace: "retain-on-failure",
   },
   projects: [{ name: "screenshot" }],

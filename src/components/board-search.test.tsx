@@ -225,9 +225,7 @@ describe("BoardSearch", () => {
     expect(html).toContain("lg:grid-cols-5")
     expect(html).toContain("xl:grid-cols-6")
     expect(html).toContain("max-w-6xl")
-    expect(html).toContain(
-      'aria-label="Responding; last checked 2026-09-24T00:00:00.000Z; stale"',
-    )
+    expect(html).toContain('aria-label="Responding; last checked …; stale"')
     expect(html).toContain(
       'aria-label="Checking; not checked yet; checking now"',
     )
