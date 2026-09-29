@@ -22,7 +22,7 @@ export default defineConfig({
   projects: [{ name: "screenshot" }],
   webServer: {
     command:
-      "npm run db:generate && node --import tsx e2e/seed.ts && npm run build && npm run start -- --hostname 127.0.0.1 --port 3310",
+      "npm run db:generate && node --import tsx e2e/seed.ts && NODE_ENV=production node .server-build/scripts/server.js --hostname 127.0.0.1 --port 3310",
     url: `${baseURL}/login`,
     timeout: 180_000,
     reuseExistingServer: false,

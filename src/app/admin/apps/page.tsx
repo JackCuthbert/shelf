@@ -24,6 +24,7 @@ export default async function AdminAppsPage() {
           initialApps={apps.map((app) => ({
             ...app,
             lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,
+            probeRequestedAt: app.probeRequestedAt?.toISOString() ?? null,
             createdAt: app.createdAt.toISOString(),
             updatedAt: app.updatedAt.toISOString(),
           }))}

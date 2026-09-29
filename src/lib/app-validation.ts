@@ -56,6 +56,10 @@ export const appInputSchema = z.discriminatedUnion("iconSource", [
 
 const appIdField = { id: z.string().min(1) }
 
+export const appIdsInputSchema = z.object({
+  ids: z.array(z.string().regex(/^[A-Za-z0-9_-]{8}$/)).max(100),
+})
+
 export const appUpdateInputSchema = z.discriminatedUnion("iconSource", [
   z.object({
     ...appIdField,

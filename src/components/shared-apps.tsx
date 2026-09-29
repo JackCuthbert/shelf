@@ -22,6 +22,7 @@ import { AppFormDialog } from "@/components/app-form-dialog"
 import { HomarrImportDialog } from "@/components/homarr-import-dialog"
 import { ConfirmContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
+import { useManualAppCheck } from "@/components/use-manual-app-check"
 import { iconKey } from "@/lib/app-icon"
 
 type App = {
@@ -37,6 +38,7 @@ type App = {
   status: string
   lastError: string | null
   lastCheckedAt: string | null
+  probeRequestedAt: string | null
   createdAt: string
   updatedAt: string
 }
@@ -76,21 +78,24 @@ export function SharedApps({
   const [importedCount, setImportedCount] = useState<number | null>(null)
   const [filter, setFilter] = useState("")
   const [error, setError] = useState("")
-  const [checkErrors, setCheckErrors] = useState<Record<string, string>>({})
-  const [checkingIds, setCheckingIds] = useState<Record<string, boolean>>({})
-  const recheck = trpc.apps.recheckStatus.useMutation({
-    onSuccess: (_result, variables) => {
-      setCheckErrors((current) => ({ ...current, [variables.id]: "" }))
-      setCheckingIds((current) => ({ ...current, [variables.id]: false }))
-    },
-    onError: (cause, variables) => {
-      setCheckErrors((current) => ({
-        ...current,
-        [variables.id]: cause.message,
-      }))
-      setCheckingIds((current) => ({ ...current, [variables.id]: false }))
-    },
-  })
+  const manualChecks = useManualAppCheck(
+    apps.map((app) => ({
+      id: app.id,
+      status:
+        app.status === "up" || app.status === "down" ? app.status : "unknown",
+      lastCheckedAt: app.lastCheckedAt
+        ? new Date(app.lastCheckedAt).getTime()
+        : null,
+      lastError: app.lastError,
+      checking:
+        app.probeRequestedAt ||
+        !app.lastCheckedAt ||
+        Date.now() - new Date(app.lastCheckedAt).getTime() >= 3_600_000
+          ? true
+          : false,
+    })),
+  )
+  const checkErrors = manualChecks.errors
   const remove = trpc.apps.delete.useMutation({
     onSuccess: () => {
       setError("")
@@ -213,7 +218,18 @@ export function SharedApps({
               const app = apps.find((item) => item.id === id)
               return (
                 <p key={id}>
-                  Could not check {app?.name ?? "app"}: {message}. Try again.
+                  {message}{" "}
+                  <button
+                    type="button"
+                    className="underline"
+                    onClick={() =>
+                      message.includes("refresh")
+                        ? manualChecks.retry(id)
+                        : void manualChecks.request(id).catch(() => {})
+                    }
+                  >
+                    Retry {app?.name ?? "app"}
+                  </button>
                 </p>
               )
             })}
@@ -236,7 +252,7 @@ export function SharedApps({
       ) : (
         <ul className="mt-5 space-y-2">
           {visible.map((app) => {
-            const checking = Boolean(checkingIds[app.id])
+            const checking = manualChecks.isChecking(app.id)
             const boardsMissingApp = boards.filter(
               (board) => !board.apps.some((entry) => entry.appId === app.id),
             )
@@ -311,15 +327,7 @@ export function SharedApps({
                             disabled={checking}
                             aria-label={appCheckActionLabel(app.name)}
                             onClick={() => {
-                              setCheckErrors((current) => ({
-                                ...current,
-                                [app.id]: "",
-                              }))
-                              setCheckingIds((current) => ({
-                                ...current,
-                                [app.id]: true,
-                              }))
-                              recheck.mutate({ id: app.id })
+                              void manualChecks.request(app.id).catch(() => {})
                             }}
                             className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
                           >

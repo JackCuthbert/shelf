@@ -4,9 +4,9 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "next dev",
-    "build": "prisma generate && next build",
-    "start": "next start",
+    "dev": "node --import tsx scripts/server.ts --dev",
+    "build": "prisma generate && next build && tsc -p tsconfig.reset.json && tsc -p tsconfig.server.json",
+    "start": "NODE_ENV=production node .server-build/scripts/server.js",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "lint": "oxlint",

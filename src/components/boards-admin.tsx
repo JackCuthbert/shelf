@@ -81,6 +81,7 @@ type App = {
   status: string
   lastError: string | null
   lastCheckedAt: string | null
+  probeRequestedAt: string | null
   createdAt: string
   updatedAt: string
 }

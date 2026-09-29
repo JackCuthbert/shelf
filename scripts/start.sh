@@ -16,4 +16,4 @@ unset HOSTNAME
 echo "Applying database migrations..."
 npx prisma migrate deploy
 echo "Starting Shelf..."
-exec node server.js
+exec node scripts/server.js

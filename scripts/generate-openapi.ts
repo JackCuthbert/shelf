@@ -1,4 +1,5 @@
-import { writeFile } from "node:fs/promises"
+import { readFile, writeFile } from "node:fs/promises"
+import { isDeepStrictEqual } from "node:util"
 import { createAgentApi } from "../src/server/agent-api/app"
 import { registerAppRoutes } from "../src/server/agent-api/apps"
 import { registerBoardRoutes } from "../src/server/agent-api/boards"
@@ -15,9 +16,13 @@ const document = app.getOpenAPIDocument({
 })
 const output = `${JSON.stringify(document, null, 2)}\n`
 if (process.argv.includes("--check")) {
-  const { readFile } = await import("node:fs/promises")
-  const current = await readFile("spec/openapi.json", "utf8").catch(() => "")
-  if (current !== output) {
+  let current: unknown
+  try {
+    current = JSON.parse(await readFile("spec/openapi.json", "utf8"))
+  } catch {
+    current = undefined
+  }
+  if (!isDeepStrictEqual(current, document)) {
     console.error("spec/openapi.json is stale. Run npm run api:openapi.")
     process.exitCode = 1
   }

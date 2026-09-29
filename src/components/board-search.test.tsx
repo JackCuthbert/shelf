@@ -1,10 +1,54 @@
 import { renderToStaticMarkup } from "react-dom/server"
-import { describe, expect, it, vi } from "vitest"
+import { beforeEach, describe, expect, it, vi } from "vitest"
 import {
   BoardSearch,
   descriptionTileHandlers,
   statusColor,
 } from "./board-search"
+import { STATUS_FRESHNESS_MS } from "@/lib/app-status"
+
+const retryClicks = vi.hoisted(() => [] as (() => void)[])
+vi.mock("react/jsx-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react/jsx-runtime")>()
+  return {
+    ...actual,
+    jsx: (type: unknown, props: Record<string, unknown>, key?: string) => {
+      if (type === "button" && props.children === "Retry")
+        retryClicks.push(props.onClick as () => void)
+      return actual.jsx(type as never, props as never, key)
+    },
+    jsxs: (type: unknown, props: Record<string, unknown>, key?: string) => {
+      if (type === "button" && props.children === "Retry")
+        retryClicks.push(props.onClick as () => void)
+      return actual.jsxs(type as never, props as never, key)
+    },
+  }
+})
+vi.mock("react/jsx-dev-runtime", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("react/jsx-dev-runtime")>()
+  return {
+    ...actual,
+    jsxDEV: (
+      type: unknown,
+      props: Record<string, unknown>,
+      key: string | undefined,
+      isStaticChildren: boolean,
+      source: unknown,
+      self: unknown,
+    ) => {
+      if (type === "button" && props.children === "Retry")
+        retryClicks.push(props.onClick as () => void)
+      return actual.jsxDEV(
+        type as never,
+        props as never,
+        key,
+        isStaticChildren,
+        source as never,
+        self as never,
+      )
+    },
+  }
+})
 
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
 
@@ -14,9 +58,7 @@ vi.mock("@/components/trpc-provider", () => ({
     boards: {
       list: { useQuery: () => ({ data: [] }) },
       assign: { useMutation: () => ({ mutate: () => {} }) },
-      refreshStatuses: {
-        useMutation: () => ({ mutateAsync: async () => [] }),
-      },
+      refreshStatuses: { useQuery: statusQueryMock },
     },
     apps: {
       list: { useQuery: () => ({ data: [] }) },
@@ -26,6 +68,8 @@ vi.mock("@/components/trpc-provider", () => ({
     },
   },
 }))
+
+const statusQueryMock = vi.hoisted(() => vi.fn())
 
 const apps = [
   {
@@ -58,6 +102,16 @@ const apps = [
   },
 ]
 
+beforeEach(() => {
+  statusQueryMock.mockImplementation(
+    (_input: unknown, options: { initialData: unknown }) => ({
+      data: options.initialData,
+      isError: false,
+      refetch: vi.fn(),
+    }),
+  )
+})
+
 describe("statusColor", () => {
   it("keeps the last known state colour while a check is in progress", () => {
     expect(statusColor("up", true)).toContain("bg-green-600")
@@ -74,6 +128,61 @@ describe("statusColor", () => {
 })
 
 describe("BoardSearch", () => {
+  it.each([
+    [STATUS_FRESHNESS_MS - 1, false],
+    [STATUS_FRESHNESS_MS, true],
+  ])(
+    "marks a snapshot stale at the freshness boundary (%s ms)",
+    (age, stale) => {
+      vi.spyOn(Date, "now").mockReturnValue(10_000_000)
+      statusQueryMock.mockImplementation(
+        (_input: unknown, options: { initialData: unknown }) => ({
+          data: options.initialData,
+          isError: false,
+          refetch: vi.fn(),
+        }),
+      )
+      const html = renderToStaticMarkup(
+        <BoardSearch
+          boardName="Home"
+          boardNanoid="abcdefgh"
+          apps={[{ ...apps[0]!, lastCheckedAt: 10_000_000 - age }]}
+          categories={[]}
+          user={null}
+        />,
+      )
+      expect(html).toContain(stale ? "; stale" : "Responding; last checked")
+      expect(html.includes("; stale")).toBe(stale)
+      vi.restoreAllMocks()
+    },
+  )
+
+  it("keeps saved statuses visible on query error and Retry invokes refetch", () => {
+    const refetch = vi.fn()
+    retryClicks.length = 0
+    statusQueryMock.mockImplementation(
+      (_input: unknown, options: { initialData: unknown }) => ({
+        data: options.initialData,
+        isError: true,
+        refetch,
+      }),
+    )
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        categories={[]}
+        user={null}
+      />,
+    )
+    expect(html).toContain("Saved results are still shown.")
+    expect(html).toContain('aria-label="Responding; last checked')
+    expect(html).toContain("Retry")
+    expect(retryClicks).toHaveLength(1)
+    retryClicks[0]!()
+    expect(refetch).toHaveBeenCalledOnce()
+  })
   it("renders a sticky header with the board name, search field, and anonymous sign-in link", () => {
     const html = renderToStaticMarkup(
       <BoardSearch
@@ -117,9 +226,33 @@ describe("BoardSearch", () => {
     expect(html).toContain("xl:grid-cols-6")
     expect(html).toContain("max-w-6xl")
     expect(html).toContain(
-      'aria-label="Responding; last checked 2026-09-24T00:00:00.000Z"',
+      'aria-label="Responding; last checked 2026-09-24T00:00:00.000Z; stale"',
     )
-    expect(html).toContain('aria-label="Status unknown; not checked yet"')
+    expect(html).toContain(
+      'aria-label="Checking; not checked yet; checking now"',
+    )
+  })
+
+  it("keeps the prior failure colour while queued and includes its reason and stale time", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[
+          {
+            ...apps[0]!,
+            status: "down",
+            lastError: "Connection refused",
+            checking: true,
+          },
+        ]}
+        categories={[]}
+        user={null}
+      />,
+    )
+    expect(html).toContain("bg-danger motion-safe:animate-pulse")
+    expect(html).toContain("Connection refused")
+    expect(html).toContain("stale")
   })
 
   it("keeps the search field visible on an empty board", () => {

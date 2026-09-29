@@ -28,6 +28,7 @@ const savedApp = {
   status: "unknown",
   lastCheckedAt: null,
   lastError: null,
+  probeRequestedAt: null,
   createdAt: new Date("2026-09-26T00:00:00Z"),
   updatedAt: new Date("2026-09-26T00:00:00Z"),
 }
@@ -43,7 +44,28 @@ describe("shared app API", () => {
     service.list.mockResolvedValue([savedApp])
     service.get.mockResolvedValue(savedApp)
     const app = setup("another-user")
-    expect((await app.request("/api/v1/apps")).status).toBe(200)
+    const list = await app.request("/api/v1/apps")
+    expect(list.status).toBe(200)
+    const [dto] = await list.json()
+    expect(Object.keys(dto).sort()).toEqual(
+      [
+        "createdAt",
+        "customIconUrl",
+        "description",
+        "iconHash",
+        "iconSlug",
+        "iconSource",
+        "iconUrl",
+        "id",
+        "lastCheckedAt",
+        "lastError",
+        "name",
+        "ownerId",
+        "status",
+        "updatedAt",
+        "url",
+      ].sort(),
+    )
     expect((await app.request("/api/v1/apps/app-1")).status).toBe(200)
   })
   it("creates and replaces apps as the key owner", async () => {

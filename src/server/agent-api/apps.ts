@@ -50,7 +50,17 @@ const AppInputSchema = appInputSchema.and(z.object({ description: z.string() }))
 const appDto = (
   a: NonNullable<Awaited<ReturnType<typeof sharedAppService.get>>>,
 ) => ({
-  ...a,
+  id: a.id,
+  ownerId: a.ownerId,
+  name: a.name,
+  description: a.description,
+  url: a.url,
+  iconSource: a.iconSource,
+  iconSlug: a.iconSlug,
+  customIconUrl: a.customIconUrl,
+  iconHash: a.iconHash,
+  status: a.status,
+  lastError: a.lastError,
   iconUrl: `/icons/${a.iconSource === "url" ? a.iconHash : a.iconSlug}`,
   lastCheckedAt: a.lastCheckedAt?.toISOString() ?? null,
   createdAt: a.createdAt.toISOString(),

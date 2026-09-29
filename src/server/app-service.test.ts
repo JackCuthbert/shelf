@@ -22,6 +22,7 @@ function setup() {
         status: "unknown",
         lastCheckedAt: null,
         lastError: null,
+        probeRequestedAt: null,
         createdAt: new Date(),
         updatedAt: new Date(),
       }
@@ -260,6 +261,7 @@ describe("shared app service", () => {
       ...created,
       status: "up",
       lastCheckedAt: checkedAt,
+      probeRequestedAt: checkedAt,
     })
     const updated = await service.update({
       ...dashboardInput,
@@ -269,6 +271,7 @@ describe("shared app service", () => {
     expect(updated.description).toBe("Movies and shows")
     expect(updated.status).toBe("up")
     expect(updated.lastCheckedAt).toEqual(checkedAt)
+    expect(updated.probeRequestedAt).toEqual(checkedAt)
   })
 
   it.each([
@@ -305,6 +308,7 @@ describe("shared app service", () => {
       status: "up",
       lastCheckedAt: new Date("2026-09-24T00:00:00Z"),
       lastError: "Connection refused",
+      probeRequestedAt: new Date("2026-09-24T01:00:00Z"),
     })
 
     const updated = await service.update({
@@ -316,5 +320,6 @@ describe("shared app service", () => {
     expect(updated.status).toBe("unknown")
     expect(updated.lastCheckedAt).toBeNull()
     expect(updated.lastError).toBeNull()
+    expect(updated.probeRequestedAt).toBeNull()
   })
 })

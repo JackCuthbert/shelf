@@ -25,7 +25,13 @@ import {
 } from "@/lib/board-search"
 import { UserMenu } from "@/components/user-menu"
 import { trpc } from "@/components/trpc-provider"
-import type { AppStatus } from "@/server/app-status-service"
+import {
+  BOARD_POLL_MS,
+  STATUS_FRESHNESS_MS,
+  type AppStatus,
+  type AppStatusSnapshot,
+} from "@/lib/app-status"
+import { usePageVisible } from "@/components/use-page-visible"
 
 type BoardApp = {
   id: string
@@ -40,6 +46,8 @@ type BoardApp = {
   categoryId: string | null
   status: AppStatus
   lastCheckedAt: number | null
+  lastError?: string | null
+  checking?: boolean
 }
 
 function statusLabel(status: AppStatus) {
@@ -279,22 +287,34 @@ export function BoardSearch({
 }) {
   const router = useRouter()
   const [query, setQuery] = useState("")
-  const [checking, setChecking] = useState(false)
+  const visible = usePageVisible()
   const [openDescription, setOpenDescription] = useState<string | null>(null)
   const [editingApp, setEditingApp] = useState<BoardApp | null>(null)
   const [deletingApp, setDeletingApp] = useState<BoardApp | null>(null)
   const [deleteError, setDeleteError] = useState("")
   const [copyNotice, setCopyNotice] = useState("")
   const copyNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const [statuses, setStatuses] = useState(() =>
-    Object.fromEntries(
-      apps.map((app) => [
-        app.id,
-        { status: app.status, lastCheckedAt: app.lastCheckedAt },
-      ]),
-    ),
+  const initialSnapshots: AppStatusSnapshot[] = apps.map((app) => ({
+    id: app.id,
+    status: app.status,
+    lastCheckedAt: app.lastCheckedAt,
+    lastError: app.lastError ?? null,
+    checking: app.checking ?? app.lastCheckedAt === null,
+  }))
+  const statusQuery = trpc.boards.refreshStatuses.useQuery(
+    { nanoid: boardNanoid },
+    {
+      initialData: initialSnapshots,
+      enabled: visible,
+      refetchInterval: (query) =>
+        query.state.data?.some((item) => item.checking) ? 2_000 : BOARD_POLL_MS,
+      refetchIntervalInBackground: false,
+      refetchOnWindowFocus: true,
+    },
   )
-  const refreshStatuses = trpc.boards.refreshStatuses.useMutation()
+  const statuses = Object.fromEntries(
+    (statusQuery.data ?? initialSnapshots).map((item) => [item.id, item]),
+  )
   const groups = useMemo(
     () => filterAppGroups(groupBoardApps(apps, categories), query),
     [apps, categories, query],
@@ -314,17 +334,6 @@ export function BoardSearch({
   )
   const assign = trpc.boards.assign.useMutation()
   const remove = trpc.apps.delete.useMutation()
-
-  useEffect(() => {
-    setStatuses(
-      Object.fromEntries(
-        apps.map((app) => [
-          app.id,
-          { status: app.status, lastCheckedAt: app.lastCheckedAt },
-        ]),
-      ),
-    )
-  }, [apps])
 
   useEffect(
     () => () => {
@@ -358,27 +367,12 @@ export function BoardSearch({
     }
   }
 
-  useEffect(() => {
-    if (apps.length === 0) return
-    let active = true
-    setChecking(true)
-    refreshStatuses
-      .mutateAsync({ nanoid: boardNanoid })
-      .then((result) => {
-        if (!active) return
-        setStatuses(Object.fromEntries(result.map((app) => [app.id, app])))
-      })
-      .catch(() => {})
-      .finally(() => {
-        if (active) setChecking(false)
-      })
-    return () => {
-      active = false
-    }
-  }, [apps.length, boardNanoid, refreshStatuses.mutateAsync])
-
   function renderTile(app: BoardApp) {
     const status = statuses[app.id] ?? app
+    const checking = status.checking
+    const stale =
+      status.lastCheckedAt !== null &&
+      Date.now() - status.lastCheckedAt >= STATUS_FRESHNESS_MS
     const label = checking
       ? status.status === "unknown"
         ? "Checking"
@@ -389,7 +383,7 @@ export function BoardSearch({
         ? checking
           ? "not checked yet; checking now"
           : "not checked yet"
-        : `last checked ${new Date(status.lastCheckedAt).toISOString()}${checking ? "; checking now" : ""}`
+        : `last checked ${new Date(status.lastCheckedAt).toISOString()}${stale ? "; stale" : ""}${checking ? "; checking now" : ""}${status.lastError ? `; ${status.lastError}` : ""}`
     return (
       <BoardTile
         key={app.id}
@@ -418,6 +412,23 @@ export function BoardSearch({
 
   return (
     <main className="flex-1">
+      {statusQuery.isError && (
+        <div
+          role="alert"
+          className="mx-auto mt-3 flex max-w-6xl items-center justify-between px-4 text-sm text-danger sm:px-6"
+        >
+          <span>
+            Could not refresh app statuses. Saved results are still shown.
+          </span>
+          <button
+            type="button"
+            className="underline"
+            onClick={() => void statusQuery.refetch()}
+          >
+            Retry
+          </button>
+        </div>
+      )}
       <header className="sticky top-0 z-20 border-b border-line bg-background">
         <div className="mx-auto grid max-w-6xl grid-cols-2 items-center gap-x-3 gap-y-2 px-4 py-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,2fr)_minmax(0,1fr)] sm:gap-4 sm:px-6">
           <div className="order-1 min-w-0">

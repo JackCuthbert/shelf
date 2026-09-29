@@ -14,6 +14,7 @@ export type SharedApp = {
   status: string
   lastCheckedAt: Date | null
   lastError: string | null
+  probeRequestedAt: Date | null
   createdAt: Date
   updatedAt: Date
 }
@@ -29,7 +30,12 @@ export type AppValues = Pick<
   | "iconHash"
 >
 export type AppUpdateValues = AppValues &
-  Partial<Pick<SharedApp, "status" | "lastCheckedAt" | "lastError">>
+  Partial<
+    Pick<
+      SharedApp,
+      "status" | "lastCheckedAt" | "lastError" | "probeRequestedAt"
+    >
+  >
 export type AppCreateValues = AppValues & Pick<SharedApp, "id" | "ownerId">
 
 export interface AppRepository {
@@ -167,6 +173,7 @@ export function createSharedAppService(
                   status: "unknown",
                   lastCheckedAt: null,
                   lastError: null,
+                  probeRequestedAt: null,
                 }
           updated = await repository.update(input.id, valuesWithStatus)
         } catch (error) {
