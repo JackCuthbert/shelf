@@ -1,5 +1,6 @@
 node_modules
 .next
+.server-build
 .git
 .env*
 docs

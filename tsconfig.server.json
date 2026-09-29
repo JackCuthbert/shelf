@@ -1,0 +1,18 @@
+{
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "target": "ES2022",
+    "types": ["node"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "rootDir": ".",
+    "outDir": ".server-build",
+    "noEmit": false,
+    "declaration": false,
+    "sourceMap": false,
+    "incremental": false,
+    "rewriteRelativeImportExtensions": true
+  },
+  "include": ["scripts/server.ts"],
+  "exclude": ["node_modules", "**/*.test.ts"]
+}

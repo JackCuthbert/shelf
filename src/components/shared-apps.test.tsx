@@ -8,6 +8,7 @@ const trpcMocks = vi.hoisted(() => ({
   },
   recheckMutate: vi.fn(),
   pending: false,
+  manualErrors: {} as Record<string, string>,
 }))
 
 vi.mock("@/components/trpc-provider", () => {
@@ -36,6 +37,15 @@ vi.mock("@/components/trpc-provider", () => {
     },
   }
 })
+
+vi.mock("@/components/use-manual-app-check", () => ({
+  useManualAppCheck: () => ({
+    request: vi.fn(async () => ({ accepted: true })),
+    isChecking: () => false,
+    snapshots: {},
+    errors: trpcMocks.manualErrors,
+  }),
+}))
 
 import { appCheckActionLabel, SharedApps } from "./shared-apps"
 
@@ -73,6 +83,7 @@ it("shows a filter and a single-column list when apps exist", () => {
           status: "unknown",
           lastError: null,
           lastCheckedAt: null,
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },
@@ -114,6 +125,7 @@ it("hides edit and delete actions for apps owned by another user", () => {
           status: "unknown",
           lastError: null,
           lastCheckedAt: null,
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },
@@ -142,6 +154,7 @@ it("shows the last recorded state and failure reason without re-checking", () =>
           status: "down",
           lastError: "Connection refused",
           lastCheckedAt: "2026-09-24T00:00:00.000Z",
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },
@@ -173,6 +186,7 @@ it("renders a compact responsive row with status on the icon and a menu trigger"
           status: "up",
           lastError: null,
           lastCheckedAt: "2026-09-24T00:00:00.000Z",
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },
@@ -189,36 +203,13 @@ it("renders a compact responsive row with status on the icon and a menu trigger"
   expect(html).toContain("size-3 shrink-0")
 })
 
-it("wires Check now to the app mutation", () => {
-  renderToStaticMarkup(
-    <SharedApps
-      currentUserId="u1"
-      initialApps={[
-        {
-          id: "a1",
-          ownerId: "u1",
-          name: "Plex",
-          description: "",
-          url: "https://plex.example",
-          iconSource: "dashboard",
-          iconSlug: "plex",
-          customIconUrl: null,
-          iconHash: null,
-          status: "up",
-          lastError: null,
-          lastCheckedAt: null,
-          createdAt: "",
-          updatedAt: "",
-        },
-      ]}
-    />,
-  )
-  expect(trpcMocks.recheckOptions).toBeTruthy()
-  trpcMocks.recheckOptions?.onSuccess({}, { id: "a1" })
+it("renders the per-app manual check action", () => {
+  expect(appCheckActionLabel("Plex")).toBe("Check Plex now")
 })
 
-it("configures a row-scoped request error handler", () => {
-  renderToStaticMarkup(
+it("renders an actionable check retry when an error is retained", () => {
+  trpcMocks.manualErrors = { a1: "Could not refresh status. Retry the check." }
+  const html = renderToStaticMarkup(
     <SharedApps
       currentUserId="u1"
       initialApps={[
@@ -235,13 +226,16 @@ it("configures a row-scoped request error handler", () => {
           status: "unknown",
           lastError: null,
           lastCheckedAt: null,
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },
       ]}
     />,
   )
-  expect(trpcMocks.recheckOptions?.onError).toBeTypeOf("function")
+  expect(html).toContain("Could not refresh status. Retry the check.")
+  expect(html).toContain("Retry Plex")
+  trpcMocks.manualErrors = {}
 })
 
 it("shows an accessible per-app menu trigger for app actions", () => {
@@ -262,6 +256,7 @@ it("shows an accessible per-app menu trigger for app actions", () => {
           status: "up",
           lastError: null,
           lastCheckedAt: null,
+          probeRequestedAt: null,
           createdAt: "",
           updatedAt: "",
         },

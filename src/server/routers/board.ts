@@ -531,13 +531,10 @@ export const boardRouter = router({
     ),
   refreshStatuses: publicProcedure
     .input(z.object({ nanoid: z.string().min(8).max(30) }))
-    .mutation(async ({ input }) => {
-      const statuses = await appStatusService.refreshBoard(input.nanoid)
+    .query(async ({ input }) => {
+      const statuses = await appStatusService.boardStatuses(input.nanoid)
       if (!statuses)
         throw new TRPCError({ code: "NOT_FOUND", message: "Board not found." })
-      return statuses.map((app) => ({
-        ...app,
-        lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
-      }))
+      return statuses
     }),
 })

@@ -87,6 +87,13 @@ export default async function BoardPage({
         status:
           app.status === "up" || app.status === "down" ? app.status : "unknown",
         lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
+        lastError: app.lastError,
+        checking:
+          app.probeRequestedAt ||
+          !app.lastCheckedAt ||
+          Date.now() - app.lastCheckedAt.getTime() >= 3_600_000
+            ? true
+            : false,
       }))}
     />
   )

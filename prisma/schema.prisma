@@ -1,6 +1,7 @@
 generator client {
   provider = "prisma-client"
   output   = "../src/generated/prisma"
+  importFileExtension = "ts"
 }
 
 datasource db {
@@ -121,6 +122,7 @@ model App {
   status        String    @default("unknown")
   lastCheckedAt DateTime?
   lastError     String?
+  probeRequestedAt DateTime?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   boards        BoardApp[]

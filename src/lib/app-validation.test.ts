@@ -1,7 +1,22 @@
 import { describe, expect, it } from "vitest"
-import { appInputSchema } from "./app-validation"
+import {
+  appIdInputSchema,
+  appIdsInputSchema,
+  appInputSchema,
+} from "./app-validation"
 
 describe("app input validation", () => {
+  it("keeps existing single-app IDs nonempty while bounding status batches to Nano IDs", () => {
+    expect(appIdInputSchema.parse({ id: "x" })).toEqual({ id: "x" })
+    expect(appIdsInputSchema.parse({ ids: [] })).toEqual({ ids: [] })
+    expect(appIdsInputSchema.parse({ ids: ["AbCd1234"] })).toEqual({
+      ids: ["AbCd1234"],
+    })
+    expect(
+      appIdsInputSchema.safeParse({ ids: ["https://app.home"] }).success,
+    ).toBe(false)
+  })
+
   it("accepts private household HTTP URLs and explicit icon slugs", () => {
     expect(
       appInputSchema.parse({

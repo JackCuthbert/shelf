@@ -61,6 +61,8 @@ export default async function AdminBoardPage({
                 app: {
                   ...entry.app,
                   lastCheckedAt: entry.app.lastCheckedAt?.toISOString() ?? null,
+                  probeRequestedAt:
+                    entry.app.probeRequestedAt?.toISOString() ?? null,
                   createdAt: entry.app.createdAt.toISOString(),
                   updatedAt: entry.app.updatedAt.toISOString(),
                 },
@@ -70,6 +72,7 @@ export default async function AdminBoardPage({
           initialApps={apps.map((app) => ({
             ...app,
             lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,
+            probeRequestedAt: app.probeRequestedAt?.toISOString() ?? null,
             createdAt: app.createdAt.toISOString(),
             updatedAt: app.updatedAt.toISOString(),
           }))}

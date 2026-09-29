@@ -10,6 +10,7 @@ import { AppDetailCopyAction } from "@/components/app-detail-copy-action"
 import { auth } from "@/lib/auth"
 import { iconKey } from "@/lib/app-icon"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
+import { STATUS_FRESHNESS_MS, type AppStatusSnapshot } from "@/lib/app-status"
 import { prisma } from "@/lib/prisma"
 
 export const dynamic = "force-dynamic"
@@ -180,7 +181,28 @@ export default async function AppPage({
                     : "Not checked yet"}
               </span>
               {session && (
-                <AppDetailCheckAction appId={app.id} appName={app.name} />
+                <AppDetailCheckAction
+                  appId={app.id}
+                  appName={app.name}
+                  snapshot={
+                    {
+                      id: app.id,
+                      status:
+                        app.status === "up" || app.status === "down"
+                          ? app.status
+                          : "unknown",
+                      lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
+                      lastError: app.lastError,
+                      checking:
+                        app.probeRequestedAt ||
+                        !app.lastCheckedAt ||
+                        Date.now() - app.lastCheckedAt.getTime() >=
+                          STATUS_FRESHNESS_MS
+                          ? true
+                          : false,
+                    } satisfies AppStatusSnapshot
+                  }
+                />
               )}
             </dd>
           </div>

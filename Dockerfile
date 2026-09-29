@@ -8,7 +8,7 @@ WORKDIR /app
 ENV DATABASE_URL=file:/tmp/build.db
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-RUN npx prisma generate && npm run build && npx tsc -p tsconfig.reset.json
+RUN npm run build
 
 FROM node:24.21.0-alpine AS runner
 WORKDIR /app
@@ -18,13 +18,14 @@ RUN apk add --no-cache su-exec
 RUN addgroup -S app && adduser -S app -G app
 COPY --from=builder --chown=app:app /app/package.json ./package.json
 COPY --from=builder --chown=app:app /app/node_modules ./node_modules
-COPY --from=builder --chown=app:app /app/.next/standalone ./
-COPY --from=builder --chown=app:app /app/.next/static ./.next/static
+COPY --from=builder --chown=app:app /app/.next ./.next
+COPY --from=builder --chown=app:app /app/.server-build ./.server-build
+COPY --from=builder --chown=app:app /app/next.config.ts ./next.config.ts
 COPY --from=builder --chown=app:app /app/prisma ./prisma
 COPY --from=builder --chown=app:app /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=app:app /app/scripts ./scripts
 COPY --from=builder --chown=app:app /app/src/generated ./src/generated
-COPY --from=builder --chown=app:app /app/src/lib ./src/lib
+RUN ln -s ../.server-build/scripts/server.js /app/scripts/server.js
 COPY scripts/start.sh /usr/local/bin/shelf-start
 RUN chmod +x /usr/local/bin/shelf-start
 USER root

@@ -20,12 +20,11 @@ export function createAppQueryClient() {
         if (!Array.isArray(path)) return
         const [router, procedure] = path
         if (router === "apps") {
+          if (procedure === "recheckStatus") return
           void queryClient.invalidateQueries({ queryKey: [["apps"]] })
           void queryClient.invalidateQueries({ queryKey: [["boards"]] })
         } else if (router === "boards") {
           void queryClient.invalidateQueries({ queryKey: [["boards"]] })
-          if (procedure === "refreshStatuses")
-            void queryClient.invalidateQueries({ queryKey: [["apps"]] })
         }
       },
     }),
