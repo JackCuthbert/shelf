@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.3](https://github.com/JackCuthbert/shelf/compare/v0.2.2...v0.2.3) (2026-09-30)
+
+
+### Features
+
+* check app status in a background scheduler ([46babf5](https://github.com/JackCuthbert/shelf/commit/46babf5eec7ec999ae4eeb416a7b0d868347e102))
+
+
+### Bug Fixes
+
+* show app check times in the browser timezone ([b8ff56c](https://github.com/JackCuthbert/shelf/commit/b8ff56ca0f38710213129e25d8ea44325fbe466f))
+
 ## [0.2.2](https://github.com/JackCuthbert/shelf/compare/v0.2.1...v0.2.2) (2026-09-28)
 
 
