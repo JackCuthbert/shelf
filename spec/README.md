@@ -26,6 +26,6 @@ Shelf is a small, self-hosted dashboard for one household. It provides a shared 
 
 Boards use the responsive tile layout described in [board-visual-design.md](board-visual-design.md).
 
-## Proposed changes awaiting review
+## Implementation details
 
-- [App status scheduler redesign](app-status-scheduler.md): one custom Next.js server with an in-process probe timer, shared SQLite state, hourly checks for every app, and immediate first/manual checks.
+- [App status scheduler](app-status-scheduler.md): one custom Next.js server with an in-process probe timer, shared SQLite state, configurable automatic checks for every app, and immediate first/manual checks.

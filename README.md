@@ -26,8 +26,9 @@ A shared library of app links, arranged into boards of your own.
 - **Icons you choose.** Pick from [Dashboard Icons](https://dashboardicons.com)
   or supply a PNG URL. Shelf keeps a local copy.
 - **A quick check before you click.** A dot shows whether the app's web
-  server replied. Checks run when you open a board, with results kept for
-  ten minutes. You can also check an app immediately from its detail page.
+  server replied. Shelf checks apps in the background when they are added
+  and about once an hour afterward. You can also request a check from an
+  app's detail page.
 - **Works on a phone.** The grid fits the screen and follows your device's
   light or dark setting. Descriptions appear on hover, keyboard focus, or
   a tap on the info button.
@@ -165,9 +166,9 @@ operations and their request and response schemas.
 
 - **Private boards.** All boards and app links are public to anyone who
   can reach Shelf.
-- **Background monitoring.** Checks run when you view a board. A green
-  dot means the server replied, even if it returned an error page; it
-  cannot tell you whether the app itself works correctly.
+- **Application health monitoring.** A green dot means the server replied,
+  even if it returned an error page; it cannot tell you whether the app
+  itself works correctly.
 - **Import a whole Homarr setup.** The import brings over app links.
   Boards, categories and widgets stay behind.
 

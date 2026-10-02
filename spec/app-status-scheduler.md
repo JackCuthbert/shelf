@@ -16,9 +16,9 @@ Keep Docker's existing data-directory preparation, permissions, user switch, mig
 
 Keep `status`, `lastCheckedAt` and `lastError`. Add only one nullable `probeRequestedAt` timestamp on App. It represents pending work, including work currently being checked. There are no request revisions, completion revisions, separate running markers, leases or job records.
 
-- All apps are eligible immediately when they have no result, and hourly after their last completed check, whether viewed or assigned to a board.
+- All apps are eligible immediately when they have no result, and after the configured automatic interval from their last completed check, whether viewed or assigned to a board. The interval defaults to one hour. Derive eligibility from saved completion times using the current setting after restart; shortening the interval may make existing results due immediately, while lengthening it delays their next automatic check.
 - Manual refresh records a pending timestamp, bypasses freshness, and takes priority over automatic checks. Repeated requests while pending share the check.
-- Check one app at a time. Poll for work once per second when idle. Space hourly check starts by at least five seconds; initial and manual checks bypass that spacing.
+- Check one app at a time. Poll for work once per second when idle. Space automatic check starts by at least five seconds; initial and manual checks bypass that spacing.
 - Before an automatic check, record a pending timestamp too. Preserve an existing pending timestamp rather than replacing it.
 - Publish status, error and completion time, and clear the pending timestamp, with one conditional update matching the app ID, captured URL and pending timestamp. This small guard prevents an old check from overwriting an edited app or clearing newer work.
 - URL edits reset saved status and timestamps, making the new URL eligible. Deletion simply removes the work. Other edits and board assignments do not change the schedule.
@@ -44,7 +44,8 @@ Keep last-check details, stale-result indication, accessibility and the existing
 
 Keep a small set of behavior tests covering:
 
-- Hourly eligibility, initial/manual priority, serial probes and hourly spacing.
+- Configured automatic eligibility (including saved results after restart and changes to the interval), initial/manual priority, serial probes and automatic start spacing.
+- Default and valid interval parsing, with startup failure for invalid deployment values; status snapshots and stale labels use the same effective interval.
 - Saved-state reads that do not probe, request coalescing, restart persistence, and edited/deleted app result guards.
 - Reachability, timeout/retry, self-signed HTTPS and response disposal.
 - Saved results and simple pending UI, with visible-page polling and ordinary request errors.
