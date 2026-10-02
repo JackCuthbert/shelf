@@ -126,11 +126,16 @@ signing in locally. Creating new accounts through OIDC follows the same
 
 ### Other settings
 
-| Variable             | Default          | What it changes                          |
-| -------------------- | ---------------- | ---------------------------------------- |
-| `OIDC_PROVIDER_NAME` | `OpenID Connect` | The provider's name on the sign-in page. |
-| `SHELF_ICON_DIR`     | `/data/icons`    | Where downloaded icons are kept.         |
-| `PORT`               | `3000`           | The container's HTTP port.               |
+| Variable                            | Default          | What it changes                                 |
+| ----------------------------------- | ---------------- | ----------------------------------------------- |
+| `OIDC_PROVIDER_NAME`                | `OpenID Connect` | The provider's name on the sign-in page.        |
+| `SHELF_ICON_DIR`                    | `/data/icons`    | Where downloaded icons are kept.                |
+| `PORT`                              | `3000`           | The container's HTTP port.                      |
+| `APP_STATUS_CHECK_INTERVAL_SECONDS` | `3600`           | Automatic app status check interval in seconds. |
+
+Use a whole number of seconds, with a minimum of `60` (one minute). For example, set
+`APP_STATUS_CHECK_INTERVAL_SECONDS=1800` to check every 30 minutes. Initial
+checks and checks requested manually run immediately.
 
 ### Resetting a password
 

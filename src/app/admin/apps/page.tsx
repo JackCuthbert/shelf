@@ -6,6 +6,7 @@ import { AdminMenubar } from "@/components/admin-menubar"
 import { SharedApps } from "@/components/shared-apps"
 import { prisma } from "@/lib/prisma"
 import { appTitle } from "@/lib/page-title"
+import { getStatusCheckIntervalSeconds } from "@/server/apps/status/config"
 
 export const metadata: Metadata = { title: appTitle("Apps") }
 
@@ -21,6 +22,7 @@ export default async function AdminAppsPage() {
       <main className="mx-auto w-full flex-1 max-w-6xl px-4 pt-5 pb-8 sm:px-6">
         <SharedApps
           currentUserId={session.user.id}
+          checkIntervalSeconds={getStatusCheckIntervalSeconds()}
           initialApps={apps.map((app) => ({
             ...app,
             lastCheckedAt: app.lastCheckedAt?.toISOString() ?? null,

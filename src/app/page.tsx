@@ -6,6 +6,7 @@ import { iconKey } from "@/lib/app-icon"
 import { BoardSearch } from "@/components/board-search"
 import { AnonymousPageNav } from "@/components/anonymous-page-nav"
 import { LuArrowRight } from "react-icons/lu"
+import { getStatusCheckIntervalSeconds } from "@/server/apps/status/config"
 
 export const dynamic = "force-dynamic"
 
@@ -26,6 +27,7 @@ export default async function HomePage() {
         })
       : null
     if (!board) redirect("/admin/boards")
+    const checkIntervalSeconds = getStatusCheckIntervalSeconds()
     const boards = await prisma.board.findMany({
       select: {
         id: true,
@@ -67,10 +69,12 @@ export default async function HomePage() {
               : "unknown",
           lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
           lastError: app.lastError,
+          checkIntervalSeconds,
           checking:
             app.probeRequestedAt ||
             !app.lastCheckedAt ||
-            Date.now() - app.lastCheckedAt.getTime() >= 3_600_000
+            Date.now() - app.lastCheckedAt.getTime() >=
+              checkIntervalSeconds * 1_000
               ? true
               : false,
         }))}

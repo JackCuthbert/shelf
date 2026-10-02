@@ -36,6 +36,10 @@ describe("app status repository", () => {
 
   it("coalesces manual requests, preserves them during work, and publishes conditionally", async () => {
     await insert()
+    await db.app.update({
+      where: { id: "app00001" },
+      data: { status: "up", lastCheckedAt: new Date(0) },
+    })
     const accepted = await Promise.all(
       Array.from({ length: 8 }, () =>
         repo.requestManual("app00001", new Date(1)),
@@ -58,7 +62,7 @@ describe("app status repository", () => {
     ).toMatchObject({ status: "up", probeRequestedAt: null })
   })
 
-  it("selects initial and hourly work and rejects results after URL edits or deletion", async () => {
+  it("selects initial and automatic work and rejects results after URL edits or deletion", async () => {
     await insert()
     expect(await repo.selectNext(new Date(0))).toEqual({
       id: "app00001",
@@ -85,11 +89,11 @@ describe("app status repository", () => {
     expect(await repo.selectNext(new Date(3_599_999))).toBeNull()
     expect(await repo.selectNext(new Date(3_600_000))).toEqual({
       id: "app00001",
-      trigger: "hourly",
+      trigger: "automatic",
     })
     const hourly = await repo.markPending(
       "app00001",
-      "hourly",
+      "automatic",
       new Date(3_600_000),
     )
     await db.app.delete({ where: { id: "app00001" } })
@@ -100,5 +104,27 @@ describe("app status repository", () => {
         new Date(3_600_001),
       ),
     ).toBe(false)
+  })
+
+  it("derives automatic eligibility from saved results and the current interval", async () => {
+    await insert()
+    await db.app.update({
+      where: { id: "app00001" },
+      data: { lastCheckedAt: new Date(0) },
+    })
+
+    expect(await repo.selectNext(new Date(59_999))).toBeNull()
+    repo = createAppStatusRepository(db, 60)
+    expect(await repo.selectNext(new Date(59_999))).toBeNull()
+    expect(await repo.selectNext(new Date(60_000))).toEqual({
+      id: "app00001",
+      trigger: "automatic",
+    })
+    repo = createAppStatusRepository(db, 3600)
+    expect(await repo.selectNext(new Date(60_000))).toBeNull()
+    expect(await repo.selectNext(new Date(3_600_000))).toEqual({
+      id: "app00001",
+      trigger: "automatic",
+    })
   })
 })

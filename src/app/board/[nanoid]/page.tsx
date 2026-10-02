@@ -7,6 +7,7 @@ import { iconKey } from "@/lib/app-icon"
 import { BoardSearch } from "@/components/board-search"
 import { auth } from "@/lib/auth"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
+import { getStatusCheckIntervalSeconds } from "@/server/apps/status/config"
 
 export const dynamic = "force-dynamic"
 
@@ -41,6 +42,7 @@ export default async function BoardPage({
     auth.api.getSession({ headers: await headers() }),
   ])
   if (!board) notFound()
+  const checkIntervalSeconds = getStatusCheckIntervalSeconds()
   const [boards, viewer] = await Promise.all([
     prisma.board.findMany({
       select: {
@@ -88,10 +90,12 @@ export default async function BoardPage({
           app.status === "up" || app.status === "down" ? app.status : "unknown",
         lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
         lastError: app.lastError,
+        checkIntervalSeconds,
         checking:
           app.probeRequestedAt ||
           !app.lastCheckedAt ||
-          Date.now() - app.lastCheckedAt.getTime() >= 3_600_000
+          Date.now() - app.lastCheckedAt.getTime() >=
+            checkIntervalSeconds * 1_000
             ? true
             : false,
       }))}

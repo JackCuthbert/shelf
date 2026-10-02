@@ -1,7 +1,7 @@
 import type { PrismaClient } from "../../../generated/prisma/client.ts"
 import {
   type AppStatus,
-  STATUS_FRESHNESS_MS,
+  DEFAULT_STATUS_CHECK_INTERVAL_SECONDS,
   type ProbeResult,
   type ProbeTrigger,
   type ProbeWork,
@@ -42,6 +42,7 @@ function toRecord(app: {
 
 export function createAppStatusRepository(
   db: PrismaClient,
+  checkIntervalSeconds = DEFAULT_STATUS_CHECK_INTERVAL_SECONDS,
 ): AppStatusRepository {
   const readAll = async () => (await db.app.findMany()).map(toRecord)
   return {
@@ -83,18 +84,19 @@ export function createAppStatusRepository(
         .filter((app) => !app.lastCheckedAt)
         .sort((a, b) => a.id.localeCompare(b.id))[0]
       if (initial) return { id: initial.id, trigger: "initial" }
-      const hourly = records
+      const automatic = records
         .filter(
           (app) =>
             app.lastCheckedAt &&
-            now.getTime() - app.lastCheckedAt.getTime() >= STATUS_FRESHNESS_MS,
+            now.getTime() - app.lastCheckedAt.getTime() >=
+              checkIntervalSeconds * 1_000,
         )
         .sort(
           (a, b) =>
             a.lastCheckedAt!.getTime() - b.lastCheckedAt!.getTime() ||
             a.id.localeCompare(b.id),
         )[0]
-      return hourly ? { id: hourly.id, trigger: "hourly" } : null
+      return automatic ? { id: automatic.id, trigger: "automatic" } : null
     },
     async markPending(id, trigger, now) {
       const app = await db.app.findUnique({ where: { id } })

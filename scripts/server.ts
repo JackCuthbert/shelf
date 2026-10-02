@@ -1,6 +1,7 @@
 import { createServer } from "node:http"
 import next from "next"
 import { runAppStatusScheduler } from "../src/server/apps/status/index.ts"
+import { getStatusCheckIntervalSeconds } from "../src/server/apps/status/config.ts"
 
 function parseOptions(args: string[], env: NodeJS.ProcessEnv) {
   let hostname = "0.0.0.0"
@@ -20,10 +21,11 @@ function parseOptions(args: string[], env: NodeJS.ProcessEnv) {
 async function start() {
   const options = parseOptions(process.argv.slice(2), process.env)
   const app = next(options)
+  const checkIntervalSeconds = getStatusCheckIntervalSeconds()
   await app.prepare()
   const server = createServer(app.getRequestHandler())
   server.listen(options.port, options.hostname, async () => {
-    void runAppStatusScheduler()
+    void runAppStatusScheduler(checkIntervalSeconds)
   })
 }
 
