@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/JackCuthbert/shelf/compare/v0.2.3...v0.2.4) (2026-10-02)
+
+
+### Features
+
+* configure automatic app status check interval ([185d493](https://github.com/JackCuthbert/shelf/commit/185d4936b486da9e1e0c21a152ddf23eb5917bb2))
+
 ## [0.2.3](https://github.com/JackCuthbert/shelf/compare/v0.2.2...v0.2.3) (2026-09-30)
 
 
