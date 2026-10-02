@@ -27,7 +27,6 @@ import { UserMenu } from "@/components/user-menu"
 import { trpc } from "@/components/trpc-provider"
 import {
   BOARD_POLL_MS,
-  STATUS_FRESHNESS_MS,
   type AppStatus,
   type AppStatusSnapshot,
 } from "@/lib/app-status"
@@ -47,6 +46,7 @@ type BoardApp = {
   categoryId: string | null
   status: AppStatus
   lastCheckedAt: number | null
+  checkIntervalSeconds: number
   lastError?: string | null
   checking?: boolean
 }
@@ -312,6 +312,7 @@ export function BoardSearch({
     lastCheckedAt: app.lastCheckedAt,
     lastError: app.lastError ?? null,
     checking: app.checking ?? app.lastCheckedAt === null,
+    checkIntervalSeconds: app.checkIntervalSeconds,
   }))
   const statusQuery = trpc.boards.refreshStatuses.useQuery(
     { nanoid: boardNanoid },
@@ -384,7 +385,7 @@ export function BoardSearch({
     const checking = status.checking
     const stale =
       status.lastCheckedAt !== null &&
-      Date.now() - status.lastCheckedAt >= STATUS_FRESHNESS_MS
+      Date.now() - status.lastCheckedAt >= status.checkIntervalSeconds * 1_000
     const label = checking
       ? status.status === "unknown"
         ? "Checking"

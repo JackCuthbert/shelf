@@ -25,6 +25,7 @@ import { trpc } from "@/components/trpc-provider"
 import { useManualAppCheck } from "@/components/use-manual-app-check"
 import { useLocalDateTime } from "@/components/use-local-date-time"
 import { iconKey } from "@/lib/app-icon"
+import { DEFAULT_STATUS_CHECK_INTERVAL_SECONDS } from "@/lib/app-status"
 
 type App = {
   id: string
@@ -85,9 +86,11 @@ export function appCheckActionLabel(appName: string) {
 export function SharedApps({
   initialApps,
   currentUserId,
+  checkIntervalSeconds = DEFAULT_STATUS_CHECK_INTERVAL_SECONDS,
 }: {
   initialApps: App[]
   currentUserId: string
+  checkIntervalSeconds?: number
 }) {
   const { data: apps = initialApps } = trpc.apps.list.useQuery(undefined, {
     initialData: initialApps,
@@ -107,10 +110,12 @@ export function SharedApps({
         ? new Date(app.lastCheckedAt).getTime()
         : null,
       lastError: app.lastError,
+      checkIntervalSeconds,
       checking:
         app.probeRequestedAt ||
         !app.lastCheckedAt ||
-        Date.now() - new Date(app.lastCheckedAt).getTime() >= 3_600_000
+        Date.now() - new Date(app.lastCheckedAt).getTime() >=
+          checkIntervalSeconds * 1_000
           ? true
           : false,
     })),

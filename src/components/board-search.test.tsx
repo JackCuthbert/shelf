@@ -5,7 +5,6 @@ import {
   descriptionTileHandlers,
   statusColor,
 } from "./board-search"
-import { STATUS_FRESHNESS_MS } from "@/lib/app-status"
 
 const retryClicks = vi.hoisted(() => [] as (() => void)[])
 vi.mock("react/jsx-runtime", async (importOriginal) => {
@@ -85,6 +84,7 @@ const apps = [
     categoryId: null,
     status: "up" as const,
     lastCheckedAt: Date.parse("2026-09-24T00:00:00Z"),
+    checkIntervalSeconds: 3600,
   },
   {
     id: "sonarr",
@@ -99,6 +99,7 @@ const apps = [
     categoryId: null,
     status: "unknown" as const,
     lastCheckedAt: null,
+    checkIntervalSeconds: 3600,
   },
 ]
 
@@ -129,12 +130,12 @@ describe("statusColor", () => {
 
 describe("BoardSearch", () => {
   it.each([
-    [STATUS_FRESHNESS_MS - 1, false],
-    [STATUS_FRESHNESS_MS, true],
+    [59_999, false],
+    [60_000, true],
   ])(
     "marks a snapshot stale at the freshness boundary (%s ms)",
     (age, stale) => {
-      vi.spyOn(Date, "now").mockReturnValue(10_000_000)
+      vi.spyOn(Date, "now").mockReturnValue(100_000)
       statusQueryMock.mockImplementation(
         (_input: unknown, options: { initialData: unknown }) => ({
           data: options.initialData,
@@ -146,7 +147,13 @@ describe("BoardSearch", () => {
         <BoardSearch
           boardName="Home"
           boardNanoid="abcdefgh"
-          apps={[{ ...apps[0]!, lastCheckedAt: 10_000_000 - age }]}
+          apps={[
+            {
+              ...apps[0]!,
+              lastCheckedAt: 100_000 - age,
+              checkIntervalSeconds: 60,
+            },
+          ]}
           categories={[]}
           user={null}
         />,

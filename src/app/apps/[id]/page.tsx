@@ -11,8 +11,9 @@ import { LocalDateTime } from "@/components/local-date-time"
 import { auth } from "@/lib/auth"
 import { iconKey } from "@/lib/app-icon"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
-import { STATUS_FRESHNESS_MS, type AppStatusSnapshot } from "@/lib/app-status"
+import type { AppStatusSnapshot } from "@/lib/app-status"
 import { prisma } from "@/lib/prisma"
+import { getStatusCheckIntervalSeconds } from "@/server/apps/status/config"
 
 export const dynamic = "force-dynamic"
 
@@ -50,6 +51,7 @@ export default async function AppPage({
     auth.api.getSession({ headers: await headers() }),
   ])
   if (!app) notFound()
+  const checkIntervalSeconds = getStatusCheckIntervalSeconds()
   const isOwner = session?.user.id === app.ownerId
   const [boards, viewer] = await Promise.all([
     prisma.board.findMany({
@@ -194,11 +196,12 @@ export default async function AppPage({
                           : "unknown",
                       lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
                       lastError: app.lastError,
+                      checkIntervalSeconds,
                       checking:
                         app.probeRequestedAt ||
                         !app.lastCheckedAt ||
                         Date.now() - app.lastCheckedAt.getTime() >=
-                          STATUS_FRESHNESS_MS
+                          checkIntervalSeconds * 1_000
                           ? true
                           : false,
                     } satisfies AppStatusSnapshot

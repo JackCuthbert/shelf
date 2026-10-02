@@ -1,5 +1,5 @@
 import {
-  HOURLY_START_SPACING_MS,
+  AUTOMATIC_START_SPACING_MS,
   SCHEDULER_POLL_MS,
   type ProbeResult,
 } from "../../../lib/app-status.ts"
@@ -17,7 +17,7 @@ export function createAppStatusScheduler(options: {
   const sleep =
     options.sleep ??
     ((ms) => new Promise<void>((resolve) => setTimeout(resolve, ms)))
-  let lastHourlyStart: number | null = null
+  let lastAutomaticStart: number | null = null
   return async function run(): Promise<never> {
     while (true) {
       const selected = await options.repository.selectNext(now())
@@ -25,9 +25,9 @@ export function createAppStatusScheduler(options: {
         await sleep(SCHEDULER_POLL_MS)
         continue
       }
-      if (selected.trigger === "hourly" && lastHourlyStart !== null) {
+      if (selected.trigger === "automatic" && lastAutomaticStart !== null) {
         const remaining =
-          HOURLY_START_SPACING_MS - (now().getTime() - lastHourlyStart)
+          AUTOMATIC_START_SPACING_MS - (now().getTime() - lastAutomaticStart)
         if (remaining > 0) {
           await sleep(Math.min(remaining, SCHEDULER_POLL_MS))
           continue
@@ -39,7 +39,7 @@ export function createAppStatusScheduler(options: {
         now(),
       )
       if (!work) continue
-      if (work.trigger === "hourly") lastHourlyStart = now().getTime()
+      if (work.trigger === "automatic") lastAutomaticStart = now().getTime()
       const startedAt = Date.now()
       console.info(
         ` [status-scheduler] CHECK ${work.id} started (${work.trigger})`,

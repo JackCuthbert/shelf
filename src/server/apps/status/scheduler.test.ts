@@ -64,16 +64,17 @@ describe("app status scheduler", () => {
     expect(repository.publish).toHaveBeenCalledOnce()
   })
 
-  it("paces hourly starts while allowing manual work priority", async () => {
+  it("paces automatic starts while allowing manual work priority", async () => {
     const selected = [
-      { id: "hourly01", trigger: "hourly" as const },
-      { id: "hourly01", trigger: "hourly" as const },
-      { id: "hourly01", trigger: "hourly" as const },
-      { id: "hourly01", trigger: "hourly" as const },
-      { id: "hourly01", trigger: "hourly" as const },
+      { id: "hourly01", trigger: "automatic" as const },
+      { id: "hourly01", trigger: "automatic" as const },
+      { id: "hourly01", trigger: "automatic" as const },
+      { id: "hourly01", trigger: "automatic" as const },
+      { id: "hourly01", trigger: "automatic" as const },
       { id: "manual01", trigger: "manual" as const },
-      { id: "hourly02", trigger: "hourly" as const },
-      { id: "hourly02", trigger: "hourly" as const },
+      { id: "initial01", trigger: "initial" as const },
+      { id: "hourly02", trigger: "automatic" as const },
+      { id: "hourly02", trigger: "automatic" as const },
     ]
     const repository: AppStatusRepository = {
       listBoardApps: vi.fn(async () => []),
@@ -111,6 +112,7 @@ describe("app status scheduler", () => {
     expect(started).toEqual([
       { id: "hourly01", at: 0 },
       { id: "manual01", at: 4000 },
+      { id: "initial01", at: 4000 },
       { id: "hourly02", at: 5000 },
     ])
     expect(slept).toEqual([1000, 1000, 1000, 1000, 1000])

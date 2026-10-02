@@ -44,6 +44,18 @@ describe("app status service", () => {
     expect(repository.markPending).not.toHaveBeenCalled()
   })
 
+  it("includes the effective interval in status snapshots", async () => {
+    const { repository } = setup()
+    const service = createAppStatusService(
+      repository,
+      () => new Date("2026-09-29T00:01:00Z"),
+      () => 60,
+    )
+    await expect(service.appStatuses(["plex0001"])).resolves.toMatchObject([
+      { id: "plex0001", checking: true, checkIntervalSeconds: 60 },
+    ])
+  })
+
   it("preserves board snapshot array shape and reports a missing board", async () => {
     const { service, repository } = setup()
     vi.mocked(repository.listBoardApps).mockResolvedValueOnce([])

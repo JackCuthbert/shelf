@@ -11,7 +11,7 @@ The in-process scheduler checks apps one at a time. New apps are due immediately
 - `boards.refreshStatuses({ nanoid })` is a public query. It verifies the board exists and returns saved snapshots for its assigned apps in display array shape. It never probes or changes scheduling state.
 - `apps.statuses({ ids })` is a public, read-only query accepting zero to one hundred eight-character Nano IDs. Duplicate IDs are read once, missing apps are omitted, and the caller cannot provide URLs.
 - `apps.recheckStatus({ id })` requires authentication and an existing app. It records/joins manual intent and returns `{ accepted: true }` before the check completes. The client supplies only the app ID; the server uses the saved URL.
-- Snapshots include `id`, `status`, `lastCheckedAt` in epoch milliseconds or null, `lastError`, and one `checking` boolean. Checking means pending work or an automatically due result.
+- Snapshots include `id`, `status`, `lastCheckedAt` in epoch milliseconds or null, `lastError`, one `checking` boolean, and the effective `checkIntervalSeconds`. Checking means pending work or an automatically due result.
 
 URL edits reset saved status and invalidate work for the old URL. Other app edits and assignment changes preserve status. Only the current valid probe result can be published.
 

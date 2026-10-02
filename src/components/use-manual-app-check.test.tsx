@@ -21,6 +21,7 @@ it("treats an initially checking snapshot as pending on first render", () => {
         lastCheckedAt: null,
         lastError: null,
         checking: true,
+        checkIntervalSeconds: 3600,
       },
     ])
     checking = checks.isChecking("app00001")

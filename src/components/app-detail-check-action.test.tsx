@@ -24,6 +24,7 @@ it("keeps the detail action busy while work is pending", () => {
         lastCheckedAt: 1,
         lastError: "Connection refused",
         checking: true,
+        checkIntervalSeconds: 3600,
       }}
     />,
   )
