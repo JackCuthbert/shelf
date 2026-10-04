@@ -1,16 +1,16 @@
-FROM node:24.21.0-alpine AS deps
+FROM node:26.10.0-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:24.21.0-alpine AS builder
+FROM node:26.10.0-alpine AS builder
 WORKDIR /app
 ENV DATABASE_URL=file:/tmp/build.db
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 RUN npm run build
 
-FROM node:24.21.0-alpine AS runner
+FROM node:26.10.0-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production
 ENV DATABASE_URL=file:/data/app.db
