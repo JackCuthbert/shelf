@@ -5,7 +5,7 @@ updates:
     directory: /
     schedule:
       interval: weekly
-      day: monday    
+      day: monday
     groups:
       minor-and-patch:
         update-types: [minor, patch]
