@@ -148,7 +148,8 @@ try {
         iconSlug: id,
         status: "up",
         statusChecksEnabled: id !== "paperless-ngx",
-        lastCheckedAt: new Date(),
+        // Fixed clock keeps the app screenshot byte-for-byte reproducible.
+        lastCheckedAt: new Date("2026-10-24T08:10:00Z"),
         createdAt,
         boards: { create: { boardId: "homelab1", categoryId, position } },
       },
