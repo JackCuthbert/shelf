@@ -58,6 +58,9 @@
           "status": {
             "type": "string"
           },
+          "statusChecksEnabled": {
+            "type": "boolean"
+          },
           "lastCheckedAt": {
             "type": "string",
             "nullable": true
@@ -85,6 +88,7 @@
           "iconHash",
           "iconUrl",
           "status",
+          "statusChecksEnabled",
           "lastCheckedAt",
           "lastError",
           "createdAt",
@@ -102,6 +106,7 @@
           "iconHash": null,
           "iconUrl": "/icons/plex",
           "status": "unknown",
+          "statusChecksEnabled": true,
           "lastCheckedAt": null,
           "lastError": null,
           "createdAt": "2026-09-26T12:00:00.000Z",
@@ -210,6 +215,7 @@
               "iconHash": null,
               "iconUrl": "/icons/plex",
               "status": "unknown",
+              "statusChecksEnabled": true,
               "lastCheckedAt": null,
               "lastError": null,
               "createdAt": "2026-09-26T12:00:00.000Z",
@@ -303,6 +309,9 @@
           "status": {
             "type": "string"
           },
+          "statusChecksEnabled": {
+            "type": "boolean"
+          },
           "lastCheckedAt": {
             "type": "string",
             "nullable": true
@@ -337,6 +346,7 @@
           "iconHash",
           "iconUrl",
           "status",
+          "statusChecksEnabled",
           "lastCheckedAt",
           "lastError",
           "createdAt",
@@ -356,6 +366,7 @@
           "iconHash": null,
           "iconUrl": "/icons/plex",
           "status": "unknown",
+          "statusChecksEnabled": true,
           "lastCheckedAt": null,
           "lastError": null,
           "createdAt": "2026-09-26T12:00:00.000Z",
@@ -426,6 +437,7 @@
                       "iconHash": null,
                       "iconUrl": "/icons/plex",
                       "status": "unknown",
+                      "statusChecksEnabled": true,
                       "lastCheckedAt": null,
                       "lastError": null,
                       "createdAt": "2026-09-26T12:00:00.000Z",
@@ -601,7 +613,8 @@
                   "description": "Media library",
                   "url": "https://plex.home",
                   "iconSource": "dashboard",
-                  "iconSlug": "plex"
+                  "iconSlug": "plex",
+                  "statusChecksEnabled": true
                 }
               }
             }
@@ -896,7 +909,8 @@
                   "description": "Media library",
                   "url": "https://plex.home",
                   "iconSource": "dashboard",
-                  "iconSlug": "plex"
+                  "iconSlug": "plex",
+                  "statusChecksEnabled": true
                 }
               }
             }

@@ -21,5 +21,13 @@ describe("agent API contract", () => {
       type: "http",
       scheme: "bearer",
     })
+    expect(contract.components.schemas.App.properties).toHaveProperty(
+      "statusChecksEnabled",
+      { type: "boolean" },
+    )
+    expect(contract.components.schemas.BoardApp.properties).toHaveProperty(
+      "statusChecksEnabled",
+      { type: "boolean" },
+    )
   })
 })

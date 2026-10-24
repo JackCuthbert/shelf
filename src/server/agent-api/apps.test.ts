@@ -26,6 +26,7 @@ const savedApp = {
   customIconUrl: null,
   iconHash: null,
   status: "unknown",
+  statusChecksEnabled: true,
   lastCheckedAt: null,
   lastError: null,
   probeRequestedAt: null,
@@ -62,6 +63,7 @@ describe("shared app API", () => {
         "name",
         "ownerId",
         "status",
+        "statusChecksEnabled",
         "updatedAt",
         "url",
       ].sort(),
@@ -99,6 +101,42 @@ describe("shared app API", () => {
       expect.objectContaining({ id: "app-1", description: "" }),
       "another-user",
     )
+    expect(service.create.mock.calls[0]?.[0]).not.toHaveProperty(
+      "statusChecksEnabled",
+    )
+    expect(service.update.mock.calls[0]?.[0]).not.toHaveProperty(
+      "statusChecksEnabled",
+    )
+  })
+  it("sets status checks explicitly and exposes a disabled app", async () => {
+    service.create.mockResolvedValue({
+      ...savedApp,
+      statusChecksEnabled: false,
+    })
+    service.get.mockResolvedValue({ ...savedApp, statusChecksEnabled: false })
+    const app = setup("another-user")
+    const created = await app.request("/api/v1/apps", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({
+        name: "Plex",
+        description: "",
+        url: "https://plex.home",
+        iconSource: "dashboard",
+        iconSlug: "plex",
+        statusChecksEnabled: false,
+      }),
+    })
+    expect(created.status).toBe(201)
+    expect(service.create).toHaveBeenCalledWith(
+      expect.objectContaining({ statusChecksEnabled: false }),
+      "another-user",
+    )
+    expect((await created.json()).statusChecksEnabled).toBe(false)
+    expect(
+      (await (await app.request("/api/v1/apps/app-1")).json())
+        .statusChecksEnabled,
+    ).toBe(false)
   })
   it("rejects an app replacement without a description", async () => {
     const response = await setup().request("/api/v1/apps/app-1", {
