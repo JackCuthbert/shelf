@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.6](https://github.com/JackCuthbert/shelf/compare/v0.2.5...v0.2.6) (2026-10-24)
+
+
+### Bug Fixes
+
+* **docker:** ship public assets so the favicon loads ([e9d2a8d](https://github.com/JackCuthbert/shelf/commit/e9d2a8d880e56329dd94b6430f219694e68d25e1))
+
 ## [0.2.5](https://github.com/JackCuthbert/shelf/compare/v0.2.4...v0.2.5) (2026-10-24)
 
 
