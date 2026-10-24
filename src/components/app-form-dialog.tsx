@@ -25,14 +25,16 @@ export type AppRecord = {
   iconSource: string
   iconSlug: string | null
   customIconUrl: string | null
+  statusChecksEnabled: boolean
 }
-type Draft = {
+export type Draft = {
   name: string
   description: string
   url: string
   iconSource: "dashboard" | "url"
   iconSlug: string
   iconUrl: string
+  statusChecksEnabled: boolean
 }
 const emptyDraft: Draft = {
   name: "",
@@ -41,6 +43,33 @@ const emptyDraft: Draft = {
   iconSource: "dashboard",
   iconSlug: "",
   iconUrl: "",
+  statusChecksEnabled: true,
+}
+
+export function appDraftPayload(draft: Draft) {
+  const base = {
+    name: draft.name,
+    description: draft.description,
+    url: draft.url,
+    statusChecksEnabled: draft.statusChecksEnabled,
+  }
+  return draft.iconSource === "url"
+    ? { ...base, iconSource: "url" as const, iconUrl: draft.iconUrl }
+    : { ...base, iconSource: "dashboard" as const, iconSlug: draft.iconSlug }
+}
+
+export function draftFromApp(app: AppRecord | null | undefined): Draft {
+  return app
+    ? {
+        name: app.name,
+        description: app.description ?? "",
+        url: app.url,
+        iconSource: app.iconSource === "url" ? "url" : "dashboard",
+        iconSlug: app.iconSlug ?? "",
+        iconUrl: app.customIconUrl ?? "",
+        statusChecksEnabled: app.statusChecksEnabled,
+      }
+    : emptyDraft
 }
 
 function BoardAssignmentCheckbox({
@@ -64,6 +93,34 @@ function BoardAssignmentCheckbox({
         </Checkbox.Indicator>
       </Checkbox.Root>
       Add to “{boardName}”
+    </label>
+  )
+}
+
+function StatusChecksCheckbox({
+  checked,
+  onCheckedChange,
+}: {
+  checked: boolean
+  onCheckedChange: (checked: boolean) => void
+}) {
+  return (
+    <label className="flex cursor-pointer items-start gap-2 text-sm">
+      <Checkbox.Root
+        checked={checked}
+        onCheckedChange={onCheckedChange}
+        className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-[2px] border border-line bg-surface text-accent focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-focus data-[checked]:border-accent"
+      >
+        <Checkbox.Indicator>
+          <LuCheck aria-hidden className="size-4" />
+        </Checkbox.Indicator>
+      </Checkbox.Root>
+      <span>
+        <span className="block">Status checks</span>
+        <span className="block text-xs text-muted">
+          Check whether this app is responding.
+        </span>
+      </span>
     </label>
   )
 }
@@ -164,18 +221,7 @@ export function AppFormDialog({
 
   useEffect(() => {
     if (!open) return
-    setDraft(
-      app
-        ? {
-            name: app.name,
-            description: app.description ?? "",
-            url: app.url,
-            iconSource: app.iconSource === "url" ? "url" : "dashboard",
-            iconSlug: app.iconSlug ?? "",
-            iconUrl: app.customIconUrl ?? "",
-          }
-        : emptyDraft,
-    )
+    setDraft(draftFromApp(app))
     setError("")
     setAssignmentError("")
     setCreatedAppId(null)
@@ -212,14 +258,7 @@ export function AppFormDialog({
     }
   }
   function payload() {
-    const base = {
-      name: draft.name,
-      description: draft.description,
-      url: draft.url,
-    }
-    return draft.iconSource === "url"
-      ? { ...base, iconSource: "url" as const, iconUrl: draft.iconUrl }
-      : { ...base, iconSource: "dashboard" as const, iconSlug: draft.iconSlug }
+    return appDraftPayload(draft)
   }
   function save() {
     setError("")
@@ -491,6 +530,14 @@ export function AppFormDialog({
                   })
                 }
               />
+              <div className="mt-4">
+                <StatusChecksCheckbox
+                  checked={draft.statusChecksEnabled}
+                  onCheckedChange={(checked) =>
+                    setDraft({ ...draft, statusChecksEnabled: checked })
+                  }
+                />
+              </div>
               {!app && boards.length > 0 && (
                 <div className="mt-4 space-y-3">
                   {context === "none" && (

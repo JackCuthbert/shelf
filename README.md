@@ -28,7 +28,8 @@ A shared library of app links, arranged into boards of your own.
 - **A quick check before you click.** A dot shows whether the app's web
   server replied. Shelf checks apps in the background when they are added
   and about once an hour afterward. You can also request a check from an
-  app's detail page.
+  app's detail page. Turn **Status checks** off in an app's form to use it
+  as a plain bookmark: Shelf stops checking it and shows no status dot.
 - **Works on a phone.** The grid fits the screen and follows your device's
   light or dark setting. Descriptions appear on hover, keyboard focus, or
   a tap on the info button.

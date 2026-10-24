@@ -31,3 +31,25 @@ it("treats an initially checking snapshot as pending on first render", () => {
   renderToStaticMarkup(<Probe />)
   expect(checking).toBe(true)
 })
+
+it("does not treat a disabled snapshot as pending", () => {
+  let checking = true
+  function Probe() {
+    const checks = useManualAppCheck([
+      {
+        id: "app00001",
+        status: "unknown",
+        lastCheckedAt: null,
+        lastError: null,
+        checking: true,
+        statusChecksEnabled: false,
+        checkIntervalSeconds: 3600,
+      },
+    ])
+    checking = checks.isChecking("app00001")
+    return null
+  }
+
+  renderToStaticMarkup(<Probe />)
+  expect(checking).toBe(false)
+})

@@ -45,6 +45,7 @@ type BoardApp = {
   customIconUrl: string | null
   categoryId: string | null
   status: AppStatus
+  statusChecksEnabled: boolean
   lastCheckedAt: number | null
   checkIntervalSeconds: number
   lastError?: string | null
@@ -87,6 +88,7 @@ function BoardTile({
   lastCheckedAt,
   stale,
   lastError,
+  statusChecksEnabled,
   open,
   onOpenChange,
   canManage,
@@ -102,6 +104,7 @@ function BoardTile({
   lastCheckedAt: number | null
   stale: boolean
   lastError?: string | null
+  statusChecksEnabled: boolean
   open: boolean
   onOpenChange: (open: boolean) => void
   canManage: boolean
@@ -180,12 +183,14 @@ function BoardTile({
                     className="h-full w-full object-contain"
                   />
                 </span>
-                <span
-                  role="img"
-                  aria-label={`${label}; ${checked}`}
-                  title={checked}
-                  className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status, checking)}`}
-                />
+                {statusChecksEnabled && (
+                  <span
+                    role="img"
+                    aria-label={`${label}; ${checked}`}
+                    title={checked}
+                    className={`absolute bottom-2 right-2 size-2 rounded-full ring-2 ring-background ${statusColor(status, checking)}`}
+                  />
+                )}
               </a>
               {hasDescription && (
                 <>
@@ -308,10 +313,12 @@ export function BoardSearch({
   const copyNoticeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const initialSnapshots: AppStatusSnapshot[] = apps.map((app) => ({
     id: app.id,
-    status: app.status,
-    lastCheckedAt: app.lastCheckedAt,
-    lastError: app.lastError ?? null,
-    checking: app.checking ?? app.lastCheckedAt === null,
+    status: app.statusChecksEnabled ? app.status : "unknown",
+    lastCheckedAt: app.statusChecksEnabled ? app.lastCheckedAt : null,
+    lastError: app.statusChecksEnabled ? (app.lastError ?? null) : null,
+    checking:
+      app.statusChecksEnabled && (app.checking ?? app.lastCheckedAt === null),
+    statusChecksEnabled: app.statusChecksEnabled,
     checkIntervalSeconds: app.checkIntervalSeconds,
   }))
   const statusQuery = trpc.boards.refreshStatuses.useQuery(
@@ -320,7 +327,11 @@ export function BoardSearch({
       initialData: initialSnapshots,
       enabled: visible,
       refetchInterval: (query) =>
-        query.state.data?.some((item) => item.checking) ? 2_000 : BOARD_POLL_MS,
+        query.state.data?.some(
+          (item) => item.checking && item.statusChecksEnabled !== false,
+        )
+          ? 2_000
+          : BOARD_POLL_MS,
       refetchIntervalInBackground: false,
       refetchOnWindowFocus: true,
     },
@@ -401,6 +412,7 @@ export function BoardSearch({
         lastCheckedAt={status.lastCheckedAt}
         stale={stale}
         lastError={status.lastError}
+        statusChecksEnabled={status.statusChecksEnabled !== false}
         open={openDescription === app.id}
         onOpenChange={(open) => setOpenDescription(open ? app.id : null)}
         canManage={Boolean(user?.id && user.id === app.ownerId)}

@@ -117,6 +117,7 @@ export default async function AppPage({
                     iconSource: app.iconSource,
                     iconSlug: app.iconSlug,
                     customIconUrl: app.customIconUrl,
+                    statusChecksEnabled: app.statusChecksEnabled,
                   }}
                 />
               )}
@@ -169,47 +170,49 @@ export default async function AppPage({
               )}
             </dd>
           </div>
-          <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
-            <dt className="text-sm text-muted">Status</dt>
-            <dd className="flex w-full flex-wrap items-center gap-3 text-sm">
-              <span className="inline-flex items-center gap-2">
-                <span
-                  aria-hidden
-                  className={`size-2.5 rounded-full ${app.status === "up" ? "bg-green-600 dark:bg-green-400" : app.status === "down" ? "bg-danger" : "bg-muted"}`}
-                />
-                {app.status === "up"
-                  ? "Responding"
-                  : app.status === "down"
-                    ? "Not responding"
-                    : "Not checked yet"}
-              </span>
-              {session && (
-                <AppDetailCheckAction
-                  appId={app.id}
-                  appName={app.name}
-                  snapshot={
-                    {
-                      id: app.id,
-                      status:
-                        app.status === "up" || app.status === "down"
-                          ? app.status
-                          : "unknown",
-                      lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
-                      lastError: app.lastError,
-                      checkIntervalSeconds,
-                      checking:
-                        app.probeRequestedAt ||
-                        !app.lastCheckedAt ||
-                        Date.now() - app.lastCheckedAt.getTime() >=
-                          checkIntervalSeconds * 1_000
-                          ? true
-                          : false,
-                    } satisfies AppStatusSnapshot
-                  }
-                />
-              )}
-            </dd>
-          </div>
+          {app.statusChecksEnabled && (
+            <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
+              <dt className="text-sm text-muted">Status</dt>
+              <dd className="flex w-full flex-wrap items-center gap-3 text-sm">
+                <span className="inline-flex items-center gap-2">
+                  <span
+                    aria-hidden
+                    className={`size-2.5 rounded-full ${app.status === "up" ? "bg-green-600 dark:bg-green-400" : app.status === "down" ? "bg-danger" : "bg-muted"}`}
+                  />
+                  {app.status === "up"
+                    ? "Responding"
+                    : app.status === "down"
+                      ? "Not responding"
+                      : "Not checked yet"}
+                </span>
+                {session && (
+                  <AppDetailCheckAction
+                    appId={app.id}
+                    appName={app.name}
+                    snapshot={
+                      {
+                        id: app.id,
+                        status:
+                          app.status === "up" || app.status === "down"
+                            ? app.status
+                            : "unknown",
+                        lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
+                        lastError: app.lastError,
+                        checkIntervalSeconds,
+                        checking:
+                          app.probeRequestedAt ||
+                          !app.lastCheckedAt ||
+                          Date.now() - app.lastCheckedAt.getTime() >=
+                            checkIntervalSeconds * 1_000
+                            ? true
+                            : false,
+                      } satisfies AppStatusSnapshot
+                    }
+                  />
+                )}
+              </dd>
+            </div>
+          )}
           <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
             <dt className="text-sm text-muted">Added</dt>
             <dd className="text-sm">
@@ -220,21 +223,23 @@ export default async function AppPage({
               </time>
             </dd>
           </div>
-          <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
-            <dt className="text-sm text-muted">Last checked</dt>
-            <dd className="text-sm">
-              {app.lastCheckedAt ? (
-                <time dateTime={app.lastCheckedAt.toISOString()}>
-                  <LocalDateTime
-                    value={app.lastCheckedAt.toISOString()}
-                    fallback="…"
-                  />
-                </time>
-              ) : (
-                "Never"
-              )}
-            </dd>
-          </div>
+          {app.statusChecksEnabled && (
+            <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
+              <dt className="text-sm text-muted">Last checked</dt>
+              <dd className="text-sm">
+                {app.lastCheckedAt ? (
+                  <time dateTime={app.lastCheckedAt.toISOString()}>
+                    <LocalDateTime
+                      value={app.lastCheckedAt.toISOString()}
+                      fallback="…"
+                    />
+                  </time>
+                ) : (
+                  "Never"
+                )}
+              </dd>
+            </div>
+          )}
           <div className="grid items-start gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
             <dt className="text-sm text-muted">Public boards</dt>
             <dd className="flex flex-wrap gap-x-4 gap-y-1 text-sm">

@@ -5,6 +5,7 @@ import {
   descriptionTileHandlers,
   statusColor,
 } from "./board-search"
+import { BOARD_POLL_MS } from "@/lib/app-status"
 
 const retryClicks = vi.hoisted(() => [] as (() => void)[])
 vi.mock("react/jsx-runtime", async (importOriginal) => {
@@ -83,6 +84,7 @@ const apps = [
     customIconUrl: null,
     categoryId: null,
     status: "up" as const,
+    statusChecksEnabled: true,
     lastCheckedAt: Date.parse("2026-09-24T00:00:00Z"),
     checkIntervalSeconds: 3600,
   },
@@ -98,6 +100,7 @@ const apps = [
     customIconUrl: null,
     categoryId: null,
     status: "unknown" as const,
+    statusChecksEnabled: true,
     lastCheckedAt: null,
     checkIntervalSeconds: 3600,
   },
@@ -369,5 +372,99 @@ describe("BoardSearch", () => {
     expect(section).toContain("Movies")
     expect(section).toContain("Films we watch")
     expect(section).not.toContain("border-b")
+  })
+
+  it("hides status presentation for a disabled app but keeps its tile", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[{ ...apps[0]!, statusChecksEnabled: false }]}
+        categories={[]}
+        user={null}
+      />,
+    )
+    expect(html).toContain('href="https://plex.example"')
+    expect(html).toContain("Plex")
+    expect(html).toContain('aria-label="About Plex"')
+    expect(html).not.toContain('role="img"')
+    expect(html).not.toContain("Responding")
+  })
+
+  it("removes status presentation when a poll reports the app disabled", () => {
+    statusQueryMock.mockImplementation(
+      (_input: unknown, options: { initialData: unknown }) => ({
+        data: [
+          {
+            id: "plex",
+            status: "unknown",
+            statusChecksEnabled: false,
+            lastCheckedAt: null,
+            lastError: null,
+            checking: false,
+            checkIntervalSeconds: 3600,
+          },
+        ],
+        isError: false,
+        refetch: vi.fn(),
+      }),
+    )
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[apps[0]!]}
+        categories={[]}
+        user={null}
+      />,
+    )
+    expect(html).toContain('href="https://plex.example"')
+    expect(html).not.toContain('role="img"')
+  })
+
+  it("never fast-polls disabled apps", () => {
+    let interval: ((query: never) => number) | undefined
+    statusQueryMock.mockImplementation(
+      (
+        _input: unknown,
+        options: {
+          initialData: unknown
+          refetchInterval: (query: never) => number
+        },
+      ) => {
+        interval = options.refetchInterval
+        return { data: options.initialData, isError: false, refetch: vi.fn() }
+      },
+    )
+    renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[{ ...apps[0]!, statusChecksEnabled: false, checking: true }]}
+        categories={[]}
+        user={null}
+      />,
+    )
+    const snapshot = (statusChecksEnabled: boolean, checking: boolean) => ({
+      id: "plex",
+      status: "up",
+      statusChecksEnabled,
+      lastCheckedAt: null,
+      lastError: null,
+      checking,
+      checkIntervalSeconds: 3600,
+    })
+    expect(
+      interval!({
+        state: {
+          data: [snapshot(false, true), snapshot(true, false)],
+        },
+      } as never),
+    ).toBe(BOARD_POLL_MS)
+    expect(
+      interval!({
+        state: { data: [snapshot(true, true)] },
+      } as never),
+    ).toBe(2_000)
   })
 })
