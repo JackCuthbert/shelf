@@ -33,6 +33,11 @@ export const appRouter = router({
     .input(appIdInputSchema)
     .mutation(async ({ input }) => {
       const result = await appStatusService.requestCheck(input.id)
+      if (result === "disabled")
+        throw new TRPCError({
+          code: "BAD_REQUEST",
+          message: "Status checks are disabled for this app.",
+        })
       if (!result)
         throw new TRPCError({ code: "NOT_FOUND", message: "App not found." })
       return result

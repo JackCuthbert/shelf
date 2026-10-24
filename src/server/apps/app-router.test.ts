@@ -108,5 +108,15 @@ describe("app status procedures", () => {
     await expect(
       protectedCaller.apps.recheckStatus({ id: "missing1" }),
     ).rejects.toMatchObject({ code: "NOT_FOUND" })
+    prismaMocks.updateMany.mockResolvedValueOnce({ count: 0 })
+    prismaMocks.findUnique.mockResolvedValueOnce({
+      statusChecksEnabled: false,
+    } as never)
+    await expect(
+      protectedCaller.apps.recheckStatus({ id: "disabled1" }),
+    ).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "Status checks are disabled for this app.",
+    })
   })
 })

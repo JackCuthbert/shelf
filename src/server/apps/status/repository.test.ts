@@ -57,7 +57,7 @@ describe("app status repository", () => {
       selected!.trigger,
       new Date(2),
     )
-    expect(await repo.requestManual("app00001", new Date(3))).toBe(true)
+    expect(await repo.requestManual("app00001", new Date(3))).toBe("accepted")
     expect(
       await repo.publish(work!, { status: "up", lastError: null }, new Date(4)),
     ).toBe(true)
@@ -130,6 +130,63 @@ describe("app status repository", () => {
       id: "app00001",
       trigger: "automatic",
     })
+  })
+
+  it("never selects, claims or publishes for a disabled app", async () => {
+    await insert()
+    await db.app.update({
+      where: { id: "app00001" },
+      data: { statusChecksEnabled: false },
+    })
+    expect(await repo.selectNext(new Date(0))).toBeNull()
+    await db.app.update({
+      where: { id: "app00001" },
+      data: {
+        status: "up",
+        lastCheckedAt: new Date(0),
+        probeRequestedAt: new Date(1),
+      },
+    })
+    expect(await repo.selectNext(new Date(3_600_000))).toBeNull()
+    expect(
+      await repo.markPending("app00001", "manual", new Date(2)),
+    ).toBeNull()
+    expect(
+      await repo.publish(
+        {
+          id: "app00001",
+          url: "http://nas.home",
+          requestedAt: new Date(1),
+          trigger: "manual",
+        },
+        { status: "down", lastError: "offline" },
+        new Date(2),
+      ),
+    ).toBe(false)
+    expect(await repo.requestManual("app00001", new Date(3))).toBe("disabled")
+    expect(await repo.requestManual("missing1", new Date(3))).toBe("missing")
+    expect(await db.app.findUnique({ where: { id: "app00001" } })).toMatchObject(
+      { status: "up", probeRequestedAt: new Date(1) },
+    )
+  })
+
+  it("rejects an old result after a disable and re-enable", async () => {
+    await insert()
+    const work = await repo.markPending("app00001", "initial", new Date(1))
+    await db.app.update({
+      where: { id: "app00001" },
+      data: { statusChecksEnabled: false, probeRequestedAt: null },
+    })
+    await db.app.update({
+      where: { id: "app00001" },
+      data: { statusChecksEnabled: true },
+    })
+    expect(
+      await repo.publish(work!, { status: "up", lastError: null }, new Date(2)),
+    ).toBe(false)
+    expect(await db.app.findUnique({ where: { id: "app00001" } })).toMatchObject(
+      { status: "unknown", lastCheckedAt: null },
+    )
   })
 })
 

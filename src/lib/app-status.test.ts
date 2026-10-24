@@ -33,6 +33,27 @@ describe("saved app status", () => {
       lastCheckedAt: 0,
       lastError: null,
       checking: false,
+      statusChecksEnabled: true,
+      checkIntervalSeconds: 3600,
+    })
+  })
+
+  it("reports disabled apps as non-checking with no saved result", () => {
+    const disabled = {
+      ...record,
+      status: "down" as const,
+      lastError: "offline",
+      probeRequestedAt: new Date(1),
+      statusChecksEnabled: false,
+    }
+    expect(isChecking(disabled, new Date(4_000_000))).toBe(false)
+    expect(toStatusSnapshot(disabled, new Date(4_000_000))).toEqual({
+      id: "plex0001",
+      status: "unknown",
+      lastCheckedAt: null,
+      lastError: null,
+      checking: false,
+      statusChecksEnabled: false,
       checkIntervalSeconds: 3600,
     })
   })

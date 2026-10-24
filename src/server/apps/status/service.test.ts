@@ -15,7 +15,7 @@ function setup() {
   const repository: AppStatusRepository = {
     listBoardApps: vi.fn(async () => [record]),
     listApps: vi.fn(async () => [record]),
-    requestManual: vi.fn(async () => true),
+    requestManual: vi.fn(async () => "accepted" as const),
     selectNext: vi.fn(async () => null),
     markPending: vi.fn(async () => null),
     publish: vi.fn(async () => false),
@@ -74,8 +74,14 @@ describe("app status service", () => {
 
   it("returns null when the app no longer exists", async () => {
     const { service, repository } = setup()
-    vi.mocked(repository.requestManual).mockResolvedValueOnce(false)
+    vi.mocked(repository.requestManual).mockResolvedValueOnce("missing")
     await expect(service.requestCheck("missing")).resolves.toBeNull()
+  })
+
+  it("reports a disabled app separately from a missing one", async () => {
+    const { service, repository } = setup()
+    vi.mocked(repository.requestManual).mockResolvedValueOnce("disabled")
+    await expect(service.requestCheck("plex0001")).resolves.toBe("disabled")
   })
 
   it("deduplicates requested IDs and serializes saved times as epoch milliseconds", async () => {
