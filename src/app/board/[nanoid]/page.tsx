@@ -87,17 +87,21 @@ export default async function BoardPage({
         customIconUrl: app.customIconUrl,
         categoryId,
         status:
-          app.status === "up" || app.status === "down" ? app.status : "unknown",
+          app.statusChecksEnabled &&
+          (app.status === "up" || app.status === "down")
+            ? app.status
+            : "unknown",
+        statusChecksEnabled: app.statusChecksEnabled,
         lastCheckedAt: app.lastCheckedAt?.getTime() ?? null,
         lastError: app.lastError,
         checkIntervalSeconds,
-        checking:
-          app.probeRequestedAt ||
-          !app.lastCheckedAt ||
-          Date.now() - app.lastCheckedAt.getTime() >=
-            checkIntervalSeconds * 1_000
-            ? true
-            : false,
+        checking: Boolean(
+          app.statusChecksEnabled &&
+          (app.probeRequestedAt ||
+            !app.lastCheckedAt ||
+            Date.now() - app.lastCheckedAt.getTime() >=
+              checkIntervalSeconds * 1_000),
+        ),
       }))}
     />
   )

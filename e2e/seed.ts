@@ -147,6 +147,7 @@ try {
         url: `https://${id}.home.arpa`,
         iconSlug: id,
         status: "up",
+        statusChecksEnabled: id !== "paperless-ngx",
         lastCheckedAt: new Date(),
         createdAt,
         boards: { create: { boardId: "homelab1", categoryId, position } },

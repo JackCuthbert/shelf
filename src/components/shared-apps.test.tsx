@@ -211,6 +211,41 @@ it("renders the per-app manual check action", () => {
   expect(appCheckActionLabel("Plex")).toBe("Check Plex now")
 })
 
+it("hides status and manual checking for a disabled app", () => {
+  const html = renderToStaticMarkup(
+    <SharedApps
+      currentUserId="u1"
+      initialApps={[
+        {
+          id: "a1",
+          ownerId: "u1",
+          name: "Plex",
+          description: "Movies and shows",
+          url: "https://plex.example",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          customIconUrl: null,
+          iconHash: null,
+          status: "up",
+          statusChecksEnabled: false,
+          lastError: null,
+          lastCheckedAt: "2026-09-24T00:00:00.000Z",
+          probeRequestedAt: null,
+          createdAt: "",
+          updatedAt: "",
+        },
+      ]}
+    />,
+  )
+  expect(html).toContain('href="https://plex.example"')
+  expect(html).toContain("Movies and shows")
+  expect(html).toContain('aria-label="Actions for Plex"')
+  expect(html).not.toContain("Responding")
+  expect(html).not.toContain("Not checked yet")
+  expect(html).not.toContain("Check now")
+  expect(html).not.toContain('role="img"')
+})
+
 it("renders an actionable check retry when an error is retained", () => {
   trpcMocks.manualErrors = { a1: "Could not refresh status. Retry the check." }
   const html = renderToStaticMarkup(

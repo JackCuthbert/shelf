@@ -69,6 +69,15 @@ test("regenerate the README screenshots", async ({ page }) => {
       })
       .locator("li"),
   ).toHaveCount(6)
+  const disabledTile = page
+    .locator("#board-app-results li")
+    .filter({ has: page.getByTitle("Paperless-ngx") })
+  await expect(disabledTile).toHaveCount(1)
+  await expect(disabledTile.locator('[role="img"]')).toHaveCount(0)
+  const enabledTile = page
+    .locator("#board-app-results li")
+    .filter({ has: page.getByTitle("Jellyfin") })
+  await expect(enabledTile.locator('[role="img"]')).toHaveCount(1)
   expect(
     await page
       .locator("#board-app-results ul")

@@ -15,7 +15,10 @@ export function useManualAppCheck(initial: AppStatusSnapshot[] = []) {
   const [pending, setPending] = useState<Record<string, boolean>>(() =>
     Object.fromEntries(
       initial
-        .filter((snapshot) => snapshot.checking)
+        .filter(
+          (snapshot) =>
+            snapshot.checking && snapshot.statusChecksEnabled !== false,
+        )
         .map(({ id }) => [id, true]),
     ),
   )
@@ -61,6 +64,7 @@ export function useManualAppCheck(initial: AppStatusSnapshot[] = []) {
                 ? {
                     ...app,
                     status: item.status,
+                    statusChecksEnabled: item.statusChecksEnabled !== false,
                     lastCheckedAt:
                       item.lastCheckedAt === null
                         ? null

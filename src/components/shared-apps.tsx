@@ -106,19 +106,25 @@ export function SharedApps({
     apps.map((app) => ({
       id: app.id,
       status:
-        app.status === "up" || app.status === "down" ? app.status : "unknown",
-      lastCheckedAt: app.lastCheckedAt
-        ? new Date(app.lastCheckedAt).getTime()
-        : null,
-      lastError: app.lastError,
+        app.statusChecksEnabled &&
+        (app.status === "up" || app.status === "down")
+          ? app.status
+          : "unknown",
+      statusChecksEnabled: app.statusChecksEnabled,
+      lastCheckedAt:
+        app.statusChecksEnabled && app.lastCheckedAt
+          ? new Date(app.lastCheckedAt).getTime()
+          : null,
+      lastError: app.statusChecksEnabled ? app.lastError : null,
       checkIntervalSeconds,
       checking:
-        app.probeRequestedAt ||
+        app.statusChecksEnabled &&
+        (app.probeRequestedAt ||
         !app.lastCheckedAt ||
         Date.now() - new Date(app.lastCheckedAt).getTime() >=
           checkIntervalSeconds * 1_000
           ? true
-          : false,
+          : false),
     })),
   )
   const checkErrors = manualChecks.errors
@@ -278,7 +284,8 @@ export function SharedApps({
       ) : (
         <ul className="mt-5 space-y-2">
           {visible.map((app) => {
-            const checking = manualChecks.isChecking(app.id)
+            const checking =
+              app.statusChecksEnabled && manualChecks.isChecking(app.id)
             const boardsMissingApp = boards.filter(
               (board) => !board.apps.some((entry) => entry.appId === app.id),
             )
@@ -293,7 +300,9 @@ export function SharedApps({
                     alt=""
                     className="size-full object-contain"
                   />
-                  <AppStatusIndicator app={app} checking={checking} />
+                  {app.statusChecksEnabled && (
+                    <AppStatusIndicator app={app} checking={checking} />
+                  )}
                 </div>
                 <div className="min-w-0 flex-1">
                   <h3 className="truncate font-semibold">{app.name}</h3>
@@ -344,17 +353,21 @@ export function SharedApps({
                             <LuEye aria-hidden className="size-4" />
                             View public app
                           </Menu.Item>
-                          <Menu.Item
-                            disabled={checking}
-                            aria-label={appCheckActionLabel(app.name)}
-                            onClick={() => {
-                              void manualChecks.request(app.id).catch(() => {})
-                            }}
-                            className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
-                          >
-                            <LuRefreshCw aria-hidden className="size-4" />
-                            {checking ? "Checking…" : "Check now"}
-                          </Menu.Item>
+                          {app.statusChecksEnabled && (
+                            <Menu.Item
+                              disabled={checking}
+                              aria-label={appCheckActionLabel(app.name)}
+                              onClick={() => {
+                                void manualChecks
+                                  .request(app.id)
+                                  .catch(() => {})
+                              }}
+                              className="flex w-full cursor-pointer items-center gap-2 px-3 py-2 text-left text-sm hover:bg-surface-alt focus:bg-surface-alt disabled:opacity-50"
+                            >
+                              <LuRefreshCw aria-hidden className="size-4" />
+                              {checking ? "Checking…" : "Check now"}
+                            </Menu.Item>
+                          )}
                           <AppBoardDialog
                             appName={app.name}
                             boards={boardsMissingApp}
