@@ -148,9 +148,7 @@ describe("app status repository", () => {
       },
     })
     expect(await repo.selectNext(new Date(3_600_000))).toBeNull()
-    expect(
-      await repo.markPending("app00001", "manual", new Date(2)),
-    ).toBeNull()
+    expect(await repo.markPending("app00001", "manual", new Date(2))).toBeNull()
     expect(
       await repo.publish(
         {
@@ -165,9 +163,9 @@ describe("app status repository", () => {
     ).toBe(false)
     expect(await repo.requestManual("app00001", new Date(3))).toBe("disabled")
     expect(await repo.requestManual("missing1", new Date(3))).toBe("missing")
-    expect(await db.app.findUnique({ where: { id: "app00001" } })).toMatchObject(
-      { status: "up", probeRequestedAt: new Date(1) },
-    )
+    expect(
+      await db.app.findUnique({ where: { id: "app00001" } }),
+    ).toMatchObject({ status: "up", probeRequestedAt: new Date(1) })
   })
 
   it("rejects an old result after a disable and re-enable", async () => {
@@ -184,9 +182,9 @@ describe("app status repository", () => {
     expect(
       await repo.publish(work!, { status: "up", lastError: null }, new Date(2)),
     ).toBe(false)
-    expect(await db.app.findUnique({ where: { id: "app00001" } })).toMatchObject(
-      { status: "unknown", lastCheckedAt: null },
-    )
+    expect(
+      await db.app.findUnique({ where: { id: "app00001" } }),
+    ).toMatchObject({ status: "unknown", lastCheckedAt: null })
   })
 })
 
