@@ -25,6 +25,7 @@ COPY --from=builder --chown=app:app /app/prisma ./prisma
 COPY --from=builder --chown=app:app /app/prisma.config.ts ./prisma.config.ts
 COPY --from=builder --chown=app:app /app/scripts ./scripts
 COPY --from=builder --chown=app:app /app/src/generated ./src/generated
+COPY --from=builder --chown=app:app /app/public ./public
 RUN ln -s ../.server-build/scripts/server.js /app/scripts/server.js
 COPY scripts/start.sh /usr/local/bin/shelf-start
 RUN chmod +x /usr/local/bin/shelf-start
