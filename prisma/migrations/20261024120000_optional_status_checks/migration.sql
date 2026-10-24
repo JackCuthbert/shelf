@@ -1,0 +1,1 @@
+ALTER TABLE "app" ADD COLUMN "statusChecksEnabled" BOOLEAN NOT NULL DEFAULT true;

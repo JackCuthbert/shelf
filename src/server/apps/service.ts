@@ -12,6 +12,7 @@ export type SharedApp = {
   customIconUrl: string | null
   iconHash: string | null
   status: string
+  statusChecksEnabled: boolean
   lastCheckedAt: Date | null
   lastError: string | null
   probeRequestedAt: Date | null
@@ -28,6 +29,7 @@ export type AppValues = Pick<
   | "iconSlug"
   | "customIconUrl"
   | "iconHash"
+  | "statusChecksEnabled"
 >
 export type AppUpdateValues = AppValues &
   Partial<
@@ -103,6 +105,7 @@ export function createSharedAppService(
   async function createValues(
     input: AppInput,
   ): Promise<{ values: AppValues; created: string | null }> {
+    const statusChecksEnabled = input.statusChecksEnabled ?? true
     if (input.iconSource === "url") {
       const { hash, created } = await icons.storeFromUrl(input.iconUrl)
       return {
@@ -110,6 +113,7 @@ export function createSharedAppService(
           name: input.name,
           description: input.description,
           url: input.url,
+          statusChecksEnabled,
           iconSource: "url",
           iconSlug: null,
           customIconUrl: input.iconUrl,
@@ -124,6 +128,7 @@ export function createSharedAppService(
         name: input.name,
         description: input.description,
         url: input.url,
+        statusChecksEnabled,
         iconSource: "dashboard",
         iconSlug: input.iconSlug,
         customIconUrl: null,
@@ -166,7 +171,8 @@ export function createSharedAppService(
         let updated: SharedApp
         try {
           const valuesWithStatus: AppUpdateValues =
-            existing.url === input.url
+            existing.url === input.url &&
+            existing.statusChecksEnabled === values.statusChecksEnabled
               ? values
               : {
                   ...values,
@@ -201,6 +207,8 @@ export function createSharedAppService(
     input: AppInput,
     existing: SharedApp,
   ): Promise<{ values: AppValues; created: string | null }> {
+    const statusChecksEnabled =
+      input.statusChecksEnabled ?? existing.statusChecksEnabled
     if (input.iconSource === "url") {
       if (
         existing.iconSource === "url" &&
@@ -212,6 +220,7 @@ export function createSharedAppService(
             name: input.name,
             description: input.description,
             url: input.url,
+            statusChecksEnabled,
             iconSource: "url",
             iconSlug: null,
             customIconUrl: input.iconUrl,
@@ -226,6 +235,7 @@ export function createSharedAppService(
           name: input.name,
           description: input.description,
           url: input.url,
+          statusChecksEnabled,
           iconSource: "url",
           iconSlug: null,
           customIconUrl: input.iconUrl,
@@ -240,6 +250,7 @@ export function createSharedAppService(
         name: input.name,
         description: input.description,
         url: input.url,
+        statusChecksEnabled,
         iconSource: "dashboard",
         iconSlug: input.iconSlug,
         customIconUrl: null,

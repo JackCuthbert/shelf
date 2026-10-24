@@ -539,6 +539,9 @@
                             "type": "string",
                             "format": "uri"
                           },
+                          "statusChecksEnabled": {
+                            "type": "boolean"
+                          },
                           "iconSource": {
                             "type": "string",
                             "enum": ["dashboard"]
@@ -566,6 +569,9 @@
                           "url": {
                             "type": "string",
                             "format": "uri"
+                          },
+                          "statusChecksEnabled": {
+                            "type": "boolean"
                           },
                           "iconSource": {
                             "type": "string",
@@ -828,6 +834,9 @@
                             "type": "string",
                             "format": "uri"
                           },
+                          "statusChecksEnabled": {
+                            "type": "boolean"
+                          },
                           "iconSource": {
                             "type": "string",
                             "enum": ["dashboard"]
@@ -855,6 +864,9 @@
                           "url": {
                             "type": "string",
                             "format": "uri"
+                          },
+                          "statusChecksEnabled": {
+                            "type": "boolean"
                           },
                           "iconSource": {
                             "type": "string",

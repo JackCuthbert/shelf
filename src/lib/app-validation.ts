@@ -39,6 +39,7 @@ const baseAppFields = {
     .max(280, "Description must be 280 characters or fewer.")
     .default(""),
   url: appUrlSchema,
+  statusChecksEnabled: z.boolean().optional(),
 }
 
 export const appInputSchema = z.discriminatedUnion("iconSource", [

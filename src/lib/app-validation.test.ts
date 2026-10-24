@@ -3,6 +3,7 @@ import {
   appIdInputSchema,
   appIdsInputSchema,
   appInputSchema,
+  appUpdateInputSchema,
 } from "./app-validation"
 
 describe("app input validation", () => {
@@ -141,4 +142,53 @@ describe("app input validation", () => {
       }).success,
     ).toBe(false)
   })
+})
+
+describe("status checks validation", () => {
+  const iconSources = [
+    { iconSource: "dashboard" as const, iconSlug: "app" },
+    {
+      iconSource: "url" as const,
+      iconUrl: "https://images.home/app.png",
+    },
+  ]
+
+  it.each(iconSources)(
+    "accepts a boolean and leaves it absent when omitted for the $iconSource icon source",
+    (icon) => {
+      for (const schema of [appInputSchema, appUpdateInputSchema]) {
+        const base = {
+          id: "AbCd1234",
+          name: "App",
+          url: "https://example.com",
+          ...icon,
+        }
+        expect(
+          schema.parse({ ...base, statusChecksEnabled: false })
+            .statusChecksEnabled,
+        ).toBe(false)
+        expect(schema.parse(base)).not.toHaveProperty("statusChecksEnabled")
+      }
+    },
+  )
+
+  it.each(iconSources)(
+    "rejects non-boolean values for the $iconSource icon source",
+    (icon) => {
+      for (const schema of [appInputSchema, appUpdateInputSchema]) {
+        const base = {
+          id: "AbCd1234",
+          name: "App",
+          url: "https://example.com",
+          ...icon,
+        }
+        expect(
+          schema.safeParse({ ...base, statusChecksEnabled: "false" }).success,
+        ).toBe(false)
+        expect(
+          schema.safeParse({ ...base, statusChecksEnabled: null }).success,
+        ).toBe(false)
+      }
+    },
+  )
 })

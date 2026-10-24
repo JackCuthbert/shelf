@@ -1,6 +1,9 @@
-import { mkdtemp, rm } from "node:fs/promises"
+import { execFileSync } from "node:child_process"
+import { cp, mkdtemp, readdir, rm } from "node:fs/promises"
+import { createRequire } from "node:module"
 import { tmpdir } from "node:os"
-import { join } from "node:path"
+import { dirname, join } from "node:path"
+import { fileURLToPath } from "node:url"
 import { PrismaLibSql } from "@prisma/adapter-libsql"
 import { PrismaClient } from "@/generated/prisma/client"
 import { afterEach, beforeEach, describe, expect, it } from "vitest"
@@ -18,7 +21,8 @@ describe("app status repository", () => {
     await db.$executeRawUnsafe(`CREATE TABLE app (
       id TEXT PRIMARY KEY, ownerId TEXT NOT NULL, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
       url TEXT NOT NULL, iconSource TEXT NOT NULL DEFAULT 'dashboard', iconSlug TEXT, customIconUrl TEXT,
-      iconHash TEXT, status TEXT NOT NULL DEFAULT 'unknown', lastCheckedAt DATETIME, lastError TEXT,
+      iconHash TEXT, status TEXT NOT NULL DEFAULT 'unknown', statusChecksEnabled BOOLEAN NOT NULL DEFAULT true,
+      lastCheckedAt DATETIME, lastError TEXT,
       probeRequestedAt DATETIME, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL
     )`)
     await db.$executeRawUnsafe(
@@ -126,5 +130,107 @@ describe("app status repository", () => {
       id: "app00001",
       trigger: "automatic",
     })
+  })
+})
+
+describe("optional status checks migration", () => {
+  const migration = "20261024120000_optional_status_checks"
+  const prismaDirectory = join(process.cwd(), "prisma")
+  let directory: string
+  let dbPath: string
+  let db: PrismaClient
+
+  beforeEach(async () => {
+    directory = await mkdtemp(join(tmpdir(), "shelf-migration-"))
+    dbPath = join(directory, "app.db")
+    await cp(
+      join(prismaDirectory, "schema.prisma"),
+      join(directory, "schema.prisma"),
+    )
+    const migrations = await readdir(join(prismaDirectory, "migrations"), {
+      withFileTypes: true,
+    })
+    for (const entry of migrations) {
+      if (entry.isDirectory() && entry.name >= migration) continue
+      await cp(
+        join(prismaDirectory, "migrations", entry.name),
+        join(directory, "migrations", entry.name),
+        { recursive: true },
+      )
+    }
+    db = new PrismaClient({
+      adapter: new PrismaLibSql({ url: `file:${dbPath}` }),
+    })
+  })
+  afterEach(async () => {
+    await db.$disconnect()
+    await rm(directory, { recursive: true, force: true })
+  })
+
+  function deploy() {
+    const require = createRequire(fileURLToPath(import.meta.url))
+    const cli = join(
+      dirname(require.resolve("prisma/package.json")),
+      "build/index.js",
+    )
+    execFileSync(
+      process.execPath,
+      [cli, "migrate", "deploy", "--schema", join(directory, "schema.prisma")],
+      {
+        env: { ...process.env, DATABASE_URL: `file:${dbPath}` },
+        stdio: "ignore",
+      },
+    )
+  }
+
+  it("keeps an existing enabled app and its data, then defaults new apps to enabled", async () => {
+    deploy()
+    await db.$executeRawUnsafe(
+      `INSERT INTO "user" (id, name, email, updatedAt) VALUES ('user1', 'User', 'user@example.com', '2026-10-01T00:00:00.000Z')`,
+    )
+    await db.$executeRawUnsafe(
+      `INSERT INTO "board" (id, name, ownerId, updatedAt) VALUES ('board001', 'Home', 'user1', '2026-10-01T00:00:00.000Z')`,
+    )
+    await db.$executeRawUnsafe(
+      `INSERT INTO "app" (id, ownerId, name, description, url, iconSource, status, lastCheckedAt, createdAt, updatedAt)
+       VALUES ('app00001', 'user1', 'Plex', '', 'https://plex.home', 'dashboard', 'up', '2026-10-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z')`,
+    )
+    await db.$executeRawUnsafe(
+      `INSERT INTO "board_app" (boardId, appId, position) VALUES ('board001', 'app00001', 0)`,
+    )
+
+    await cp(
+      join(prismaDirectory, "migrations", migration),
+      join(directory, "migrations", migration),
+      { recursive: true },
+    )
+    deploy()
+
+    const [existing] = await db.$queryRawUnsafe<
+      {
+        status: string
+        statusChecksEnabled: number
+        lastCheckedAt: Date
+      }[]
+    >(
+      `SELECT status, statusChecksEnabled, lastCheckedAt FROM "app" WHERE id = 'app00001'`,
+    )
+    expect(existing.status).toBe("up")
+    expect(Number(existing.statusChecksEnabled)).toBe(1)
+    expect(existing.lastCheckedAt).toEqual(new Date("2026-10-01T00:00:00.000Z"))
+    expect(
+      await db.$queryRawUnsafe(
+        `SELECT appId FROM "board_app" WHERE boardId = 'board001'`,
+      ),
+    ).toEqual([{ appId: "app00001" }])
+
+    await db.$executeRawUnsafe(
+      `INSERT INTO "app" (id, ownerId, name, url, createdAt, updatedAt)
+       VALUES ('app00002', 'user1', 'Wiki', 'https://wiki.home', '2026-10-01T00:00:00.000Z', '2026-10-01T00:00:00.000Z')`,
+    )
+    const [created] = await db.$queryRawUnsafe<
+      { statusChecksEnabled: number }[]
+    >(`SELECT statusChecksEnabled FROM "app" WHERE id = 'app00002'`)
+    expect(Number(created.statusChecksEnabled)).toBe(1)
   })
 })
