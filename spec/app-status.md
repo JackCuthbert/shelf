@@ -2,16 +2,18 @@
 
 ## Saved status and scheduling
 
-Status belongs to the shared `App` record and is consistent across boards. `status` is `unknown`, `up`, or `down`; `lastCheckedAt` records the last completed check and `lastError` stores its short failure reason. Any HTTP response means `up`; connection failures and timeouts mean `down`. Requests use GET, do not follow redirects, accept self-signed HTTPS, and finish when response headers arrive. A successful check clears the error.
+Status belongs to the shared `App` record and is consistent across boards. `status` is `unknown`, `up`, or `down`; `lastCheckedAt` records the last completed check and `lastError` stores its short failure reason. Any HTTP response means `up`; connection failures and timeouts mean `down`. Requests use GET, do not follow redirects, accept self-signed HTTPS, and finish when response headers arrive. A successful check clears the error. An app with `statusChecksEnabled` false is never checked; it keeps no saved result.
 
-The in-process scheduler checks apps one at a time. New apps are due immediately; all apps become due after the configured automatic interval from their last completed check, regardless of assignment or board activity. The interval defaults to one hour. Manual requests take priority and do not wait for the automatic interval. A nullable `probeRequestedAt` timestamp records pending work, including work currently being checked. Pending work survives restarts. Board and library reads never run checks or write scheduling state.
+The in-process scheduler checks enabled apps one at a time. New enabled apps are due immediately; enabled apps become due after the configured automatic interval from their last completed check, regardless of assignment or board activity. The interval defaults to one hour. Manual requests take priority and do not wait for the automatic interval. A nullable `probeRequestedAt` timestamp records pending work, including work currently being checked. Pending work survives restarts. Disabled apps are excluded when work is selected, claimed and published. Board and library reads never run checks or write scheduling state.
+
+Toggling `statusChecksEnabled` clears saved status, check time, error and pending work. Re-enabling makes the app due immediately. A check already in flight finishes, but its result is discarded because the pending timestamp it captured no longer matches.
 
 ## APIs
 
 - `boards.refreshStatuses({ nanoid })` is a public query. It verifies the board exists and returns saved snapshots for its assigned apps in display array shape. It never probes or changes scheduling state.
 - `apps.statuses({ ids })` is a public, read-only query accepting zero to one hundred eight-character Nano IDs. Duplicate IDs are read once, missing apps are omitted, and the caller cannot provide URLs.
-- `apps.recheckStatus({ id })` requires authentication and an existing app. It records/joins manual intent and returns `{ accepted: true }` before the check completes. The client supplies only the app ID; the server uses the saved URL.
-- Snapshots include `id`, `status`, `lastCheckedAt` in epoch milliseconds or null, `lastError`, one `checking` boolean, and the effective `checkIntervalSeconds`. Checking means pending work or an automatically due result.
+- `apps.recheckStatus({ id })` requires authentication and an existing app with status checks enabled. It records/joins manual intent and returns `{ accepted: true }` before the check completes. The client supplies only the app ID; the server uses the saved URL. A disabled app returns `BAD_REQUEST` with `Status checks are disabled for this app.` and records no work; a missing app remains `NOT_FOUND`.
+- Snapshots include `id`, `status`, `lastCheckedAt` in epoch milliseconds or null, `lastError`, one `checking` boolean, `statusChecksEnabled`, and the effective `checkIntervalSeconds`. Checking means pending work or an automatically due result. Disabled apps stay in snapshot arrays with `statusChecksEnabled: false`, `checking: false`, `status: "unknown"`, and null `lastCheckedAt` and `lastError`.
 
 URL edits reset saved status and invalidate work for the old URL. Other app edits and assignment changes preserve status. Only the current valid probe result can be published.
 
@@ -30,7 +32,8 @@ Status and scheduling metadata live in the existing SQLite database under `/data
 ## Acceptance checks
 
 - Board status queries return promptly with saved snapshots, preserve array shape, verify existence, and perform no probes or scheduling writes, including with concurrent readers.
-- Automatic work follows the configured freshness rule for assigned and unassigned apps, including after restart or a setting change; manual acceptance returns before completion.
+- Automatic work follows the configured freshness rule for enabled, assigned and unassigned apps, including after restart or a setting change; manual acceptance returns before completion.
+- Disabled apps are never selected, claimed or published, and their snapshots remain non-checking with no saved result; a disabled manual request is rejected without pending work.
 - Status APIs serialize timestamps as epoch milliseconds, deduplicate reads, omit missing apps, accept an empty list, enforce the one-hundred ID bound, and reject invalid IDs and URLs.
 - Manual clients remain busy while pending across read errors and hidden-page pauses, then resolve by completion or deletion.
 - Visible polling preserves prior reachability, shows stale/error details, retains saved results after read errors, and offers retry without changing links or order.

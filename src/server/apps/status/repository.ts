@@ -11,7 +11,10 @@ import {
 export interface AppStatusRepository {
   listBoardApps(nanoid: string): Promise<StatusRecord[] | null>
   listApps(ids: string[]): Promise<StatusRecord[]>
-  requestManual(id: string, now: Date): Promise<boolean>
+  requestManual(
+    id: string,
+    now: Date,
+  ): Promise<"accepted" | "disabled" | "missing">
   selectNext(now: Date): Promise<{ id: string; trigger: ProbeTrigger } | null>
   markPending(
     id: string,
@@ -33,6 +36,7 @@ function toRecord(app: {
   lastCheckedAt: Date | null
   lastError: string | null
   probeRequestedAt: Date | null
+  statusChecksEnabled: boolean
 }): StatusRecord {
   return {
     ...app,
@@ -61,17 +65,21 @@ export function createAppStatusRepository(
     },
     async requestManual(id, now) {
       const changed = await db.app.updateMany({
-        where: { id, probeRequestedAt: null },
+        where: { id, probeRequestedAt: null, statusChecksEnabled: true },
         data: { probeRequestedAt: now },
       })
-      return (
-        changed.count === 1 ||
-        (changed.count === 0 &&
-          Boolean(await db.app.findUnique({ where: { id } })))
-      )
+      if (changed.count === 1) return "accepted"
+      const app = await db.app.findUnique({
+        where: { id },
+        select: { statusChecksEnabled: true },
+      })
+      if (!app) return "missing"
+      return app.statusChecksEnabled ? "accepted" : "disabled"
     },
     async selectNext(now) {
-      const records = await readAll()
+      const records = (await readAll()).filter(
+        (app) => app.statusChecksEnabled !== false,
+      )
       const pending = records
         .filter((app) => app.probeRequestedAt)
         .sort(
@@ -100,11 +108,16 @@ export function createAppStatusRepository(
     },
     async markPending(id, trigger, now) {
       const app = await db.app.findUnique({ where: { id } })
-      if (!app) return null
+      if (!app || !app.statusChecksEnabled) return null
       const requestedAt = app.probeRequestedAt ?? now
       if (!app.probeRequestedAt) {
         const changed = await db.app.updateMany({
-          where: { id, url: app.url, probeRequestedAt: null },
+          where: {
+            id,
+            url: app.url,
+            probeRequestedAt: null,
+            statusChecksEnabled: true,
+          },
           data: { probeRequestedAt: requestedAt },
         })
         if (!changed.count) return null
@@ -117,6 +130,7 @@ export function createAppStatusRepository(
           id: work.id,
           url: work.url,
           probeRequestedAt: work.requestedAt,
+          statusChecksEnabled: true,
         },
         data: {
           status: result.status,

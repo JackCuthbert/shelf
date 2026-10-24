@@ -6,6 +6,7 @@ export type StatusRecord = {
   lastCheckedAt: Date | null
   lastError: string | null
   probeRequestedAt: Date | null
+  statusChecksEnabled?: boolean
 }
 export type AppStatusSnapshot = {
   id: string
@@ -13,6 +14,7 @@ export type AppStatusSnapshot = {
   lastCheckedAt: number | null
   lastError: string | null
   checking: boolean
+  statusChecksEnabled?: boolean
   checkIntervalSeconds: number
 }
 export type ProbeTrigger = "manual" | "initial" | "automatic"
@@ -56,6 +58,7 @@ export function isChecking(
   now: Date,
   checkIntervalSeconds = DEFAULT_STATUS_CHECK_INTERVAL_SECONDS,
 ): boolean {
+  if (record.statusChecksEnabled === false) return false
   return Boolean(
     record.probeRequestedAt ||
     !record.lastCheckedAt ||
@@ -69,12 +72,14 @@ export function toStatusSnapshot(
   now: Date,
   checkIntervalSeconds = DEFAULT_STATUS_CHECK_INTERVAL_SECONDS,
 ): AppStatusSnapshot {
+  const enabled = record.statusChecksEnabled !== false
   return {
     id: record.id,
-    status: record.status,
-    lastCheckedAt: record.lastCheckedAt?.getTime() ?? null,
-    lastError: record.lastError,
+    status: enabled ? record.status : "unknown",
+    lastCheckedAt: enabled ? (record.lastCheckedAt?.getTime() ?? null) : null,
+    lastError: enabled ? record.lastError : null,
     checking: isChecking(record, now, checkIntervalSeconds),
+    statusChecksEnabled: enabled,
     checkIntervalSeconds,
   }
 }

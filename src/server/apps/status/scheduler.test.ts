@@ -18,7 +18,7 @@ describe("app status scheduler", () => {
     const repository: AppStatusRepository = {
       listBoardApps: vi.fn(async () => []),
       listApps: vi.fn(async () => []),
-      requestManual: vi.fn(async () => true),
+      requestManual: vi.fn(async () => "accepted" as const),
       selectNext: vi.fn(async () => ({
         id: record.id,
         trigger: "initial" as const,
@@ -79,7 +79,7 @@ describe("app status scheduler", () => {
     const repository: AppStatusRepository = {
       listBoardApps: vi.fn(async () => []),
       listApps: vi.fn(async () => []),
-      requestManual: vi.fn(async () => true),
+      requestManual: vi.fn(async () => "accepted" as const),
       selectNext: vi.fn(async () => {
         const next = selected.shift()
         if (next) return next

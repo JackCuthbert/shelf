@@ -16,7 +16,8 @@ Keep Docker's existing data-directory preparation, permissions, user switch, mig
 
 Keep `status`, `lastCheckedAt` and `lastError`. Add only one nullable `probeRequestedAt` timestamp on App. It represents pending work, including work currently being checked. There are no request revisions, completion revisions, separate running markers, leases or job records.
 
-- All apps are eligible immediately when they have no result, and after the configured automatic interval from their last completed check, whether viewed or assigned to a board. The interval defaults to one hour. Derive eligibility from saved completion times using the current setting after restart; shortening the interval may make existing results due immediately, while lengthening it delays their next automatic check.
+- Enabled apps are eligible immediately when they have no result, and after the configured automatic interval from their last completed check, whether viewed or assigned to a board. The interval defaults to one hour and applies only to enabled apps. Derive eligibility from saved completion times using the current setting after restart; shortening the interval may make existing results due immediately, while lengthening it delays their next automatic check.
+- Apps with `statusChecksEnabled` false are never selected, claimed or published. Check the persisted flag at each of those steps so disabling during a check discards its result. Re-enabling clears the old pending timestamp, making the app due immediately, and a late result from before the toggle cannot be published.
 - Manual refresh records a pending timestamp, bypasses freshness, and takes priority over automatic checks. Repeated requests while pending share the check.
 - Check one app at a time. Poll for work once per second when idle. Space automatic check starts by at least five seconds; initial and manual checks bypass that spacing.
 - Before an automatic check, record a pending timestamp too. Preserve an existing pending timestamp rather than replacing it.
@@ -34,7 +35,7 @@ Each attempt has a fifteen-second timeout. Retry transient failures once after a
 
 ## API and UI
 
-Board reads return saved status immediately and never run probes. The authenticated manual-check procedure records work and returns `{ accepted: true }`. Existing status-query procedures return app ID, saved status, completion time, error and a single `checking` boolean. Checking means pending work or an automatically due result; the UI does not distinguish queued from running.
+Board reads return saved status immediately and never run probes. The authenticated manual-check procedure records work and returns `{ accepted: true }`; for a disabled app it rejects with `BAD_REQUEST` and records no work. Existing status-query procedures return app ID, saved status, completion time, error, `statusChecksEnabled` and a single `checking` boolean. Checking means pending work or an automatically due result; the UI does not distinguish queued from running. Disabled apps keep their snapshot entry with no result and `checking` false.
 
 Poll visible boards every thirty seconds, or every two seconds while checking. Manual controls poll requested apps until checking ends; retain the previous result while waiting. Pause polling while hidden and read again when visible. Show an ordinary retryable API error if requesting or reading status fails. Exact request-completion identities and supersession tracking across tabs or restarts are outside scope.
 

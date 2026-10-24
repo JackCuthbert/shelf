@@ -31,9 +31,12 @@ export function createAppStatusService(
         toStatusSnapshot(record, now(), checkIntervalSeconds),
       )
     },
-    async requestCheck(id: string): Promise<{ accepted: true } | null> {
-      const accepted = await repository.requestManual(id, now())
-      return accepted ? { accepted: true } : null
+    async requestCheck(
+      id: string,
+    ): Promise<{ accepted: true } | "disabled" | null> {
+      const result = await repository.requestManual(id, now())
+      if (result === "missing") return null
+      return result === "accepted" ? { accepted: true } : "disabled"
     },
   }
 }
