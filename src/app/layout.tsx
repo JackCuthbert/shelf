@@ -13,6 +13,16 @@ const mono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: "Shelf",
   description: "A calm home dashboard",
+  icons: {
+    icon: [
+      { url: "/brand/shelf-icon-light.svg", type: "image/svg+xml" },
+      {
+        url: "/brand/shelf-icon-dark.svg",
+        type: "image/svg+xml",
+        media: "(prefers-color-scheme: dark)",
+      },
+    ],
+  },
 }
 
 export default function RootLayout({
