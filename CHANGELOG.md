@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.5](https://github.com/JackCuthbert/shelf/compare/v0.2.4...v0.2.5) (2026-10-24)
+
+
+### Features
+
+* add browser-aware Shelf favicon ([ace5dcd](https://github.com/JackCuthbert/shelf/commit/ace5dcd9416d2f40a32cb555b338812bc77a6d74))
+
 ## [0.2.4](https://github.com/JackCuthbert/shelf/compare/v0.2.3...v0.2.4) (2026-10-02)
 
 
