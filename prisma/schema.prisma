@@ -120,6 +120,7 @@ model App {
   customIconUrl String?
   iconHash      String?
   status        String    @default("unknown")
+  statusChecksEnabled Boolean @default(true)
   lastCheckedAt DateTime?
   lastError     String?
   probeRequestedAt DateTime?

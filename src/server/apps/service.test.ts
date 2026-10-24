@@ -87,7 +87,10 @@ describe("shared app service", () => {
     const { rawService } = setup()
     const app = await rawService.create(dashboardInput, "user-1")
     await expect(
-      rawService.update({ ...dashboardInput, id: app.id }, "user-2"),
+      rawService.update(
+        { ...dashboardInput, id: app.id, statusChecksEnabled: false },
+        "user-2",
+      ),
     ).rejects.toBeInstanceOf(AppForbiddenError)
     await expect(rawService.delete(app.id, "user-2")).rejects.toBeInstanceOf(
       AppForbiddenError,
@@ -170,6 +173,7 @@ describe("shared app service", () => {
     ).rejects.toThrow("offline")
     expect(records.get(created.id)?.name).toBe("Media")
     expect(records.get(created.id)?.iconSlug).toBe("plex")
+    expect(records.get(created.id)?.statusChecksEnabled).toBe(true)
   })
 
   it("stores a custom image, its hash, and its source URL", async () => {
@@ -299,6 +303,68 @@ describe("shared app service", () => {
       expect(updated.lastCheckedAt).toEqual(checkedAt)
     },
   )
+
+  it("defaults status checks to enabled and stores an explicit opt-out", async () => {
+    const { service } = setup()
+    expect((await service.create(dashboardInput)).statusChecksEnabled).toBe(
+      true,
+    )
+    expect(
+      (
+        await service.create({
+          ...urlInput,
+          url: "https://other-media.home",
+          statusChecksEnabled: false,
+        })
+      ).statusChecksEnabled,
+    ).toBe(false)
+  })
+
+  it("preserves a disabled setting when omitted and clears status only on a real toggle", async () => {
+    const { service, records } = setup()
+    const created = await service.create({
+      ...dashboardInput,
+      statusChecksEnabled: false,
+    })
+    const checkedAt = new Date("2026-09-24T00:00:00Z")
+    records.set(created.id, {
+      ...created,
+      status: "up",
+      lastCheckedAt: checkedAt,
+      lastError: "Connection refused",
+      probeRequestedAt: checkedAt,
+    })
+
+    const renamed = await service.update({
+      ...dashboardInput,
+      id: created.id,
+      name: "Renamed",
+    })
+    expect(renamed.statusChecksEnabled).toBe(false)
+    expect(renamed.status).toBe("up")
+    expect(renamed.lastCheckedAt).toEqual(checkedAt)
+
+    const sameValue = await service.update({
+      ...dashboardInput,
+      id: created.id,
+      name: "Renamed",
+      statusChecksEnabled: false,
+    })
+    expect(sameValue.status).toBe("up")
+    expect(sameValue.lastCheckedAt).toEqual(checkedAt)
+
+    const toggled = await service.update({
+      ...dashboardInput,
+      id: created.id,
+      name: "Renamed",
+      statusChecksEnabled: true,
+    })
+    expect(toggled.statusChecksEnabled).toBe(true)
+    expect(toggled.status).toBe("unknown")
+    expect(toggled.lastCheckedAt).toBeNull()
+    expect(toggled.lastError).toBeNull()
+    expect(toggled.probeRequestedAt).toBeNull()
+  })
 
   it("clears cached status when an app URL changes", async () => {
     const { service, records } = setup()

@@ -79,6 +79,7 @@ type App = {
   customIconUrl: string | null
   iconHash: string | null
   status: string
+  statusChecksEnabled: boolean
   lastError: string | null
   lastCheckedAt: string | null
   probeRequestedAt: string | null
