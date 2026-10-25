@@ -1,5 +1,15 @@
 # Changelog
 
+## [0.2.7](https://github.com/JackCuthbert/shelf/compare/v0.2.6...v0.2.7) (2026-10-25)
+
+
+### Features
+
+* **agent-api:** expose optional status checks in REST and OpenAPI ([3c32261](https://github.com/JackCuthbert/shelf/commit/3c32261a658f1ff8208b0a969ff0463a622af5c0))
+* **apps:** let owners disable status checks per app ([a3f6732](https://github.com/JackCuthbert/shelf/commit/a3f6732895f3af7dbff80fdd3fb323c48a7cab1c))
+* **apps:** persist optional status checks per app ([f76fd37](https://github.com/JackCuthbert/shelf/commit/f76fd37d9976866d1fdb4646d900283ba54afbd0))
+* **status:** skip status checks for disabled apps ([3a28d5a](https://github.com/JackCuthbert/shelf/commit/3a28d5adaa3f84e1bcb6a38fd49e872a699d1dc9))
+
 ## [0.2.6](https://github.com/JackCuthbert/shelf/compare/v0.2.5...v0.2.6) (2026-10-24)
 
 
