@@ -86,6 +86,8 @@ test("regenerate the README screenshots", async ({ page }) => {
         (grid) => getComputedStyle(grid).gridTemplateColumns.split(" ").length,
       ),
   ).toBe(6)
+  await page.getByRole("heading", { name: "Media", exact: true }).click()
+  await expect(page.getByRole("searchbox")).not.toBeFocused()
   await capture(page, "board")
 
   await page.goto("/apps/jellyfin")
