@@ -1,6 +1,8 @@
 node_modules/
 .next/
 .server-build/
+next-env.d.ts
+scripts/reset-password.js
 data/
 src/generated/prisma/
 *.tsbuildinfo
