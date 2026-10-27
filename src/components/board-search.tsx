@@ -465,6 +465,7 @@ export function BoardSearch({
               Search apps
             </label>
             <Input
+              autoFocus
               id="board-search"
               type="search"
               value={query}
