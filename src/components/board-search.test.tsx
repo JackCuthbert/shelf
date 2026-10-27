@@ -206,6 +206,9 @@ describe("BoardSearch", () => {
     expect(html).toContain("sticky")
     expect(html).toContain("Home")
     expect(html).toContain('id="board-search"')
+    expect(html.match(/<input[^>]*id="board-search"[^>]*>/)?.[0]).toContain(
+      'autofocus=""',
+    )
     expect(html).toContain('href="/login"')
     expect(html).toContain("Sign in")
   })
