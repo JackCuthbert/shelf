@@ -25,7 +25,7 @@
 - On app save, the server validates the selected slug and downloads its PNG from the fixed Dashboard Icons CDN pattern into `/data/icons/<slug>.png`. The file is reused when another saved app selects the same slug. The source README documents the CDN URL pattern and PNG format. [Dashboard Icons README](https://github.com/homarr-labs/dashboard-icons/blob/main/README.md).
 - Boards serve saved icons from `/data/icons/`, so displaying existing apps does not require the icon source to be available.
 - Saving an app with a newly selected icon succeeds only after its download succeeds. On failure, keep the form entries and show a retryable error; do not leave a broken app or overwrite an existing icon choice.
-- When an icon is no longer referenced by any saved app, remove its cached file. Existing cached files are not refreshed automatically.
+- When an icon is no longer referenced by any saved app, in either its light or dark slot, remove its cached file. Existing cached files are not refreshed automatically.
 
 ## Custom image URLs
 
