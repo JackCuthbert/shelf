@@ -101,7 +101,7 @@ it("passes the saved light and dark icon references to the owner edit action", a
 it("renders the saved icon for each appearance and describes both sources", async () => {
   const html = await render()
   expect(html).toContain(
-    '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/dark-hash"/><img src="/icons/plex" alt="" class="size-full object-contain"/></picture>',
+    '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/dark-hash" class="hidden"/><img src="/icons/plex" alt="" class="size-full object-contain"/></picture>',
   )
   expect(html).toContain("Light: ")
   expect(html).toContain("Dashboard Icons · plex")

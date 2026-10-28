@@ -17,6 +17,7 @@ export function AppIcon({
         <source
           media="(prefers-color-scheme: dark)"
           srcSet={`/icons/${dark}`}
+          className="hidden"
         />
       )}
       <img src={`/icons/${light}`} alt={alt} className={className} />

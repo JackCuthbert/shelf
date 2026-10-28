@@ -37,7 +37,7 @@ it("adds a dark source for distinct catalogue and custom keys", () => {
     />,
   )
   expect(html).toBe(
-    '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/dark-hash"/><img src="/icons/light-hash" alt="Plex"/></picture>',
+    '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/dark-hash" class="hidden"/><img src="/icons/light-hash" alt="Plex"/></picture>',
   )
   expect(
     renderToStaticMarkup(
