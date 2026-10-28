@@ -34,6 +34,10 @@ export type AppValues = Pick<
   | "customIconUrl"
   | "iconHash"
   | "statusChecksEnabled"
+  | "darkIconSource"
+  | "darkIconSlug"
+  | "darkCustomIconUrl"
+  | "darkIconHash"
 >
 export type AppUpdateValues = AppValues &
   Partial<
@@ -95,6 +99,36 @@ type IconValues = Pick<
   SharedApp,
   "iconSource" | "iconSlug" | "customIconUrl" | "iconHash"
 >
+
+type DarkIconValues = Pick<
+  SharedApp,
+  "darkIconSource" | "darkIconSlug" | "darkCustomIconUrl" | "darkIconHash"
+>
+
+const noDarkIcon: DarkIconValues = {
+  darkIconSource: null,
+  darkIconSlug: null,
+  darkCustomIconUrl: null,
+  darkIconHash: null,
+}
+
+function toDarkValues(icon: IconValues): DarkIconValues {
+  return {
+    darkIconSource: icon.iconSource,
+    darkIconSlug: icon.iconSlug,
+    darkCustomIconUrl: icon.customIconUrl,
+    darkIconHash: icon.iconHash,
+  }
+}
+
+function toSavedDark(app: SharedApp): DarkIconValues {
+  return {
+    darkIconSource: app.darkIconSource,
+    darkIconSlug: app.darkIconSlug,
+    darkCustomIconUrl: app.darkCustomIconUrl,
+    darkIconHash: app.darkIconHash,
+  }
+}
 
 function savedUrlIcon(app: SharedApp, url: string): IconValues | null {
   if (app.iconSource === "url" && app.customIconUrl === url && app.iconHash)
@@ -202,12 +236,18 @@ export function createSharedAppService(
         const created = new Set<string>()
         try {
           const icon = await prepareIcon(input, undefined, prepared, created)
+          const dark = input.darkIcon
+            ? toDarkValues(
+                await prepareIcon(input.darkIcon, undefined, prepared, created),
+              )
+            : noDarkIcon
           return await repository.create({
             name: input.name,
             description: input.description,
             url: input.url,
             statusChecksEnabled: input.statusChecksEnabled ?? true,
             ...icon,
+            ...dark,
             ownerId,
             id: createAppNanoid(),
           })
@@ -231,6 +271,11 @@ export function createSharedAppService(
         let updated: SharedApp
         try {
           const icon = await prepareIcon(input, existing, prepared, created)
+          const dark = input.darkIcon
+            ? toDarkValues(
+                await prepareIcon(input.darkIcon, existing, prepared, created),
+              )
+            : toSavedDark(existing)
           const values: AppValues = {
             name: input.name,
             description: input.description,
@@ -238,6 +283,7 @@ export function createSharedAppService(
             statusChecksEnabled:
               input.statusChecksEnabled ?? existing.statusChecksEnabled,
             ...icon,
+            ...dark,
           }
           const valuesWithStatus: AppUpdateValues =
             existing.url === input.url &&

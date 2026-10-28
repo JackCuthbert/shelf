@@ -537,6 +537,38 @@
                       {
                         "type": "object",
                         "properties": {
+                          "darkIcon": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["dashboard"]
+                                  },
+                                  "iconSlug": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                                  }
+                                },
+                                "required": ["iconSource", "iconSlug"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["url"]
+                                  },
+                                  "iconUrl": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": ["iconSource", "iconUrl"]
+                              }
+                            ]
+                          },
                           "name": {
                             "type": "string",
                             "minLength": 1,
@@ -568,6 +600,38 @@
                       {
                         "type": "object",
                         "properties": {
+                          "darkIcon": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["dashboard"]
+                                  },
+                                  "iconSlug": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                                  }
+                                },
+                                "required": ["iconSource", "iconSlug"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["url"]
+                                  },
+                                  "iconUrl": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": ["iconSource", "iconUrl"]
+                              }
+                            ]
+                          },
                           "name": {
                             "type": "string",
                             "minLength": 1,
@@ -833,6 +897,38 @@
                       {
                         "type": "object",
                         "properties": {
+                          "darkIcon": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["dashboard"]
+                                  },
+                                  "iconSlug": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                                  }
+                                },
+                                "required": ["iconSource", "iconSlug"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["url"]
+                                  },
+                                  "iconUrl": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": ["iconSource", "iconUrl"]
+                              }
+                            ]
+                          },
                           "name": {
                             "type": "string",
                             "minLength": 1,
@@ -864,6 +960,38 @@
                       {
                         "type": "object",
                         "properties": {
+                          "darkIcon": {
+                            "oneOf": [
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["dashboard"]
+                                  },
+                                  "iconSlug": {
+                                    "type": "string",
+                                    "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+                                  }
+                                },
+                                "required": ["iconSource", "iconSlug"]
+                              },
+                              {
+                                "type": "object",
+                                "properties": {
+                                  "iconSource": {
+                                    "type": "string",
+                                    "enum": ["url"]
+                                  },
+                                  "iconUrl": {
+                                    "type": "string",
+                                    "format": "uri"
+                                  }
+                                },
+                                "required": ["iconSource", "iconUrl"]
+                              }
+                            ]
+                          },
                           "name": {
                             "type": "string",
                             "minLength": 1,

@@ -25,6 +25,8 @@
 - On app save, the server validates the selected slug and downloads its PNG from the fixed Dashboard Icons CDN pattern into `/data/icons/<slug>.png`. The file is reused when another saved app selects the same slug. The source README documents the CDN URL pattern and PNG format. [Dashboard Icons README](https://github.com/homarr-labs/dashboard-icons/blob/main/README.md).
 - Boards serve saved icons from `/data/icons/`, so displaying existing apps does not require the icon source to be available.
 - Saving an app with a newly selected icon succeeds only after its download succeeds. On failure, keep the form entries and show a retryable error; do not leave a broken app or overwrite an existing icon choice.
+- Create and update accept an optional `darkIcon` selection (Dashboard Icons slug or custom image URL), validated like the light selection; `null` is rejected. Omitting it on create stores no dark icon, so the light icon applies in both appearances. Omitting it on update preserves the saved dark icon. An explicit selection replaces all four dark fields and nulls the inactive source fields.
+- The server prepares the light and the explicit dark selection before one database write. Identical selections (same source and normalized slug or URL) are prepared once, and a saved URL is reused without re-downloading even when it moves between the light and dark slots. If either preparation or the write fails, the app is unchanged and no newly cached unreferenced file is kept.
 - When an icon is no longer referenced by any saved app, in either its light or dark slot, remove its cached file. Existing cached files are not refreshed automatically.
 
 ## Custom image URLs

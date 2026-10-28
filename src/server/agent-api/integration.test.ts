@@ -29,5 +29,17 @@ describe("agent API contract", () => {
       "statusChecksEnabled",
       { type: "boolean" },
     )
+    for (const operation of [
+      contract.paths["/api/v1/apps"]?.post,
+      contract.paths["/api/v1/apps/{appId}"]?.put,
+    ]) {
+      const json = JSON.stringify(
+        operation?.requestBody?.content["application/json"].schema,
+      )
+      expect(json).toContain("darkIcon")
+    }
+    expect(
+      Object.keys(contract.components.schemas.App.properties),
+    ).not.toContain("darkIcon")
   })
 })

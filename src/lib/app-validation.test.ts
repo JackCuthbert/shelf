@@ -191,4 +191,48 @@ describe("status checks validation", () => {
       }
     },
   )
+
+  describe("darkIcon", () => {
+    const base = { name: "App", url: "https://example.com" }
+    const light = { iconSource: "dashboard", iconSlug: "plex" }
+
+    it("accepts dashboard and URL dark icons and normalizes the URL", () => {
+      for (const schema of [appInputSchema, appUpdateInputSchema]) {
+        const withId = { ...base, id: "AbCd1234", ...light }
+        expect(
+          schema.parse({
+            ...withId,
+            darkIcon: { iconSource: "dashboard", iconSlug: "plex-dark" },
+          }),
+        ).toMatchObject({
+          darkIcon: { iconSource: "dashboard", iconSlug: "plex-dark" },
+        })
+        expect(
+          schema.parse({
+            ...withId,
+            darkIcon: { iconSource: "url", iconUrl: " https://i.home/a.png " },
+          }),
+        ).toMatchObject({
+          darkIcon: { iconSource: "url", iconUrl: "https://i.home/a.png" },
+        })
+      }
+    })
+
+    it("allows omission and rejects null or invalid nested values", () => {
+      for (const schema of [appInputSchema, appUpdateInputSchema]) {
+        const withId = { ...base, id: "AbCd1234", ...light }
+        expect(schema.parse(withId)).not.toHaveProperty("darkIcon")
+        for (const darkIcon of [
+          null,
+          {},
+          { iconSource: "dashboard" },
+          { iconSource: "dashboard", iconSlug: "Bad Slug" },
+          { iconSource: "url", iconUrl: "ftp://x.home/a.png" },
+          { iconSource: "url", iconUrl: "not a url" },
+          { iconSource: "other", iconSlug: "plex" },
+        ])
+          expect(schema.safeParse({ ...withId, darkIcon }).success).toBe(false)
+      }
+    })
+  })
 })

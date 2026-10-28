@@ -108,6 +108,32 @@ describe("shared app API", () => {
       "statusChecksEnabled",
     )
   })
+  it("passes an optional darkIcon to the service and rejects an invalid one", async () => {
+    service.create.mockResolvedValue(savedApp)
+    const app = setup("another-user")
+    const request = (darkIcon: unknown) =>
+      app.request("/api/v1/apps", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          name: "Plex",
+          description: "",
+          url: "https://plex.home",
+          iconSource: "dashboard",
+          iconSlug: "plex",
+          darkIcon,
+        }),
+      })
+    const darkIcon = { iconSource: "url", iconUrl: "https://i.home/d.png" }
+    expect((await request(darkIcon)).status).toBe(201)
+    expect(service.create).toHaveBeenCalledWith(
+      expect.objectContaining({ darkIcon }),
+      "another-user",
+    )
+    service.create.mockClear()
+    expect((await request(null)).status).toBe(400)
+    expect(service.create).not.toHaveBeenCalled()
+  })
   it("sets status checks explicitly and exposes a disabled app", async () => {
     service.create.mockResolvedValue({
       ...savedApp,
