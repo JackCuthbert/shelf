@@ -474,4 +474,105 @@ describe("shared app service", () => {
       "sonarr",
     ])
   })
+
+  it("reuses a saved dark URL for the light icon without fetching or erasing the dark reference", async () => {
+    const { rawService, records, cache } = setup()
+    const app = await rawService.create(urlInput, "user-1")
+    records.set(app.id, {
+      ...app,
+      darkIconSource: "url",
+      darkCustomIconUrl: "https://images.home/dark.png",
+      darkIconHash: "hash-dark",
+    })
+    cache.storeFromUrl.mockClear()
+    const updated = await rawService.update(
+      { ...urlInput, id: app.id, iconUrl: "https://images.home/dark.png" },
+      "user-1",
+    )
+    expect(cache.storeFromUrl).not.toHaveBeenCalled()
+    expect(updated.iconHash).toBe("hash-dark")
+    expect(updated.darkIconHash).toBe("hash-dark")
+    expect(updated.darkCustomIconUrl).toBe("https://images.home/dark.png")
+    expect(cache.remove).toHaveBeenCalledTimes(1)
+    expect(cache.remove).toHaveBeenCalledWith("hash-a")
+  })
+
+  it("removes a newly cached icon when the database update fails", async () => {
+    const { rawService, repository, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    vi.spyOn(repository, "update").mockRejectedValueOnce(new Error("db down"))
+    await expect(
+      rawService.update(
+        { ...dashboardInput, id: app.id, iconSlug: "radarr" },
+        "user-1",
+      ),
+    ).rejects.toThrow("db down")
+    expect(cache.remove).toHaveBeenCalledTimes(1)
+    expect(cache.remove).toHaveBeenCalledWith("radarr")
+  })
+
+  it("keeps pre-existing or shared cache keys when a save fails", async () => {
+    const { rawService, repository, cache } = setup()
+    cache.ensure.mockResolvedValueOnce(false)
+    vi.spyOn(repository, "create").mockRejectedValueOnce(new Error("db down"))
+    await expect(rawService.create(dashboardInput, "user-1")).rejects.toThrow(
+      "db down",
+    )
+    expect(cache.remove).not.toHaveBeenCalled()
+
+    cache.storeFromUrl.mockResolvedValueOnce({
+      hash: "hash-a",
+      created: false,
+    })
+    vi.spyOn(repository, "create").mockRejectedValueOnce(new Error("db down"))
+    await expect(rawService.create(urlInput, "user-1")).rejects.toThrow(
+      "db down",
+    )
+    expect(cache.remove).not.toHaveBeenCalled()
+  })
+
+  it("keeps a newly created cache key that another record references", async () => {
+    const { rawService, repository, cache } = setup()
+    await rawService.create(dashboardInput, "user-1")
+    cache.remove.mockClear()
+    vi.spyOn(repository, "create").mockRejectedValueOnce(new Error("db down"))
+    await expect(
+      rawService.create(
+        { ...dashboardInput, url: "https://other.home" },
+        "user-1",
+      ),
+    ).rejects.toThrow("db down")
+    expect(cache.remove).not.toHaveBeenCalled()
+  })
+
+  it("reports the save error when cleanup also fails", async () => {
+    const { rawService, repository, cache } = setup()
+    vi.spyOn(repository, "create").mockRejectedValueOnce(new Error("db down"))
+    cache.remove.mockRejectedValueOnce(new Error("disk"))
+    await expect(rawService.create(dashboardInput, "user-1")).rejects.toThrow(
+      "db down",
+    )
+  })
+
+  it("rejects an owner or URL conflict before preparing an icon", async () => {
+    const { rawService, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    const other = await rawService.create(
+      { ...dashboardInput, url: "https://other.home" },
+      "user-1",
+    )
+    cache.ensure.mockClear()
+    cache.storeFromUrl.mockClear()
+    await expect(
+      rawService.update({ ...urlInput, id: app.id }, "user-2"),
+    ).rejects.toBeInstanceOf(AppForbiddenError)
+    await expect(
+      rawService.update({ ...urlInput, id: other.id, url: app.url }, "user-1"),
+    ).rejects.toBeInstanceOf(AppUrlConflictError)
+    await expect(rawService.create(urlInput, "user-2")).rejects.toBeInstanceOf(
+      AppUrlConflictError,
+    )
+    expect(cache.ensure).not.toHaveBeenCalled()
+    expect(cache.storeFromUrl).not.toHaveBeenCalled()
+  })
 })
