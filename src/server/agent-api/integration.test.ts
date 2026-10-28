@@ -38,6 +38,19 @@ describe("agent API contract", () => {
       )
       expect(json).toContain("darkIcon")
     }
+    for (const schema of [
+      contract.components.schemas.App,
+      contract.components.schemas.BoardApp,
+    ])
+      expect(Object.keys(schema.properties)).toEqual(
+        expect.arrayContaining([
+          "darkIconSource",
+          "darkIconSlug",
+          "darkCustomIconUrl",
+          "darkIconHash",
+          "darkIconUrl",
+        ]),
+      )
     expect(
       Object.keys(contract.components.schemas.App.properties),
     ).not.toContain("darkIcon")

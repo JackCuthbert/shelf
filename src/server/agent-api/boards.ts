@@ -9,6 +9,7 @@ import {
   writeCategoryPositions,
 } from "@/server/boards/service"
 import type { AgentApi } from "./app"
+import { appDto } from "./apps"
 import { apiError, ErrorSchema } from "./errors"
 
 const Id = z.string().min(1)
@@ -54,14 +55,32 @@ const boardAppExample = {
   customIconUrl: null,
   iconHash: null,
   iconUrl: "/icons/plex",
+  darkIconSource: "dashboard",
+  darkIconSlug: "plex-dark",
+  darkCustomIconUrl: null,
+  darkIconHash: null,
+  darkIconUrl: "/icons/plex-dark",
   status: "unknown",
   statusChecksEnabled: true,
   lastCheckedAt: null,
   lastError: null,
+  probeRequestedAt: null,
   createdAt: "2026-09-26T12:00:00.000Z",
   updatedAt: "2026-09-26T12:00:00.000Z",
   categoryId: null,
   position: 0,
+}
+const legacyBoardAppExample = {
+  ...boardAppExample,
+  id: "app_456",
+  name: "Grafana",
+  url: "https://grafana.home",
+  iconSlug: "grafana",
+  iconUrl: "/icons/grafana",
+  darkIconSource: null,
+  darkIconSlug: null,
+  darkIconUrl: "/icons/grafana",
+  position: 1,
 }
 const BoardAppSchema = z
   .object({
@@ -75,10 +94,16 @@ const BoardAppSchema = z
     customIconUrl: z.string().nullable(),
     iconHash: z.string().nullable(),
     iconUrl: z.string(),
+    darkIconSource: z.string().nullable(),
+    darkIconSlug: z.string().nullable(),
+    darkCustomIconUrl: z.string().nullable(),
+    darkIconHash: z.string().nullable(),
+    darkIconUrl: z.string(),
     status: z.string(),
     statusChecksEnabled: z.boolean(),
     lastCheckedAt: z.string().nullable(),
     lastError: z.string().nullable(),
+    probeRequestedAt: z.string().nullable(),
     createdAt: z.string(),
     updatedAt: z.string(),
     categoryId: z.string().nullable(),
@@ -93,7 +118,7 @@ const boardExample = {
   isDefault: true,
   createdAt: "2026-09-26T12:00:00.000Z",
   categories: [categoryExample],
-  apps: [boardAppExample],
+  apps: [boardAppExample, legacyBoardAppExample],
 }
 const BoardSchema = z
   .object({
@@ -134,23 +159,6 @@ function caller(userId: string) {
     session: { user: { id: userId } } as never,
   })
 }
-function withoutDarkIcon<
-  T extends {
-    darkIconSource: unknown
-    darkIconSlug: unknown
-    darkCustomIconUrl: unknown
-    darkIconHash: unknown
-  },
->(app: T) {
-  const {
-    darkIconSource: _source,
-    darkIconSlug: _slug,
-    darkCustomIconUrl: _url,
-    darkIconHash: _hash,
-    ...legacy
-  } = app
-  return legacy
-}
 async function boardData(userId: string, id: string) {
   const board = await prisma.board.findFirst({
     where: { id, ownerId: userId },
@@ -177,11 +185,8 @@ async function boardData(userId: string, id: string) {
       updatedAt: x.updatedAt.toISOString(),
     })),
     apps: board.apps.map((x) => ({
-      ...withoutDarkIcon(x.app),
-      iconUrl: `/icons/${x.app.iconSource === "url" ? x.app.iconHash : x.app.iconSlug}`,
-      createdAt: x.app.createdAt.toISOString(),
-      updatedAt: x.app.updatedAt.toISOString(),
-      lastCheckedAt: x.app.lastCheckedAt?.toISOString() ?? null,
+      ...appDto(x.app),
+      probeRequestedAt: x.app.probeRequestedAt?.toISOString() ?? null,
       categoryId: x.categoryId,
       position: x.position,
     })),
