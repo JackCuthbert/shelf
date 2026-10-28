@@ -6,6 +6,10 @@ Install Chromium once, including its Linux dependencies when needed:
 npx playwright install --with-deps chromium
 ```
 
+`npm run screenshot` also runs `theme-icons.ts`, which checks light and dark app
+icons in the browser as the seeded owner. It serves PNGs from a local HTTP
+server for server-side URL downloads, and removes the apps it creates.
+
 Run `npm run screenshot` after visible UI changes and include the images in
 `docs/screenshots/` with the change. This builds Shelf, starts a headless browser,
 and captures the public board, board management, public app details, and populated
