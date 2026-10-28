@@ -1,5 +1,35 @@
 # Changelog
 
+## [0.3.0](https://github.com/JackCuthbert/shelf/compare/v0.2.7...v0.3.0) (2026-10-28)
+
+
+### ⚠ BREAKING CHANGES
+
+* **screenshots:** none
+* none
+
+### Features
+
+* add transparent Shelf icons for external use ([c426e55](https://github.com/JackCuthbert/shelf/commit/c426e5505dbae9cbd1ade46d476431fad84de9b9))
+* **agent-api:** return dark icon fields on apps and board apps ([2a827a8](https://github.com/JackCuthbert/shelf/commit/2a827a83cfc151b8392e02d3470cc659b66cff93))
+* **apps:** accept an optional dark icon when creating or updating an app ([5a66ce5](https://github.com/JackCuthbert/shelf/commit/5a66ce5db28a9b26a5e34ae697aa432c0f66cef4))
+* **apps:** edit light and dark app icons in the app form ([301d8e7](https://github.com/JackCuthbert/shelf/commit/301d8e73a94825de36f710f914c51d19d5eab173))
+* **apps:** show the saved light or dark icon to match the device appearance ([485ce5a](https://github.com/JackCuthbert/shelf/commit/485ce5a64401756d5eb01d6db6c525662660901b))
+* focus board search automatically on first load ([7bb9362](https://github.com/JackCuthbert/shelf/commit/7bb93628233d4c493e6a91c1ee95405baf2e1262))
+* store optional dark app icon references ([ce7084a](https://github.com/JackCuthbert/shelf/commit/ce7084a4c57470d71b7b1ca80bd3f5219566b279))
+
+
+### Bug Fixes
+
+* **apps:** pass saved light and dark icon references to edit dialogs ([ddbb691](https://github.com/JackCuthbert/shelf/commit/ddbb691eaec0796a4dd4864ad121bfb7b5f433c5))
+* protect dark icon references when updating or deleting apps ([22be1a4](https://github.com/JackCuthbert/shelf/commit/22be1a40c94a2d854776e8a65324c528ffc7bae0))
+* **screenshots:** seed and rebuild the server before capturing ([6672306](https://github.com/JackCuthbert/shelf/commit/66723064c9792c978acc4a1b8778ee758c6a2eeb))
+
+
+### Miscellaneous Chores
+
+* stop tracking generated build artifacts ([92698fd](https://github.com/JackCuthbert/shelf/commit/92698fde2e8faa90b9856083343fe78ca25ec12f))
+
 ## [0.2.7](https://github.com/JackCuthbert/shelf/compare/v0.2.6...v0.2.7) (2026-10-25)
 
 
