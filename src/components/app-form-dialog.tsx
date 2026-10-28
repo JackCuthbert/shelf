@@ -25,6 +25,11 @@ export type AppRecord = {
   iconSource: string
   iconSlug: string | null
   customIconUrl: string | null
+  iconHash?: string | null
+  darkIconSource?: string | null
+  darkIconSlug?: string | null
+  darkCustomIconUrl?: string | null
+  darkIconHash?: string | null
   statusChecksEnabled: boolean
 }
 export type Draft = {

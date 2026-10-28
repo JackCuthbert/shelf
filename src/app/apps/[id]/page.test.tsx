@@ -7,8 +7,18 @@ vi.mock("next/navigation", () => ({
     throw new Error("not found")
   },
 }))
+const session = vi.hoisted(() => ({
+  current: null as null | { user: { id: string; name: string } },
+}))
+const editProps = vi.hoisted(() => [] as Record<string, unknown>[])
 vi.mock("@/lib/auth", () => ({
-  auth: { api: { getSession: async () => null } },
+  auth: { api: { getSession: async () => session.current } },
+}))
+vi.mock("@/components/app-detail-edit-action", () => ({
+  AppDetailEditAction: (props: Record<string, unknown>) => {
+    editProps.push(props)
+    return null
+  },
 }))
 
 const app = {
@@ -20,7 +30,11 @@ const app = {
   iconSource: "dashboard",
   iconSlug: "plex",
   customIconUrl: null,
-  iconHash: null,
+  iconHash: "light-hash",
+  darkIconSource: "url",
+  darkIconSlug: null,
+  darkCustomIconUrl: "https://plex.example/dark.png",
+  darkIconHash: "dark-hash",
   status: "up",
   statusChecksEnabled: true,
   lastError: null,
@@ -64,4 +78,22 @@ it("hides status details for an app with checks disabled", async () => {
   expect(html).not.toContain("Not checked yet")
   expect(html).toContain("Movies and shows")
   expect(html).toContain('href="https://plex.example"')
+})
+
+it("passes the saved light and dark icon references to the owner edit action", async () => {
+  session.current = { user: { id: "u1", name: "Jack" } }
+  await render()
+  session.current = null
+  expect(editProps.at(-1)).toMatchObject({
+    app: {
+      iconSource: "dashboard",
+      iconSlug: "plex",
+      customIconUrl: null,
+      iconHash: "light-hash",
+      darkIconSource: "url",
+      darkIconSlug: null,
+      darkCustomIconUrl: "https://plex.example/dark.png",
+      darkIconHash: "dark-hash",
+    },
+  })
 })

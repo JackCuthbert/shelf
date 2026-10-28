@@ -62,6 +62,11 @@ export default async function HomePage() {
           iconSource: app.iconSource,
           iconSlug: app.iconSlug,
           customIconUrl: app.customIconUrl,
+          iconHash: app.iconHash,
+          darkIconSource: app.darkIconSource,
+          darkIconSlug: app.darkIconSlug,
+          darkCustomIconUrl: app.darkCustomIconUrl,
+          darkIconHash: app.darkIconHash,
           categoryId,
           status:
             app.statusChecksEnabled &&

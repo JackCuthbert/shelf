@@ -117,6 +117,11 @@ export default async function AppPage({
                     iconSource: app.iconSource,
                     iconSlug: app.iconSlug,
                     customIconUrl: app.customIconUrl,
+                    iconHash: app.iconHash,
+                    darkIconSource: app.darkIconSource,
+                    darkIconSlug: app.darkIconSlug,
+                    darkCustomIconUrl: app.darkCustomIconUrl,
+                    darkIconHash: app.darkIconHash,
                     statusChecksEnabled: app.statusChecksEnabled,
                   }}
                 />

@@ -85,6 +85,11 @@ export default async function BoardPage({
         iconSource: app.iconSource,
         iconSlug: app.iconSlug,
         customIconUrl: app.customIconUrl,
+        iconHash: app.iconHash,
+        darkIconSource: app.darkIconSource,
+        darkIconSlug: app.darkIconSlug,
+        darkCustomIconUrl: app.darkCustomIconUrl,
+        darkIconHash: app.darkIconHash,
         categoryId,
         status:
           app.statusChecksEnabled &&
