@@ -30,6 +30,7 @@ import {
   type AppStatus,
   type AppStatusSnapshot,
 } from "@/lib/app-status"
+import { AppIcon } from "@/components/app-icon"
 import { usePageVisible } from "@/components/use-page-visible"
 import { useLocalDateTime } from "@/components/use-local-date-time"
 
@@ -182,8 +183,8 @@ function BoardTile({
                   {app.name}
                 </span>
                 <span className="flex min-h-0 w-full flex-1 items-center justify-center p-2">
-                  <img
-                    src={`/icons/${app.iconKey}`}
+                  <AppIcon
+                    app={app}
                     alt=""
                     className="h-full w-full object-contain"
                   />
@@ -499,6 +500,9 @@ export function BoardSearch({
                         iconSource: app.iconSource,
                         iconSlug: app.iconSlug,
                         iconHash: app.iconHash,
+                        darkIconSource: app.darkIconSource,
+                        darkIconSlug: app.darkIconSlug,
+                        darkIconHash: app.darkIconHash,
                       }))
                     : undefined
                 }

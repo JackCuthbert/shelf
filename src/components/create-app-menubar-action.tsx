@@ -30,6 +30,9 @@ export function CreateAppMenubarAction({
     iconSource: string
     iconSlug: string | null
     iconHash: string | null
+    darkIconSource?: string | null
+    darkIconSlug?: string | null
+    darkIconHash?: string | null
   }>
   existingAppsLoading?: boolean
   onAssignExisting?: (appId: string, categoryId: string | null) => Promise<void>

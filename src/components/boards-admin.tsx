@@ -44,7 +44,7 @@ import { BoardAppDialog } from "@/components/board-app-dialog"
 import { CategorySelect } from "@/components/category-select"
 import { ConfirmContent, ModalContent, ModalFooter } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
-import { iconKey } from "@/lib/app-icon"
+import { AppIcon } from "@/components/app-icon"
 
 type Category = CategoryRecord & {
   boardId: string
@@ -475,8 +475,8 @@ export function BoardsAdmin({
     return (
       <div className="flex flex-col gap-2 rounded-[2px] px-3 py-2 hover:bg-surface-alt/50 sm:flex-row sm:flex-wrap sm:items-center">
         <div className="flex min-w-0 items-center gap-2 sm:flex-1">
-          <img
-            src={`/icons/${iconKey(entry.app)}`}
+          <AppIcon
+            app={entry.app}
             alt=""
             className="h-9 w-9 shrink-0 object-contain p-1"
           />
@@ -1031,8 +1031,8 @@ export function BoardsAdmin({
                   ?.apps.find((entry) => entry.appId === activeDrag.appId)?.app
                 return app ? (
                   <div className="flex items-center gap-2 border border-accent bg-surface px-3 py-2 shadow-lg">
-                    <img
-                      src={`/icons/${iconKey(app)}`}
+                    <AppIcon
+                      app={app}
                       alt=""
                       className="size-8 object-contain"
                     />

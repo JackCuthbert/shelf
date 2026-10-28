@@ -50,18 +50,22 @@ vi.mock("react/jsx-dev-runtime", async (importOriginal) => {
   }
 })
 
-vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }))
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({ refresh: () => {} }),
+}))
 
 vi.mock("@/components/trpc-provider", () => ({
   trpc: {
     useUtils: () => ({ boards: { list: { invalidate: async () => {} } } }),
     boards: {
-      list: { useQuery: () => ({ data: [] }) },
+      list: { useQuery: () => ({ data: ownedBoardsMock }) },
       assign: { useMutation: () => ({ mutate: () => {} }) },
       refreshStatuses: { useQuery: statusQueryMock },
     },
     apps: {
-      list: { useQuery: () => ({ data: [] }) },
+      list: {
+        useQuery: () => ({ data: libraryAppsMock, isPending: false }),
+      },
       delete: {
         useMutation: () => ({ mutateAsync: async () => {}, isPending: false }),
       },
@@ -70,6 +74,13 @@ vi.mock("@/components/trpc-provider", () => ({
 }))
 
 const statusQueryMock = vi.hoisted(() => vi.fn())
+const ownedBoardsMock = vi.hoisted((): unknown[] => [])
+const libraryAppsMock = vi.hoisted((): unknown[] => [])
+const createAppActionMock = vi.hoisted(() => vi.fn(() => null))
+
+vi.mock("@/components/create-app-menubar-action", () => ({
+  CreateAppMenubarAction: createAppActionMock,
+}))
 
 const apps = [
   {
@@ -230,6 +241,7 @@ describe("BoardSearch", () => {
     expect(html).toContain('target="_blank"')
     expect(html).toContain('rel="noreferrer"')
     expect(html).toContain('src="/icons/plex"')
+    expect(html).not.toContain("<source")
     expect(html).toContain("Plex")
     expect(html).toContain("aspect-square")
     expect(html).toContain("min-[360px]:grid-cols-2")
@@ -469,5 +481,61 @@ describe("BoardSearch", () => {
         state: { data: [snapshot(true, true)] },
       } as never),
     ).toBe(2_000)
+  })
+
+  it("selects the dark icon with a native media source", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[
+          {
+            ...apps[0],
+            darkIconSource: "dashboard",
+            darkIconSlug: "plex-dark",
+          },
+        ]}
+        categories={[]}
+        user={null}
+      />,
+    )
+    expect(html).toContain(
+      '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/plex-dark"/><img src="/icons/plex" alt="" class="h-full w-full object-contain"/></picture>',
+    )
+  })
+
+  it("passes dark icon references of library apps to the existing-app list", () => {
+    ownedBoardsMock.push({ id: "abcdefgh", name: "Home", categories: [] })
+    libraryAppsMock.push({
+      id: "radarr",
+      name: "Radarr",
+      url: "https://radarr.example",
+      iconSource: "dashboard",
+      iconSlug: "radarr",
+      iconHash: null,
+      darkIconSource: "dashboard",
+      darkIconSlug: "radarr-dark",
+      darkIconHash: null,
+    })
+    renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={[]}
+        categories={[]}
+        user={{ id: "user-1" } as never}
+      />,
+    )
+    ownedBoardsMock.length = 0
+    libraryAppsMock.length = 0
+    const props = createAppActionMock.mock.calls[0] as unknown as [
+      { existingApps: Record<string, unknown>[] },
+    ]
+    expect(props[0].existingApps[0]).toMatchObject({
+      id: "radarr",
+      darkIconSource: "dashboard",
+      darkIconSlug: "radarr-dark",
+      darkIconHash: null,
+    })
   })
 })

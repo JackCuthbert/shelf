@@ -24,7 +24,7 @@ import { ConfirmContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 import { useManualAppCheck } from "@/components/use-manual-app-check"
 import { useLocalDateTime } from "@/components/use-local-date-time"
-import { iconKey } from "@/lib/app-icon"
+import { AppIcon } from "@/components/app-icon"
 import { DEFAULT_STATUS_CHECK_INTERVAL_SECONDS } from "@/lib/app-status"
 
 type App = {
@@ -299,8 +299,8 @@ export function SharedApps({
                 className="panel flex min-w-0 items-center gap-3 p-3"
               >
                 <div className="relative size-10 shrink-0">
-                  <img
-                    src={`/icons/${iconKey(app)}`}
+                  <AppIcon
+                    app={app}
                     alt=""
                     className="size-full object-contain"
                   />

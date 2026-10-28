@@ -97,3 +97,25 @@ it("passes the saved light and dark icon references to the owner edit action", a
     },
   })
 })
+
+it("renders the saved icon for each appearance and describes both sources", async () => {
+  const html = await render()
+  expect(html).toContain(
+    '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/dark-hash"/><img src="/icons/plex" alt="" class="size-full object-contain"/></picture>',
+  )
+  expect(html).toContain("Light: ")
+  expect(html).toContain("Dashboard Icons · plex")
+  expect(html).toContain("Dark: ")
+  expect(html).toContain("https://plex.example/dark.png")
+})
+
+it("describes a single icon as used for light and dark", async () => {
+  const html = await render({
+    darkIconSource: undefined,
+    darkIconSlug: undefined,
+    darkCustomIconUrl: undefined,
+    darkIconHash: undefined,
+  })
+  expect(html).not.toContain("<source")
+  expect(html).toContain("used for light and dark")
+})
