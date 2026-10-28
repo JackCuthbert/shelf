@@ -88,6 +88,36 @@ function iconKeys(app: SharedApp): Set<string> {
   )
 }
 
+type IconSelection =
+  | { iconSource: "dashboard"; iconSlug: string }
+  | { iconSource: "url"; iconUrl: string }
+type IconValues = Pick<
+  SharedApp,
+  "iconSource" | "iconSlug" | "customIconUrl" | "iconHash"
+>
+
+function savedUrlIcon(app: SharedApp, url: string): IconValues | null {
+  if (app.iconSource === "url" && app.customIconUrl === url && app.iconHash)
+    return {
+      iconSource: "url",
+      iconSlug: null,
+      customIconUrl: url,
+      iconHash: app.iconHash,
+    }
+  if (
+    app.darkIconSource === "url" &&
+    app.darkCustomIconUrl === url &&
+    app.darkIconHash
+  )
+    return {
+      iconSource: "url",
+      iconSlug: null,
+      customIconUrl: url,
+      iconHash: app.darkIconHash,
+    }
+  return null
+}
+
 export function createSharedAppService(
   repository: AppRepository,
   icons: AppIconCache,
@@ -110,40 +140,56 @@ export function createSharedAppService(
     if (key && (await repository.countIcon(key)) === 0) await icons.remove(key)
   }
 
-  async function createValues(
-    input: AppInput,
-  ): Promise<{ values: AppValues; created: string | null }> {
-    const statusChecksEnabled = input.statusChecksEnabled ?? true
-    if (input.iconSource === "url") {
-      const { hash, created } = await icons.storeFromUrl(input.iconUrl)
-      return {
-        values: {
-          name: input.name,
-          description: input.description,
-          url: input.url,
-          statusChecksEnabled,
+  async function prepareIcon(
+    selection: IconSelection,
+    existing: SharedApp | undefined,
+    prepared: Map<string, IconValues>,
+    created: Set<string>,
+  ): Promise<IconValues> {
+    const cacheKey =
+      selection.iconSource === "url"
+        ? `url:${selection.iconUrl}`
+        : `dashboard:${selection.iconSlug}`
+    const reused = prepared.get(cacheKey)
+    if (reused) return reused
+    let values: IconValues
+    if (selection.iconSource === "url") {
+      const saved = existing && savedUrlIcon(existing, selection.iconUrl)
+      if (saved) {
+        values = saved
+      } else {
+        const { hash, created: isNew } = await icons.storeFromUrl(
+          selection.iconUrl,
+        )
+        if (isNew) created.add(hash)
+        values = {
           iconSource: "url",
           iconSlug: null,
-          customIconUrl: input.iconUrl,
+          customIconUrl: selection.iconUrl,
           iconHash: hash,
-        },
-        created: created ? hash : null,
+        }
       }
-    }
-    const newlyCached = await icons.ensure(input.iconSlug)
-    return {
-      values: {
-        name: input.name,
-        description: input.description,
-        url: input.url,
-        statusChecksEnabled,
+    } else {
+      if (await icons.ensure(selection.iconSlug))
+        created.add(selection.iconSlug)
+      values = {
         iconSource: "dashboard",
-        iconSlug: input.iconSlug,
+        iconSlug: selection.iconSlug,
         customIconUrl: null,
         iconHash: null,
-      },
-      created: newlyCached ? input.iconSlug : null,
+      }
     }
+    prepared.set(cacheKey, values)
+    return values
+  }
+
+  async function removeCreated(created: Set<string>) {
+    for (const key of created)
+      try {
+        await removeIfUnreferenced(key)
+      } catch {
+        // The original save error is the one to report.
+      }
   }
 
   return {
@@ -152,16 +198,21 @@ export function createSharedAppService(
       serialize(async () => {
         if (await repository.findByUrl(input.url))
           throw new AppUrlConflictError()
-        const { values, created } = await createValues(input)
+        const prepared = new Map<string, IconValues>()
+        const created = new Set<string>()
         try {
+          const icon = await prepareIcon(input, undefined, prepared, created)
           return await repository.create({
-            ...values,
+            name: input.name,
+            description: input.description,
+            url: input.url,
+            statusChecksEnabled: input.statusChecksEnabled ?? true,
+            ...icon,
             ownerId,
             id: createAppNanoid(),
           })
         } catch (error) {
-          if (created && (await repository.countIcon(created)) === 0)
-            await icons.remove(created)
+          await removeCreated(created)
           throw error
         }
       }),
@@ -175,9 +226,19 @@ export function createSharedAppService(
           if (matchingUrl && matchingUrl.id !== input.id)
             throw new AppUrlConflictError()
         }
-        const { values, created } = await createValuesForUpdate(input, existing)
+        const prepared = new Map<string, IconValues>()
+        const created = new Set<string>()
         let updated: SharedApp
         try {
+          const icon = await prepareIcon(input, existing, prepared, created)
+          const values: AppValues = {
+            name: input.name,
+            description: input.description,
+            url: input.url,
+            statusChecksEnabled:
+              input.statusChecksEnabled ?? existing.statusChecksEnabled,
+            ...icon,
+          }
           const valuesWithStatus: AppUpdateValues =
             existing.url === input.url &&
             existing.statusChecksEnabled === values.statusChecksEnabled
@@ -191,8 +252,7 @@ export function createSharedAppService(
                 }
           updated = await repository.update(input.id, valuesWithStatus)
         } catch (error) {
-          if (created && (await repository.countIcon(created)) === 0)
-            await icons.remove(created)
+          await removeCreated(created)
           throw error
         }
         const next = iconKeys(updated)
@@ -209,62 +269,5 @@ export function createSharedAppService(
         for (const key of iconKeys(deleted)) await removeIfUnreferenced(key)
         return deleted
       }),
-  }
-
-  async function createValuesForUpdate(
-    input: AppInput,
-    existing: SharedApp,
-  ): Promise<{ values: AppValues; created: string | null }> {
-    const statusChecksEnabled =
-      input.statusChecksEnabled ?? existing.statusChecksEnabled
-    if (input.iconSource === "url") {
-      if (
-        existing.iconSource === "url" &&
-        existing.customIconUrl === input.iconUrl &&
-        existing.iconHash
-      ) {
-        return {
-          values: {
-            name: input.name,
-            description: input.description,
-            url: input.url,
-            statusChecksEnabled,
-            iconSource: "url",
-            iconSlug: null,
-            customIconUrl: input.iconUrl,
-            iconHash: existing.iconHash,
-          },
-          created: null,
-        }
-      }
-      const { hash, created } = await icons.storeFromUrl(input.iconUrl)
-      return {
-        values: {
-          name: input.name,
-          description: input.description,
-          url: input.url,
-          statusChecksEnabled,
-          iconSource: "url",
-          iconSlug: null,
-          customIconUrl: input.iconUrl,
-          iconHash: hash,
-        },
-        created: created ? hash : null,
-      }
-    }
-    const newlyCached = await icons.ensure(input.iconSlug)
-    return {
-      values: {
-        name: input.name,
-        description: input.description,
-        url: input.url,
-        statusChecksEnabled,
-        iconSource: "dashboard",
-        iconSlug: input.iconSlug,
-        customIconUrl: null,
-        iconHash: null,
-      },
-      created: newlyCached ? input.iconSlug : null,
-    }
   }
 }
