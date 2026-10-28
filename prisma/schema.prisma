@@ -119,6 +119,10 @@ model App {
   iconSlug      String?
   customIconUrl String?
   iconHash      String?
+  darkIconSource    String?
+  darkIconSlug      String?
+  darkCustomIconUrl String?
+  darkIconHash      String?
   status        String    @default("unknown")
   statusChecksEnabled Boolean @default(true)
   lastCheckedAt DateTime?

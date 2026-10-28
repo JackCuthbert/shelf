@@ -11,6 +11,10 @@ export type SharedApp = {
   iconSlug: string | null
   customIconUrl: string | null
   iconHash: string | null
+  darkIconSource: string | null
+  darkIconSlug: string | null
+  darkCustomIconUrl: string | null
+  darkIconHash: string | null
   status: string
   statusChecksEnabled: boolean
   lastCheckedAt: Date | null

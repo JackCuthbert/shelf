@@ -78,6 +78,10 @@ type App = {
   iconSlug: string | null
   customIconUrl: string | null
   iconHash: string | null
+  darkIconSource: string | null
+  darkIconSlug: string | null
+  darkCustomIconUrl: string | null
+  darkIconHash: string | null
   status: string
   statusChecksEnabled: boolean
   lastError: string | null
