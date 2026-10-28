@@ -13,6 +13,11 @@ if (process.env.DATABASE_URL !== databaseUrl) {
 await rm(directory, { recursive: true, force: true })
 await mkdir(directory, { recursive: true })
 await cp("e2e/fixtures/icons", `${directory}/icons`, { recursive: true })
+// Cached copy for the nested catalogue variant used by e2e/theme-icons.ts.
+await cp(
+  "e2e/fixtures/icons/sonarr.png",
+  `${directory}/icons/jellyfin-dark.png`,
+)
 execFileSync("node_modules/.bin/prisma", ["migrate", "deploy"], {
   stdio: "inherit",
 })
