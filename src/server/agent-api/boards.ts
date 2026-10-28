@@ -134,6 +134,23 @@ function caller(userId: string) {
     session: { user: { id: userId } } as never,
   })
 }
+function withoutDarkIcon<
+  T extends {
+    darkIconSource: unknown
+    darkIconSlug: unknown
+    darkCustomIconUrl: unknown
+    darkIconHash: unknown
+  },
+>(app: T) {
+  const {
+    darkIconSource: _source,
+    darkIconSlug: _slug,
+    darkCustomIconUrl: _url,
+    darkIconHash: _hash,
+    ...legacy
+  } = app
+  return legacy
+}
 async function boardData(userId: string, id: string) {
   const board = await prisma.board.findFirst({
     where: { id, ownerId: userId },
@@ -160,7 +177,7 @@ async function boardData(userId: string, id: string) {
       updatedAt: x.updatedAt.toISOString(),
     })),
     apps: board.apps.map((x) => ({
-      ...x.app,
+      ...withoutDarkIcon(x.app),
       iconUrl: `/icons/${x.app.iconSource === "url" ? x.app.iconHash : x.app.iconSlug}`,
       createdAt: x.app.createdAt.toISOString(),
       updatedAt: x.app.updatedAt.toISOString(),
@@ -298,7 +315,10 @@ export function registerBoardRoutes(app: AgentApi) {
     async (c) => {
       try {
         const id = c.req.valid("param").boardId
-        await caller(c.get("apiUser").id).rename({ id, ...c.req.valid("json") })
+        await caller(c.get("apiUser").id).rename({
+          id,
+          ...c.req.valid("json"),
+        })
         return c.json(await boardData(c.get("apiUser").id, id), 200)
       } catch (e) {
         return fail(c, e)
@@ -506,7 +526,9 @@ export function registerBoardRoutes(app: AgentApi) {
     async (c) => {
       const id = c.req.valid("param").boardId
       const userId = c.get("apiUser").id
-      const b = await prisma.board.findFirst({ where: { id, ownerId: userId } })
+      const b = await prisma.board.findFirst({
+        where: { id, ownerId: userId },
+      })
       if (!b) return apiError(404, "NOT_FOUND", "Board not found.")
       const body = c.req.valid("json")
       const cats = await prisma.boardCategory.findMany({
@@ -705,7 +727,9 @@ export function registerBoardRoutes(app: AgentApi) {
     async (c) => {
       const id = c.req.valid("param").boardId
       const userId = c.get("apiUser").id
-      const b = await prisma.board.findFirst({ where: { id, ownerId: userId } })
+      const b = await prisma.board.findFirst({
+        where: { id, ownerId: userId },
+      })
       if (!b) return apiError(404, "NOT_FOUND", "Board not found.")
       const body = c.req.valid("json")
       const [assignments, cats] = await Promise.all([

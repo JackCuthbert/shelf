@@ -19,6 +19,10 @@ function setup() {
       const app = {
         ...input,
         id: String(++nextId),
+        darkIconSource: null,
+        darkIconSlug: null,
+        darkCustomIconUrl: null,
+        darkIconHash: null,
         status: "unknown",
         lastCheckedAt: null,
         lastError: null,

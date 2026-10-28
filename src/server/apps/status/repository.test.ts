@@ -21,7 +21,7 @@ describe("app status repository", () => {
     await db.$executeRawUnsafe(`CREATE TABLE app (
       id TEXT PRIMARY KEY, ownerId TEXT NOT NULL, name TEXT NOT NULL, description TEXT NOT NULL DEFAULT '',
       url TEXT NOT NULL, iconSource TEXT NOT NULL DEFAULT 'dashboard', iconSlug TEXT, customIconUrl TEXT,
-      iconHash TEXT, status TEXT NOT NULL DEFAULT 'unknown', statusChecksEnabled BOOLEAN NOT NULL DEFAULT true,
+      iconHash TEXT, darkIconSource TEXT, darkIconSlug TEXT, darkCustomIconUrl TEXT, darkIconHash TEXT, status TEXT NOT NULL DEFAULT 'unknown', statusChecksEnabled BOOLEAN NOT NULL DEFAULT true,
       lastCheckedAt DATETIME, lastError TEXT,
       probeRequestedAt DATETIME, createdAt DATETIME NOT NULL, updatedAt DATETIME NOT NULL
     )`)
