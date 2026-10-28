@@ -31,7 +31,19 @@ function httpUrlSchema(schemeMessage: string) {
 const appUrlSchema = httpUrlSchema("App URLs must use HTTP or HTTPS.")
 const imageUrlSchema = httpUrlSchema("Image URLs must use HTTP or HTTPS.")
 
+const darkIconSchema = z.discriminatedUnion("iconSource", [
+  z.object({
+    iconSource: z.literal("dashboard"),
+    iconSlug: iconSlugSchema,
+  }),
+  z.object({
+    iconSource: z.literal("url"),
+    iconUrl: imageUrlSchema,
+  }),
+])
+
 const baseAppFields = {
+  darkIcon: darkIconSchema.optional(),
   name: z.string().trim().min(1, "Enter an app name.").max(120),
   description: z
     .string()

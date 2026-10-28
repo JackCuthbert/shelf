@@ -1,4 +1,8 @@
+import { mkdtemp, readdir, rm } from "node:fs/promises"
+import { tmpdir } from "node:os"
+import { join } from "node:path"
 import { describe, expect, it, vi } from "vitest"
+import { createIconCache } from "@/lib/icon-cache"
 import {
   AppForbiddenError,
   AppUrlConflictError,
@@ -19,10 +23,6 @@ function setup() {
       const app = {
         ...input,
         id: String(++nextId),
-        darkIconSource: null,
-        darkIconSlug: null,
-        darkCustomIconUrl: null,
-        darkIconHash: null,
         status: "unknown",
         lastCheckedAt: null,
         lastError: null,
@@ -574,5 +574,262 @@ describe("shared app service", () => {
     )
     expect(cache.ensure).not.toHaveBeenCalled()
     expect(cache.storeFromUrl).not.toHaveBeenCalled()
+  })
+
+  describe("dark icon", () => {
+    const darkUrl = "https://images.home/dark.png"
+    const darkUrlIcon = { iconSource: "url" as const, iconUrl: darkUrl }
+
+    it("stores null dark fields when darkIcon is omitted on create", async () => {
+      const { service } = setup()
+      const app = await service.create(dashboardInput)
+      expect(app).toMatchObject({
+        darkIconSource: null,
+        darkIconSlug: null,
+        darkCustomIconUrl: null,
+        darkIconHash: null,
+      })
+    })
+
+    it("stores a mixed dashboard light and URL dark selection", async () => {
+      const { service, cache } = setup()
+      cache.storeFromUrl.mockResolvedValueOnce({
+        hash: "hash-d",
+        created: true,
+      })
+      const app = await service.create({
+        ...dashboardInput,
+        darkIcon: darkUrlIcon,
+      })
+      expect(app).toMatchObject({
+        iconSource: "dashboard",
+        iconSlug: "plex",
+        darkIconSource: "url",
+        darkIconSlug: null,
+        darkCustomIconUrl: darkUrl,
+        darkIconHash: "hash-d",
+      })
+    })
+
+    it("stores a dashboard dark icon and nulls inactive fields", async () => {
+      const { service } = setup()
+      const app = await service.create({
+        ...urlInput,
+        darkIcon: { iconSource: "dashboard", iconSlug: "plex-dark" },
+      })
+      expect(app).toMatchObject({
+        darkIconSource: "dashboard",
+        darkIconSlug: "plex-dark",
+        darkCustomIconUrl: null,
+        darkIconHash: null,
+      })
+    })
+
+    it("prepares identical selections once", async () => {
+      const { service, cache } = setup()
+      await service.create({
+        ...dashboardInput,
+        darkIcon: { iconSource: "dashboard", iconSlug: "plex" },
+      })
+      expect(cache.ensure).toHaveBeenCalledTimes(1)
+      await service.create({
+        ...urlInput,
+        url: "https://two.home",
+        darkIcon: { iconSource: "url", iconUrl: urlInput.iconUrl },
+      })
+      expect(cache.storeFromUrl).toHaveBeenCalledTimes(1)
+    })
+
+    it("preserves saved dark fields when update omits darkIcon", async () => {
+      const { service, cache } = setup()
+      const app = await service.create({
+        ...dashboardInput,
+        darkIcon: { iconSource: "dashboard", iconSlug: "plex-dark" },
+      })
+      cache.ensure.mockClear()
+      const updated = await service.update({
+        ...dashboardInput,
+        id: app.id,
+        iconSlug: "radarr",
+      })
+      expect(updated.darkIconSlug).toBe("plex-dark")
+      expect(updated.darkIconSource).toBe("dashboard")
+      expect(cache.remove).toHaveBeenCalledWith("plex")
+      expect(cache.remove).not.toHaveBeenCalledWith("plex-dark")
+    })
+
+    it("removes a replaced dark key only after its last reference", async () => {
+      const { service, cache } = setup()
+      const first = await service.create({
+        ...dashboardInput,
+        darkIcon: { iconSource: "dashboard", iconSlug: "shared" },
+      })
+      await service.create({
+        ...dashboardInput,
+        url: "https://two.home",
+        iconSlug: "shared",
+      })
+      await service.update({
+        ...dashboardInput,
+        id: first.id,
+        darkIcon: { iconSource: "dashboard", iconSlug: "other" },
+      })
+      expect(cache.remove).not.toHaveBeenCalledWith("shared")
+      const second = (await service.list())[1]
+      await service.update({
+        ...dashboardInput,
+        id: second.id,
+        url: "https://two.home",
+        iconSlug: "plex",
+      })
+      expect(cache.remove).toHaveBeenCalledWith("shared")
+    })
+
+    it("reuses unchanged saved URLs and swaps them between slots without fetching", async () => {
+      const { service, cache } = setup()
+      cache.storeFromUrl
+        .mockResolvedValueOnce({ hash: "hash-l", created: true })
+        .mockResolvedValueOnce({ hash: "hash-d", created: true })
+      const app = await service.create({ ...urlInput, darkIcon: darkUrlIcon })
+      cache.storeFromUrl.mockClear()
+      const swapped = await service.update({
+        ...urlInput,
+        id: app.id,
+        iconUrl: darkUrl,
+        darkIcon: { iconSource: "url", iconUrl: urlInput.iconUrl },
+      })
+      expect(cache.storeFromUrl).not.toHaveBeenCalled()
+      expect(swapped).toMatchObject({
+        iconHash: "hash-d",
+        darkIconHash: "hash-l",
+      })
+      expect(cache.remove).not.toHaveBeenCalled()
+    })
+
+    it("does not mutate or leak files when the second image fails", async () => {
+      const { service, repository, cache } = setup()
+      cache.ensure.mockResolvedValueOnce(true)
+      cache.storeFromUrl.mockRejectedValueOnce(new Error("dark offline"))
+      await expect(
+        service.create({ ...dashboardInput, darkIcon: darkUrlIcon }),
+      ).rejects.toThrow("dark offline")
+      expect(await repository.list()).toEqual([])
+      expect(cache.remove).toHaveBeenCalledWith("plex")
+
+      const app = await service.create(dashboardInput)
+      cache.remove.mockClear()
+      cache.ensure.mockResolvedValueOnce(true)
+      cache.storeFromUrl.mockRejectedValueOnce(new Error("dark offline"))
+      await expect(
+        service.update({
+          ...dashboardInput,
+          id: app.id,
+          iconSlug: "radarr",
+          darkIcon: darkUrlIcon,
+        }),
+      ).rejects.toThrow("dark offline")
+      expect(await repository.find(app.id)).toMatchObject({
+        iconSlug: "plex",
+        darkIconSource: null,
+      })
+      expect(cache.remove).toHaveBeenCalledTimes(1)
+      expect(cache.remove).toHaveBeenCalledWith("radarr")
+    })
+
+    it("removes both new keys when the database write fails", async () => {
+      const { service, repository, cache } = setup()
+      cache.ensure.mockResolvedValueOnce(true)
+      cache.storeFromUrl.mockResolvedValueOnce({
+        hash: "hash-d",
+        created: true,
+      })
+      vi.spyOn(repository, "create").mockRejectedValueOnce(new Error("db down"))
+      await expect(
+        service.create({ ...dashboardInput, darkIcon: darkUrlIcon }),
+      ).rejects.toThrow("db down")
+      expect(cache.remove).toHaveBeenCalledWith("plex")
+      expect(cache.remove).toHaveBeenCalledWith("hash-d")
+    })
+
+    describe("with the real icon cache", () => {
+      const png = Buffer.concat([
+        Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]),
+        Buffer.from("same bytes"),
+      ])
+
+      async function realSetup(fetchUrl: (url: string) => Promise<Buffer>) {
+        const directory = await mkdtemp(join(tmpdir(), "shelf-icons-"))
+        const { repository } = setup()
+        const service = createSharedAppService(
+          repository,
+          createIconCache(directory, async () => png, fetchUrl),
+        )
+        return { directory, service, repository }
+      }
+
+      it("fetches an identical new URL once for both slots", async () => {
+        const fetchUrl = vi
+          .fn<(url: string) => Promise<Buffer>>()
+          .mockResolvedValueOnce(png)
+          .mockRejectedValue(new Error("second fetch"))
+        const { directory, service } = await realSetup(fetchUrl)
+        try {
+          const app = await service.create(
+            {
+              ...urlInput,
+              darkIcon: { iconSource: "url", iconUrl: urlInput.iconUrl },
+            },
+            "user-1",
+          )
+          expect(fetchUrl).toHaveBeenCalledTimes(1)
+          expect(app.iconHash).toBe(app.darkIconHash)
+          expect(await readdir(directory)).toEqual([`${app.iconHash}.png`])
+        } finally {
+          await rm(directory, { recursive: true, force: true })
+        }
+      })
+
+      it("keeps one valid file for different URLs with identical bytes", async () => {
+        const { directory, service } = await realSetup(async () => png)
+        try {
+          const app = await service.create(
+            { ...urlInput, darkIcon: darkUrlIcon },
+            "user-1",
+          )
+          expect(app.iconHash).toBe(app.darkIconHash)
+          expect(await readdir(directory)).toEqual([`${app.iconHash}.png`])
+          const updated = await service.update(
+            {
+              ...urlInput,
+              id: app.id,
+              iconUrl: "https://images.home/third.png",
+              darkIcon: darkUrlIcon,
+            },
+            "user-1",
+          )
+          expect(updated.iconHash).toBe(app.iconHash)
+          expect(await readdir(directory)).toEqual([`${app.iconHash}.png`])
+        } finally {
+          await rm(directory, { recursive: true, force: true })
+        }
+      })
+
+      it("leaves no new file when the second image fails", async () => {
+        const fetchUrl = vi
+          .fn<(url: string) => Promise<Buffer>>()
+          .mockResolvedValueOnce(png)
+          .mockRejectedValueOnce(new Error("dark offline"))
+        const { directory, service, repository } = await realSetup(fetchUrl)
+        try {
+          await expect(
+            service.create({ ...urlInput, darkIcon: darkUrlIcon }, "user-1"),
+          ).rejects.toThrow("dark offline")
+          expect(await repository.list()).toEqual([])
+          expect(await readdir(directory)).toEqual([])
+        } finally {
+          await rm(directory, { recursive: true, force: true })
+        }
+      })
+    })
   })
 })
