@@ -500,7 +500,7 @@ describe("BoardSearch", () => {
       />,
     )
     expect(html).toContain(
-      '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/plex-dark"/><img src="/icons/plex" alt="" class="h-full w-full object-contain"/></picture>',
+      '<picture class="contents"><source media="(prefers-color-scheme: dark)" srcSet="/icons/plex-dark" class="hidden"/><img src="/icons/plex" alt="" class="h-full w-full object-contain"/></picture>',
     )
   })
 
