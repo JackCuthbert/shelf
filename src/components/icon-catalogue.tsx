@@ -1,17 +1,32 @@
 "use client"
 
-import { useEffect, useMemo, useState } from "react"
+import { useEffect, useId, useMemo, useState } from "react"
 import { Button } from "@base-ui/react/button"
 import { Input } from "@base-ui/react/input"
 import { LuRotateCw } from "react-icons/lu"
 
-export type CatalogueEntry = { base: string; aliases?: string[] }
+export type CatalogueEntry = {
+  base: string
+  aliases?: string[]
+  colors?: { dark?: string; light?: string }
+}
 export type Catalogue = Record<string, CatalogueEntry>
 
 export const ICON_METADATA_URL =
   "https://raw.githubusercontent.com/homarr-labs/dashboard-icons/main/metadata.json"
 export const ICON_CDN =
   "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons"
+
+/** Lists the base slug and every `colors` slug as its own selectable entry. */
+export function flattenCatalogue(raw: Catalogue): Catalogue {
+  const flat: Catalogue = {}
+  for (const [slug, { colors, ...entry }] of Object.entries(raw)) {
+    flat[slug] = entry
+    for (const variant of Object.values(colors ?? {}))
+      if (!(variant in raw)) flat[variant] ??= entry
+  }
+  return flat
+}
 
 export function iconCatalogueRequestKey(
   active: boolean,
@@ -36,7 +51,7 @@ export function useIconCatalogue(active: boolean) {
         if (!response.ok) throw new Error("Could not load the icon catalogue.")
         return response.json() as Promise<Catalogue>
       })
-      .then(setCatalogue)
+      .then((raw) => setCatalogue(flattenCatalogue(raw)))
       .catch((cause: unknown) => {
         if (!controller.signal.aborted)
           setError(
@@ -92,6 +107,7 @@ export function IconCatalogueSearch({
   embedded?: boolean
 }) {
   const [query, setQuery] = useState("")
+  const searchId = useId()
   const results = useMemo(
     () => (catalogue ? filterIcons(catalogue, query) : []),
     [catalogue, query],
@@ -99,11 +115,11 @@ export function IconCatalogueSearch({
 
   return (
     <div className={embedded ? "bg-background px-3 pb-3" : "panel mt-3 p-3"}>
-      <label className="text-xs text-muted" htmlFor="icon-search">
+      <label className="text-xs text-muted" htmlFor={searchId}>
         Search Dashboard Icons
       </label>
       <Input
-        id="icon-search"
+        id={searchId}
         type="search"
         value={query}
         onChange={(event) => setQuery(event.target.value)}

@@ -12,7 +12,12 @@ import { Tabs } from "@base-ui/react/tabs"
 import { LuCheck, LuChevronDown, LuLoader, LuX } from "react-icons/lu"
 import { CategorySelect } from "@/components/category-select"
 import { NoAvailableAppsPlaceholder } from "@/components/available-apps-empty-state"
-import { IconPicker } from "@/components/icon-picker"
+import {
+  IconPicker,
+  type IconSelection,
+  type IconSlot,
+  type SavedIcon,
+} from "@/components/icon-picker"
 import { ModalContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 import { iconKey } from "@/lib/app-icon"
@@ -39,6 +44,9 @@ export type Draft = {
   iconSource: "dashboard" | "url"
   iconSlug: string
   iconUrl: string
+  darkIconSource: "dashboard" | "url"
+  darkIconSlug: string
+  darkIconUrl: string
   statusChecksEnabled: boolean
 }
 const emptyDraft: Draft = {
@@ -48,33 +56,119 @@ const emptyDraft: Draft = {
   iconSource: "dashboard",
   iconSlug: "",
   iconUrl: "",
+  darkIconSource: "dashboard",
+  darkIconSlug: "",
+  darkIconUrl: "",
   statusChecksEnabled: true,
 }
 
+export function draftIcon(draft: Draft, slot: IconSlot): IconSelection {
+  return slot === "light"
+    ? { source: draft.iconSource, slug: draft.iconSlug, url: draft.iconUrl }
+    : {
+        source: draft.darkIconSource,
+        slug: draft.darkIconSlug,
+        url: draft.darkIconUrl,
+      }
+}
+
+export function withDraftIcon(
+  draft: Draft,
+  slot: IconSlot,
+  icon: IconSelection,
+): Draft {
+  return slot === "light"
+    ? {
+        ...draft,
+        iconSource: icon.source,
+        iconSlug: icon.slug,
+        iconUrl: icon.url,
+      }
+    : {
+        ...draft,
+        darkIconSource: icon.source,
+        darkIconSlug: icon.slug,
+        darkIconUrl: icon.url,
+      }
+}
+
+function iconPayload(icon: IconSelection) {
+  return icon.source === "url"
+    ? { iconSource: "url" as const, iconUrl: icon.url }
+    : { iconSource: "dashboard" as const, iconSlug: icon.slug }
+}
+
+function iconError(icon: IconSelection, slot: IconSlot) {
+  const label = slot === "light" ? "light" : "dark"
+  if (icon.source === "dashboard" && !icon.slug)
+    return `Choose a ${label} mode icon before saving.`
+  if (icon.source === "url" && !icon.url.trim())
+    return `Enter a ${label} mode image URL before saving.`
+  return ""
+}
+
+function savedIcons(app: AppRecord | null | undefined) {
+  if (!app) return {}
+  const draft = draftFromApp(app)
+  const key = (mode: IconSlot) =>
+    iconKey(
+      {
+        iconSource: app.iconSource,
+        iconSlug: app.iconSlug,
+        iconHash: app.iconHash,
+        darkIconSource: app.darkIconSource,
+        darkIconSlug: app.darkIconSlug,
+        darkIconHash: app.darkIconHash,
+      },
+      mode,
+    )
+  return {
+    light: { selection: draftIcon(draft, "light"), key: key("light") },
+    dark: { selection: draftIcon(draft, "dark"), key: key("dark") },
+  } satisfies Record<IconSlot, SavedIcon>
+}
+
 export function appDraftPayload(draft: Draft) {
-  const base = {
+  return {
     name: draft.name,
     description: draft.description,
     url: draft.url,
     statusChecksEnabled: draft.statusChecksEnabled,
+    ...iconPayload(draftIcon(draft, "light")),
+    darkIcon: iconPayload(draftIcon(draft, "dark")),
   }
-  return draft.iconSource === "url"
-    ? { ...base, iconSource: "url" as const, iconUrl: draft.iconUrl }
-    : { ...base, iconSource: "dashboard" as const, iconSlug: draft.iconSlug }
 }
 
 export function draftFromApp(app: AppRecord | null | undefined): Draft {
-  return app
+  if (!app) return emptyDraft
+  const light = {
+    iconSource:
+      app.iconSource === "url" ? ("url" as const) : ("dashboard" as const),
+    iconSlug: app.iconSlug ?? "",
+    iconUrl: app.customIconUrl ?? "",
+  }
+  const dark = app.darkIconSource
     ? {
-        name: app.name,
-        description: app.description ?? "",
-        url: app.url,
-        iconSource: app.iconSource === "url" ? "url" : "dashboard",
-        iconSlug: app.iconSlug ?? "",
-        iconUrl: app.customIconUrl ?? "",
-        statusChecksEnabled: app.statusChecksEnabled,
+        darkIconSource:
+          app.darkIconSource === "url"
+            ? ("url" as const)
+            : ("dashboard" as const),
+        darkIconSlug: app.darkIconSlug ?? "",
+        darkIconUrl: app.darkCustomIconUrl ?? "",
       }
-    : emptyDraft
+    : {
+        darkIconSource: light.iconSource,
+        darkIconSlug: light.iconSlug,
+        darkIconUrl: light.iconUrl,
+      }
+  return {
+    name: app.name,
+    description: app.description ?? "",
+    url: app.url,
+    ...light,
+    ...dark,
+    statusChecksEnabled: app.statusChecksEnabled,
+  }
 }
 
 function BoardAssignmentCheckbox({
@@ -167,6 +261,7 @@ export function AppFormDialog({
   onAssignExisting?: (appId: string, categoryId: string | null) => Promise<void>
 }) {
   const [draft, setDraft] = useState<Draft>(emptyDraft)
+  const [iconSlot, setIconSlot] = useState<IconSlot>("light")
   const [createdAppId, setCreatedAppId] = useState<string | null>(null)
   const [boardId, setBoardId] = useState(initialBoardId)
   const [categoryId, setCategoryId] = useState("")
@@ -227,6 +322,7 @@ export function AppFormDialog({
   useEffect(() => {
     if (!open) return
     setDraft(draftFromApp(app))
+    setIconSlot("light")
     setError("")
     setAssignmentError("")
     setCreatedAppId(null)
@@ -275,13 +371,13 @@ export function AppFormDialog({
       void assignCreatedApp(createdAppId)
       return
     }
-    if (draft.iconSource === "dashboard" && !draft.iconSlug) {
-      setError("Choose an icon before saving.")
-      return
-    }
-    if (draft.iconSource === "url" && !draft.iconUrl.trim()) {
-      setError("Enter an image URL before saving.")
-      return
+    for (const slot of ["light", "dark"] as const) {
+      const problem = iconError(draftIcon(draft, slot), slot)
+      if (problem) {
+        setIconSlot(slot)
+        setError(problem)
+        return
+      }
     }
     if (app) update.mutate({ id: app.id, ...payload() })
     else create.mutate(payload())
@@ -518,21 +614,15 @@ export function AppFormDialog({
                 </p>
               </Field.Root>
               <IconPicker
-                value={{
-                  source: draft.iconSource,
-                  slug: draft.iconSlug,
-                  url: draft.iconUrl,
+                values={{
+                  light: draftIcon(draft, "light"),
+                  dark: draftIcon(draft, "dark"),
                 }}
-                cachedSlug={
-                  app?.iconSource === "dashboard" ? app.iconSlug : undefined
-                }
-                onChange={(icon) =>
-                  setDraft({
-                    ...draft,
-                    iconSource: icon.source,
-                    iconSlug: icon.slug,
-                    iconUrl: icon.url,
-                  })
+                saved={savedIcons(app)}
+                slot={iconSlot}
+                onSlotChange={setIconSlot}
+                onChange={(slot, icon) =>
+                  setDraft((current) => withDraftIcon(current, slot, icon))
                 }
               />
               <div className="mt-4">

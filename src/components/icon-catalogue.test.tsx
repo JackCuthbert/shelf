@@ -2,6 +2,7 @@ import { renderToStaticMarkup } from "react-dom/server"
 import { describe, expect, it } from "vitest"
 import {
   filterIcons,
+  flattenCatalogue,
   IconCatalogueSearch,
   iconCatalogueRequestKey,
   iconPreviewUrl,
@@ -12,6 +13,49 @@ const catalogue: Catalogue = {
   plex: { base: "png", aliases: ["plex-media-server"] },
   jellyfin: { base: "svg" },
 }
+
+const published: Catalogue = {
+  github: {
+    base: "svg",
+    aliases: ["git-hub"],
+    colors: { dark: "github", light: "github-light" },
+  },
+  plex: { base: "png", colors: { light: "plex-light" } },
+  "plex-light": { base: "png" },
+  jellyfin: { base: "svg" },
+}
+
+describe("flattenCatalogue", () => {
+  it("lists nested colour slugs as selectable entries inheriting base and aliases", () => {
+    const flat = flattenCatalogue(published)
+    expect(Object.keys(flat)).toEqual([
+      "github",
+      "github-light",
+      "plex",
+      "plex-light",
+      "jellyfin",
+    ])
+    expect(flat["github-light"]).toEqual({ base: "svg", aliases: ["git-hub"] })
+    expect(flat.github).not.toHaveProperty("colors")
+    expect(iconPreviewUrl(flat["github-light"], "github-light")).toBe(
+      "https://cdn.jsdelivr.net/gh/homarr-labs/dashboard-icons/svg/github-light.svg",
+    )
+  })
+
+  it("keeps an explicit top-level entry over a repeated colour slug", () => {
+    expect(flattenCatalogue(published)["plex-light"]).toEqual({ base: "png" })
+  })
+
+  it("finds variants by the parent alias", () => {
+    expect(
+      filterIcons(flattenCatalogue(published), "git-hub").map(([s]) => s),
+    ).toEqual(["github", "github-light"])
+  })
+
+  it("leaves ordinary entries unchanged", () => {
+    expect(flattenCatalogue(catalogue)).toEqual(catalogue)
+  })
+})
 
 describe("icon catalogue helpers", () => {
   it("filters by slug and alias", () => {
