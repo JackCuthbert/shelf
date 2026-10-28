@@ -25,6 +25,10 @@ const savedApp = {
   iconSlug: "plex",
   customIconUrl: null,
   iconHash: null,
+  darkIconSource: "dashboard",
+  darkIconSlug: "plex-dark",
+  darkCustomIconUrl: null,
+  darkIconHash: null,
   status: "unknown",
   statusChecksEnabled: true,
   lastCheckedAt: null,
@@ -57,6 +61,11 @@ describe("shared app API", () => {
         "iconSlug",
         "iconSource",
         "iconUrl",
+        "darkIconSource",
+        "darkIconSlug",
+        "darkCustomIconUrl",
+        "darkIconHash",
+        "darkIconUrl",
         "id",
         "lastCheckedAt",
         "lastError",
@@ -68,7 +77,41 @@ describe("shared app API", () => {
         "url",
       ].sort(),
     )
+    expect(dto).toMatchObject({
+      iconUrl: "/icons/plex",
+      darkIconSource: "dashboard",
+      darkIconSlug: "plex-dark",
+      darkIconUrl: "/icons/plex-dark",
+    })
     expect((await app.request("/api/v1/apps/app-1")).status).toBe(200)
+  })
+  it("falls back to the light icon for a legacy app and resolves a url dark icon", async () => {
+    const legacy = {
+      ...savedApp,
+      darkIconSource: null,
+      darkIconSlug: null,
+      darkIconHash: null,
+    }
+    const mixed = {
+      ...savedApp,
+      darkIconSource: "url",
+      darkIconSlug: null,
+      darkCustomIconUrl: "https://i.home/d.png",
+      darkIconHash: "darkhash",
+    }
+    service.list.mockResolvedValue([legacy, mixed])
+    const list = await (await setup().request("/api/v1/apps")).json()
+    expect(list[0]).toMatchObject({
+      darkIconSource: null,
+      darkIconUrl: "/icons/plex",
+    })
+    expect(list[1]).toMatchObject({
+      iconUrl: "/icons/plex",
+      darkIconSource: "url",
+      darkCustomIconUrl: "https://i.home/d.png",
+      darkIconHash: "darkhash",
+      darkIconUrl: "/icons/darkhash",
+    })
   })
   it("creates and replaces apps as the key owner", async () => {
     service.create.mockResolvedValue(savedApp)
@@ -87,6 +130,11 @@ describe("shared app API", () => {
       body: JSON.stringify(body),
     })
     expect(created.status).toBe(201)
+    expect(await created.json()).toMatchObject({
+      darkIconSource: "dashboard",
+      darkIconSlug: "plex-dark",
+      darkIconUrl: "/icons/plex-dark",
+    })
     expect(service.create).toHaveBeenCalledWith(
       expect.objectContaining({ description: "" }),
       "another-user",
@@ -97,6 +145,11 @@ describe("shared app API", () => {
       body: JSON.stringify(body),
     })
     expect(updated.status).toBe(200)
+    expect(await updated.json()).toMatchObject({
+      darkIconSource: "dashboard",
+      darkIconSlug: "plex-dark",
+      darkIconUrl: "/icons/plex-dark",
+    })
     expect(service.update).toHaveBeenCalledWith(
       expect.objectContaining({ id: "app-1", description: "" }),
       "another-user",

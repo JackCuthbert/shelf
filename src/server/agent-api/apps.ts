@@ -1,5 +1,6 @@
 import { createRoute, z } from "@hono/zod-openapi"
 import { appInputSchema } from "@/lib/app-validation"
+import { iconKey } from "@/lib/app-icon"
 import { IconDownloadError } from "@/lib/icon-cache"
 import { sharedAppService } from "@/server/apps/shared"
 import {
@@ -21,12 +22,28 @@ const appExample = {
   customIconUrl: null,
   iconHash: null,
   iconUrl: "/icons/plex",
+  darkIconSource: "dashboard",
+  darkIconSlug: "plex-dark",
+  darkCustomIconUrl: null,
+  darkIconHash: null,
+  darkIconUrl: "/icons/plex-dark",
   status: "unknown",
   statusChecksEnabled: true,
   lastCheckedAt: null,
   lastError: null,
   createdAt: "2026-09-26T12:00:00.000Z",
   updatedAt: "2026-09-26T12:00:00.000Z",
+}
+const legacyAppExample = {
+  ...appExample,
+  id: "app_456",
+  name: "Grafana",
+  url: "https://grafana.home",
+  iconSlug: "grafana",
+  iconUrl: "/icons/grafana",
+  darkIconSource: null,
+  darkIconSlug: null,
+  darkIconUrl: "/icons/grafana",
 }
 const AppSchema = z
   .object({
@@ -40,6 +57,11 @@ const AppSchema = z
     customIconUrl: z.string().nullable(),
     iconHash: z.string().nullable(),
     iconUrl: z.string(),
+    darkIconSource: z.enum(["dashboard", "url"]).nullable(),
+    darkIconSlug: z.string().nullable(),
+    darkCustomIconUrl: z.string().nullable(),
+    darkIconHash: z.string().nullable(),
+    darkIconUrl: z.string(),
     status: z.string(),
     statusChecksEnabled: z.boolean(),
     lastCheckedAt: z.string().nullable(),
@@ -49,7 +71,7 @@ const AppSchema = z
   })
   .openapi("App", { example: appExample })
 const AppInputSchema = appInputSchema.and(z.object({ description: z.string() }))
-const appDto = (
+export const appDto = (
   a: NonNullable<Awaited<ReturnType<typeof sharedAppService.get>>>,
 ) => ({
   id: a.id,
@@ -61,10 +83,15 @@ const appDto = (
   iconSlug: a.iconSlug,
   customIconUrl: a.customIconUrl,
   iconHash: a.iconHash,
+  darkIconSource: a.darkIconSource,
+  darkIconSlug: a.darkIconSlug,
+  darkCustomIconUrl: a.darkCustomIconUrl,
+  darkIconHash: a.darkIconHash,
   status: a.status,
   statusChecksEnabled: a.statusChecksEnabled,
   lastError: a.lastError,
-  iconUrl: `/icons/${a.iconSource === "url" ? a.iconHash : a.iconSlug}`,
+  iconUrl: `/icons/${iconKey(a)}`,
+  darkIconUrl: `/icons/${iconKey(a, "dark")}`,
   lastCheckedAt: a.lastCheckedAt?.toISOString() ?? null,
   createdAt: a.createdAt.toISOString(),
   updatedAt: a.updatedAt.toISOString(),
@@ -121,7 +148,9 @@ export function registerAppRoutes(app: AgentApi) {
           description: "Shared apps",
           content: {
             "application/json": {
-              schema: z.array(AppSchema).openapi({ example: [appExample] }),
+              schema: z
+                .array(AppSchema)
+                .openapi({ example: [appExample, legacyAppExample] }),
             },
           },
         },
