@@ -219,6 +219,8 @@ function BoardTile({
                       className="z-50"
                     >
                       <Popover.Popup
+                        initialFocus={false}
+                        finalFocus={false}
                         className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
                         aria-label={`${app.name} description`}
                       >
@@ -466,21 +468,6 @@ export function BoardSearch({
               initialDefaultBoardId={defaultBoardId}
             />
           </div>
-          <div className="order-3 col-span-2 sm:order-2 sm:col-span-1">
-            <label htmlFor="board-search" className="sr-only">
-              Search apps
-            </label>
-            <Input
-              autoFocus
-              id="board-search"
-              type="search"
-              value={query}
-              onChange={(event) => setQuery(event.target.value)}
-              placeholder="Search apps…"
-              aria-controls="board-app-results"
-              className="field"
-            />
-          </div>
           <div className="order-2 flex min-w-0 items-center gap-2 justify-self-end sm:order-3">
             {user && (
               <CreateAppMenubarAction
@@ -523,6 +510,21 @@ export function BoardSearch({
               />
             )}
             <UserMenu user={user} />
+          </div>
+          <div className="order-3 col-span-2 sm:order-2 sm:col-span-1">
+            <label htmlFor="board-search" className="sr-only">
+              Search apps
+            </label>
+            <Input
+              autoFocus
+              id="board-search"
+              type="search"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search apps…"
+              aria-controls="board-app-results"
+              className="field"
+            />
           </div>
         </div>
       </header>
