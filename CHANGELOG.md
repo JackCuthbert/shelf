@@ -1,5 +1,13 @@
 # Changelog
 
+## [0.3.1](https://github.com/JackCuthbert/shelf/compare/v0.3.0...v0.3.1) (2026-10-28)
+
+
+### Bug Fixes
+
+* **apps:** stop apps with a dark icon rendering indented in flex rows ([6b543b8](https://github.com/JackCuthbert/shelf/commit/6b543b8dc2c805e021df9d2d1a98db67ff927414))
+* **board:** tab from search goes straight to the first app ([949d2b8](https://github.com/JackCuthbert/shelf/commit/949d2b8daa34c66be0bf9cba4c2802936058a1ef))
+
 ## [0.3.0](https://github.com/JackCuthbert/shelf/compare/v0.2.7...v0.3.0) (2026-10-28)
 
 
