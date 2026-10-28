@@ -14,7 +14,14 @@ export const sharedAppService = Object.assign(
       delete: (id) => prisma.app.delete({ where: { id } }),
       countIcon: (key) =>
         prisma.app.count({
-          where: { OR: [{ iconSlug: key }, { iconHash: key }] },
+          where: {
+            OR: [
+              { iconSlug: key },
+              { iconHash: key },
+              { darkIconSlug: key },
+              { darkIconHash: key },
+            ],
+          },
         }),
     },
     iconCache,

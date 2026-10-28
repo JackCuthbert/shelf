@@ -44,14 +44,19 @@ function setup() {
       return app
     },
     countIcon: async (key) =>
-      [...records.values()].filter(
-        (app) => app.iconSlug === key || app.iconHash === key,
+      [...records.values()].filter((app) =>
+        [
+          app.iconSlug,
+          app.iconHash,
+          app.darkIconSlug,
+          app.darkIconHash,
+        ].includes(key),
       ).length,
   }
   const cache = {
     ensure: vi.fn(async () => true),
     storeFromUrl: vi.fn(async () => ({ hash: "hash-a", created: true })),
-    remove: vi.fn(async () => {}),
+    remove: vi.fn(async (_key: string) => {}),
   }
   const rawService = createSharedAppService(repository, cache)
   return {
@@ -391,5 +396,82 @@ describe("shared app service", () => {
     expect(updated.lastCheckedAt).toBeNull()
     expect(updated.lastError).toBeNull()
     expect(updated.probeRequestedAt).toBeNull()
+  })
+
+  it("keeps a key shared by the light and dark slots of another app after a light edit", async () => {
+    const { rawService, records, cache } = setup()
+    const first = await rawService.create(dashboardInput, "user-1")
+    const other = await rawService.create(
+      { ...dashboardInput, url: "https://other.home", iconSlug: "sonarr" },
+      "user-1",
+    )
+    records.set(other.id, { ...other, darkIconSlug: "plex" })
+    await rawService.update(
+      { ...dashboardInput, id: first.id, iconSlug: "radarr" },
+      "user-1",
+    )
+    expect(cache.remove).not.toHaveBeenCalled()
+  })
+
+  it("preserves dark fields on a light edit and removes the old light key", async () => {
+    const { rawService, records, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    records.set(app.id, { ...app, darkIconSlug: "plex-dark" })
+    const updated = await rawService.update(
+      { ...dashboardInput, id: app.id, iconSlug: "radarr" },
+      "user-1",
+    )
+    expect(updated.darkIconSlug).toBe("plex-dark")
+    expect(cache.remove).toHaveBeenCalledTimes(1)
+    expect(cache.remove).toHaveBeenCalledWith("plex")
+  })
+
+  it("keeps a key that moved between slots of the same app", async () => {
+    const { rawService, records, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    records.set(app.id, { ...app, darkIconSlug: "radarr" })
+    await rawService.update(
+      { ...dashboardInput, id: app.id, iconSlug: "radarr" },
+      "user-1",
+    )
+    expect(cache.remove).toHaveBeenCalledTimes(1)
+    expect(cache.remove).toHaveBeenCalledWith("plex")
+  })
+
+  it("removes distinct light and dark keys, and a repeated key once, on delete", async () => {
+    const { rawService, records, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    records.set(app.id, { ...app, darkIconSlug: "plex-dark" })
+    await rawService.delete(app.id, "user-1")
+    expect(cache.remove.mock.calls.map((call) => call[0]).sort()).toEqual([
+      "plex",
+      "plex-dark",
+    ])
+
+    cache.remove.mockClear()
+    const same = await rawService.create(dashboardInput, "user-1")
+    records.set(same.id, { ...same, darkIconSlug: "plex" })
+    await rawService.delete(same.id, "user-1")
+    expect(cache.remove).toHaveBeenCalledTimes(1)
+    expect(cache.remove).toHaveBeenCalledWith("plex")
+  })
+
+  it("keeps keys on delete while another app references them in either slot", async () => {
+    const { rawService, records, cache } = setup()
+    const app = await rawService.create(dashboardInput, "user-1")
+    const other = await rawService.create(
+      { ...dashboardInput, url: "https://other.home", iconSlug: "sonarr" },
+      "user-1",
+    )
+    records.set(app.id, { ...app, darkIconSlug: "dark-x" })
+    records.set(other.id, { ...other, darkIconSlug: "plex" })
+    await rawService.delete(app.id, "user-1")
+    expect(cache.remove.mock.calls.map((call) => call[0])).toEqual(["dark-x"])
+    await rawService.delete(other.id, "user-1")
+    expect(cache.remove.mock.calls.map((call) => call[0]).sort()).toEqual([
+      "dark-x",
+      "plex",
+      "sonarr",
+    ])
   })
 })

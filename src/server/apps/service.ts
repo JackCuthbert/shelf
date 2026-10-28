@@ -80,8 +80,12 @@ export class AppUrlConflictError extends Error {
   }
 }
 
-function iconKey(app: Pick<SharedApp, "iconSource" | "iconSlug" | "iconHash">) {
-  return app.iconSource === "url" ? (app.iconHash ?? "") : (app.iconSlug ?? "")
+function iconKeys(app: SharedApp): Set<string> {
+  return new Set(
+    [app.iconSlug, app.iconHash, app.darkIconSlug, app.darkIconHash].filter(
+      (key): key is string => !!key,
+    ),
+  )
 }
 
 export function createSharedAppService(
@@ -191,9 +195,9 @@ export function createSharedAppService(
             await icons.remove(created)
           throw error
         }
-        const previous = iconKey(existing)
-        const next = iconKey(updated)
-        if (previous !== next) await removeIfUnreferenced(previous)
+        const next = iconKeys(updated)
+        for (const key of iconKeys(existing))
+          if (!next.has(key)) await removeIfUnreferenced(key)
         return updated
       }),
     delete: (id: string, ownerId: string) =>
@@ -202,7 +206,7 @@ export function createSharedAppService(
         if (!existing) throw new AppNotFoundError()
         if (existing.ownerId !== ownerId) throw new AppForbiddenError()
         const deleted = await repository.delete(id)
-        await removeIfUnreferenced(iconKey(deleted))
+        for (const key of iconKeys(deleted)) await removeIfUnreferenced(key)
         return deleted
       }),
   }
