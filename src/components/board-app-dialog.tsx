@@ -7,7 +7,7 @@ import { LuPlus } from "react-icons/lu"
 import { CategorySelect } from "@/components/category-select"
 import { NoAvailableAppsPlaceholder } from "@/components/available-apps-empty-state"
 import { ModalContent } from "@/components/modal"
-import { iconKey } from "@/lib/app-icon"
+import { AppIcon } from "@/components/app-icon"
 
 type App = {
   id: string
@@ -16,6 +16,9 @@ type App = {
   iconSource: string
   iconSlug: string | null
   iconHash: string | null
+  darkIconSource?: string | null
+  darkIconSlug?: string | null
+  darkIconHash?: string | null
 }
 type Category = { id: string; title: string }
 
@@ -114,8 +117,8 @@ export function BoardAppDialog({
                   onClick={() => onAssign(app.id, categoryId || null)}
                   className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt"
                 >
-                  <img
-                    src={`/icons/${iconKey(app)}`}
+                  <AppIcon
+                    app={app}
                     alt=""
                     className="h-9 w-9 shrink-0 object-contain p-1"
                   />

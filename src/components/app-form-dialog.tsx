@@ -21,6 +21,7 @@ import {
 import { ModalContent } from "@/components/modal"
 import { trpc } from "@/components/trpc-provider"
 import { iconKey } from "@/lib/app-icon"
+import { AppIcon } from "@/components/app-icon"
 
 export type AppRecord = {
   id: string
@@ -256,6 +257,9 @@ export function AppFormDialog({
     iconSource: string
     iconSlug: string | null
     iconHash: string | null
+    darkIconSource?: string | null
+    darkIconSlug?: string | null
+    darkIconHash?: string | null
   }>
   existingAppsLoading?: boolean
   onAssignExisting?: (appId: string, categoryId: string | null) => Promise<void>
@@ -518,8 +522,8 @@ export function AppFormDialog({
                           onClick={() => setSelectedExistingAppId(item.id)}
                           className="flex w-full items-center gap-3 border border-line bg-background p-2 text-left hover:border-accent hover:bg-surface-alt aria-pressed:border-accent aria-pressed:bg-surface-alt"
                         >
-                          <img
-                            src={`/icons/${iconKey(item)}`}
+                          <AppIcon
+                            app={item}
                             alt=""
                             className="h-9 w-9 object-contain p-1"
                           />

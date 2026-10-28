@@ -9,7 +9,7 @@ import { AppDetailCheckAction } from "@/components/app-detail-check-action"
 import { AppDetailCopyAction } from "@/components/app-detail-copy-action"
 import { LocalDateTime } from "@/components/local-date-time"
 import { auth } from "@/lib/auth"
-import { iconKey } from "@/lib/app-icon"
+import { AppIcon } from "@/components/app-icon"
 import { APP_NAME, siteTitle } from "@/lib/page-title"
 import type { AppStatusSnapshot } from "@/lib/app-status"
 import { prisma } from "@/lib/prisma"
@@ -85,11 +85,7 @@ export default async function AppPage({
       <main className="mx-auto w-full max-w-3xl flex-1 px-5 py-10 sm:px-6">
         <div className="flex flex-col items-start gap-6 sm:flex-row sm:gap-8">
           <div className="panel flex size-36 shrink-0 items-center justify-center p-6 sm:size-44">
-            <img
-              src={`/icons/${iconKey(app)}`}
-              alt=""
-              className="size-full object-contain"
-            />
+            <AppIcon app={app} alt="" className="size-full object-contain" />
           </div>
           <div className="min-w-0 flex-1">
             <h1 className="break-words text-3xl font-semibold">{app.name}</h1>
@@ -152,26 +148,34 @@ export default async function AppPage({
           <div className="grid items-center gap-1 py-4 sm:grid-cols-[9rem_1fr] sm:gap-4">
             <dt className="text-sm text-muted">Icon source</dt>
             <dd className="min-w-0 break-all text-sm">
-              {app.iconSource === "url" ? (
+              {app.darkIconSource ? (
                 <>
-                  <span>Custom image</span>
-                  {app.customIconUrl && (
-                    <>
-                      {" "}
-                      ·{" "}
-                      <a
-                        href={app.customIconUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="underline underline-offset-2"
-                      >
-                        {app.customIconUrl}
-                      </a>
-                    </>
-                  )}
+                  <span className="block">
+                    Light:{" "}
+                    <IconSourceText
+                      source={app.iconSource}
+                      slug={app.iconSlug}
+                      url={app.customIconUrl}
+                    />
+                  </span>
+                  <span className="block">
+                    Dark:{" "}
+                    <IconSourceText
+                      source={app.darkIconSource}
+                      slug={app.darkIconSlug}
+                      url={app.darkCustomIconUrl}
+                    />
+                  </span>
                 </>
               ) : (
-                <>Dashboard Icons{app.iconSlug ? ` · ${app.iconSlug}` : ""}</>
+                <>
+                  <IconSourceText
+                    source={app.iconSource}
+                    slug={app.iconSlug}
+                    url={app.customIconUrl}
+                  />
+                  {" · used for light and dark"}
+                </>
               )}
             </dd>
           </div>
@@ -264,5 +268,36 @@ export default async function AppPage({
         </dl>
       </main>
     </div>
+  )
+}
+
+function IconSourceText({
+  source,
+  slug,
+  url,
+}: {
+  source: string
+  slug: string | null
+  url: string | null
+}) {
+  if (source !== "url") return <>Dashboard Icons{slug ? ` · ${slug}` : ""}</>
+  return (
+    <>
+      <span>Custom image</span>
+      {url && (
+        <>
+          {" "}
+          ·{" "}
+          <a
+            href={url}
+            target="_blank"
+            rel="noreferrer"
+            className="underline underline-offset-2"
+          >
+            {url}
+          </a>
+        </>
+      )}
+    </>
   )
 }
