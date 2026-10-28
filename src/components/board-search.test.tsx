@@ -224,6 +224,26 @@ describe("BoardSearch", () => {
     expect(html).toContain("Sign in")
   })
 
+  it("places the header actions before the search field in DOM order", () => {
+    const html = renderToStaticMarkup(
+      <BoardSearch
+        boardName="Home"
+        boardNanoid="abcdefgh"
+        apps={apps}
+        categories={[]}
+        user={null}
+      />,
+    )
+    const header = html.slice(
+      html.indexOf("<header"),
+      html.indexOf("</header>"),
+    )
+    expect(header.indexOf("Sign in")).toBeGreaterThan(-1)
+    expect(header.indexOf("Sign in")).toBeLessThan(
+      header.indexOf('id="board-search"'),
+    )
+  })
+
   it("renders each app as a new-tab tile in manual order", () => {
     const html = renderToStaticMarkup(
       <BoardSearch

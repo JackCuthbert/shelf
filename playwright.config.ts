@@ -5,7 +5,7 @@ const baseURL = "http://127.0.0.1:3310"
 
 export default defineConfig({
   testDir: "./e2e",
-  testMatch: ["screenshot.ts", "theme-icons.ts"],
+  testMatch: ["screenshot.ts", "theme-icons.ts", "keyboard-focus.ts"],
   workers: 1,
   retries: 0,
   timeout: 60_000,

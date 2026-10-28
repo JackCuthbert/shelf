@@ -6,5 +6,6 @@
 - On a categorized board, search still matches app names only. Uncategorized matches appear first, followed by categories in manual order. Rank matches within each group; hide groups without matches. See [categories.md](categories.md).
 - The input and results have visible focus states and accessible labels. App links remain reachable with Tab and operable with Enter through normal browser behavior.
 - The search input automatically receives focus when the board view first mounts, so visitors can start typing immediately. Subsequent rerenders do not reclaim focus.
+- Tab from the search input goes to the first app link. The header actions (Add app, user menu or Sign in) precede the search input in keyboard order, so Shift+Tab from search reaches them.
 - Custom search shortcuts are not provided: `/`, Ctrl/Cmd+K, arrow-key result selection, Enter-to-open-a-highlighted-result, and custom Escape handling are absent. Native Tab navigation and Enter activation of focused app links remain available.
 - Search state is local to the viewed board and resets on navigation to another board.
