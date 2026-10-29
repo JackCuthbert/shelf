@@ -38,22 +38,7 @@ const AUTH_STATE = "data/screenshots/owner-auth.json"
 test.describe.configure({ mode: "serial" })
 test.use({ storageState: AUTH_STATE })
 
-test.beforeAll(async ({ browser, baseURL }) => {
-  const context = await browser.newContext({
-    baseURL,
-    storageState: undefined,
-  })
-  const page = await context.newPage()
-  await page.goto("/login")
-  await page.getByLabel("Email", { exact: true }).fill("jack@example.com")
-  await page
-    .getByLabel("Password", { exact: true })
-    .fill("shelf-screenshot-password")
-  await page.getByRole("button", { name: "Sign in", exact: true }).click()
-  await page.waitForURL("**/admin/boards")
-  await context.storageState({ path: AUTH_STATE })
-  await context.close()
-
+test.beforeAll(async () => {
   const images = {
     "/light.png": await readFile("e2e/fixtures/icons/radarr.png"),
     "/dark.png": await readFile("e2e/fixtures/icons/grafana.png"),

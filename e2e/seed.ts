@@ -1,6 +1,7 @@
-import { cp, mkdir, rm } from "node:fs/promises"
+import { cp, mkdir, rm, writeFile } from "node:fs/promises"
 import { resolve } from "node:path"
 import { execFileSync } from "node:child_process"
+import { createHmac } from "node:crypto"
 import { hashPassword } from "better-auth/crypto"
 import { PrismaLibSql } from "@prisma/adapter-libsql"
 import { PrismaClient } from "../src/generated/prisma/client"
@@ -44,6 +45,36 @@ try {
       },
     },
   })
+  const sessionToken = "screenshot-owner-session"
+  await prisma.session.create({
+    data: {
+      id: "demo-session",
+      userId: "demo-user",
+      token: sessionToken,
+      expiresAt: new Date("2100-01-01T00:00:00Z"),
+    },
+  })
+  const signature = createHmac("sha256", process.env.BETTER_AUTH_SECRET!)
+    .update(sessionToken)
+    .digest("base64")
+  await writeFile(
+    `${directory}/owner-auth.json`,
+    JSON.stringify({
+      cookies: [
+        {
+          name: "better-auth.session_token",
+          value: encodeURIComponent(`${sessionToken}.${signature}`),
+          domain: "127.0.0.1",
+          path: "/",
+          expires: -1,
+          httpOnly: true,
+          secure: false,
+          sameSite: "Lax",
+        },
+      ],
+      origins: [],
+    }),
+  )
   await prisma.instance.create({
     data: { id: "singleton", state: "complete", token: "screenshot-setup" },
   })
