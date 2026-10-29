@@ -571,7 +571,7 @@ export function BoardSearch({
                 {group.apps.length === 0 ? (
                   <p className="text-sm text-muted">No apps assigned.</p>
                 ) : (
-                  <ul className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+                  <ul className="grid grid-cols-1 gap-3 min-[360px]:grid-cols-2 sm:grid-cols-3 sm:gap-4 md:grid-cols-4 lg:grid-cols-5 min-[75rem]:grid-cols-6">
                     {group.apps.map(renderTile)}
                   </ul>
                 )}
