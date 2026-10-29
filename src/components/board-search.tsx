@@ -4,7 +4,7 @@ import { useEffect, useMemo, useRef, useState } from "react"
 import { Input } from "@base-ui/react/input"
 import { ContextMenu } from "@base-ui/react/context-menu"
 import { AlertDialog } from "@base-ui/react/alert-dialog"
-import { Popover } from "@base-ui/react/popover"
+import { Tooltip } from "@base-ui/react/tooltip"
 import { useRouter } from "next/navigation"
 import {
   LuCopy,
@@ -127,6 +127,7 @@ function BoardTile({
         : "not checked yet"
       : `last checked ${localTime ?? "…"}${stale ? "; stale" : ""}${checking ? "; checking now" : ""}${lastError ? `; ${lastError}` : ""}`
   const anchorRef = useRef<HTMLDivElement>(null)
+  const infoButtonRef = useRef<HTMLButtonElement>(null)
   const suppressDescription = useRef(false)
   const [contextOpen, setContextOpen] = useState(false)
   const hasDescription = Boolean(app.description)
@@ -150,9 +151,15 @@ function BoardTile({
         }}
       >
         <ContextMenu.Trigger>
-          <Popover.Root
+          <Tooltip.Root
             open={open && !contextOpen && !descriptionBlocked}
-            onOpenChange={(next) => onOpenChange(next && canOpenDescription())}
+            onOpenChange={(next, details) => {
+              const infoButtonPress =
+                details.reason === "outside-press" &&
+                details.event.target instanceof Node &&
+                infoButtonRef.current?.contains(details.event.target)
+              if (!infoButtonPress) onOpenChange(next && canOpenDescription())
+            }}
           >
             <div ref={anchorRef} className="relative">
               <a
@@ -200,16 +207,17 @@ function BoardTile({
               </a>
               {hasDescription && (
                 <>
-                  <Popover.Trigger
-                    openOnHover
-                    delay={0}
+                  <button
+                    ref={infoButtonRef}
+                    type="button"
+                    onClick={() => onOpenChange(!open)}
                     aria-label={`About ${app.name}`}
                     className="absolute bottom-1 left-1 hidden size-8 items-center justify-center border border-line bg-background text-muted hover:text-foreground focus-visible:outline-2 focus-visible:outline-focus [@media(any-pointer:coarse)]:flex"
                   >
                     <LuInfo aria-hidden className="size-4" />
-                  </Popover.Trigger>
-                  <Popover.Portal>
-                    <Popover.Positioner
+                  </button>
+                  <Tooltip.Portal>
+                    <Tooltip.Positioner
                       anchor={anchorRef}
                       side="top"
                       align="center"
@@ -218,20 +226,19 @@ function BoardTile({
                       collisionAvoidance={{ side: "flip", align: "shift" }}
                       className="z-50"
                     >
-                      <Popover.Popup
-                        initialFocus={false}
-                        finalFocus={false}
+                      <Tooltip.Popup
+                        role="tooltip"
                         className="panel pointer-events-none w-fit max-w-[min(20rem,calc(100vw-2rem))] p-3 text-xs shadow-lg outline-none"
                         aria-label={`${app.name} description`}
                       >
                         {app.description}
-                      </Popover.Popup>
-                    </Popover.Positioner>
-                  </Popover.Portal>
+                      </Tooltip.Popup>
+                    </Tooltip.Positioner>
+                  </Tooltip.Portal>
                 </>
               )}
             </div>
-          </Popover.Root>
+          </Tooltip.Root>
         </ContextMenu.Trigger>
         <ContextMenu.Portal>
           <ContextMenu.Positioner className="z-50" collisionPadding={8}>
