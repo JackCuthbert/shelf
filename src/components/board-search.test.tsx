@@ -268,7 +268,8 @@ describe("BoardSearch", () => {
     expect(html).toContain("sm:grid-cols-3")
     expect(html).toContain("md:grid-cols-4")
     expect(html).toContain("lg:grid-cols-5")
-    expect(html).toContain("xl:grid-cols-6")
+    expect(html).toContain("min-[75rem]:grid-cols-6")
+    expect(html).not.toContain("xl:grid-cols-6")
     expect(html).toContain("max-w-6xl")
     expect(html).toContain('aria-label="Responding; last checked …; stale"')
     expect(html).toContain(
