@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.3.2](https://github.com/JackCuthbert/shelf/compare/v0.3.1...v0.3.2) (2026-10-29)
+
+
+### Bug Fixes
+
+* **apps:** show icon slot previews on each theme's tile colour ([08d659a](https://github.com/JackCuthbert/shelf/commit/08d659ab7a7d5f859cf16ad90cc29093720e7941))
+* **board:** show six tiles per row from 1200px wide screens ([207ba21](https://github.com/JackCuthbert/shelf/commit/207ba219abfaebee3f1307969198eed2321c3235))
+* **board:** tab from a tile with a description reaches the next tile in one press ([d3beb0d](https://github.com/JackCuthbert/shelf/commit/d3beb0d9570dddc1a97b58413882152a53fe89ac))
+
 ## [0.3.1](https://github.com/JackCuthbert/shelf/compare/v0.3.0...v0.3.1) (2026-10-28)
 
 
