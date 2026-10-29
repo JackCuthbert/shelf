@@ -265,7 +265,7 @@ test("keeps editor previews on fixed backgrounds in both appearances", async ({
   const light = await backgrounds()
   await page.emulateMedia({ colorScheme: "dark" })
   expect(await backgrounds()).toEqual(light)
-  expect(light).toEqual(["rgb(238, 242, 231)", "rgb(25, 31, 23)"])
+  expect(light).toEqual(["rgb(255, 255, 255)", "rgb(20, 24, 31)"])
 })
 
 test("saves mixed sources, copies as a snapshot and shares one icon", async ({

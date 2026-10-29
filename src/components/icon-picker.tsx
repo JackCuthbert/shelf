@@ -20,8 +20,8 @@ export type IconSlot = "light" | "dark"
 export type SavedIcon = { selection: IconSelection; key: string }
 
 const SLOTS: Record<IconSlot, { label: string; surface: string }> = {
-  light: { label: "Light mode", surface: "bg-[#eef2e7] text-[#222c1b]" },
-  dark: { label: "Dark mode", surface: "bg-[#191f17] text-[#edf4e4]" },
+  light: { label: "Light mode", surface: "bg-[#ffffff] text-[#1f2229]" },
+  dark: { label: "Dark mode", surface: "bg-[#14181f] text-[#e9ebef]" },
 }
 
 function selectionLabel(value: IconSelection) {

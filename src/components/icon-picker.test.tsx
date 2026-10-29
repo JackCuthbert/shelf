@@ -34,8 +34,8 @@ describe("IconPicker", () => {
     expect(html).toContain("Editing light mode")
     expect(html).toContain("Use for dark mode →")
     expect(html).toContain("plex-light")
-    expect(html).toContain("bg-[#eef2e7]")
-    expect(html).toContain("bg-[#191f17]")
+    expect(html).toContain("bg-[#ffffff]")
+    expect(html).toContain("bg-[#14181f]")
   })
 
   it("edits the dark slot and offers the copy back to light", () => {
